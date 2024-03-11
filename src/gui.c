@@ -1739,18 +1739,13 @@ void nwipe_gui_prng( void )
                            tab1,
                            "Performs best on a 64-bit CPU. Use ISAAC if this system has a 32-bit CPU.   " );
                 break;
-           case 3:
+            case 3:
 
-                mvwprintw( main_window,
-                           yy++,
-                           tab1,
-                           "AES-CTR Ni Prototype   " );
+                mvwprintw( main_window, yy++, tab1, "AES-CTR Ni Prototype   " );
                 break;
+        }
 
-        } 
-
-	
-	/* switch */
+        /* switch */
 
         /* Add a border. */
         box( main_window, 0, 0 );
@@ -1810,7 +1805,7 @@ void nwipe_gui_prng( void )
                 {
                     nwipe_options.prng = &nwipe_isaac64;
                 }
-		if( focus == 3 )
+                if( focus == 3 )
                 {
                     nwipe_options.prng = &nwipe_aes_ctr_prng;
                 }

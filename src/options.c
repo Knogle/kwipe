@@ -547,7 +547,6 @@ void nwipe_options_log( void )
     extern nwipe_prng_t nwipe_isaac64;
     extern nwipe_prng_t nwipe_aes_ctr_prng;
 
-
     /**
      *  Prints a manifest of options to the log.
      */
