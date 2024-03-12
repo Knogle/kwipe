@@ -9,7 +9,6 @@ void aes_ctr_prng_init(aes_ctr_state_t* state, unsigned long init_key[], unsigne
 {
     unsigned char key[32]; // Size for 256 Bit
     memset(key, 0, 32);
-    printf("Aufruf");
     // Assuming init_key is already a pointer to a sufficient amount of data,
     // or you adjust this part to match your actual key format and size.
     // Use SHA-256 to generate a 256-bit key.
