@@ -34,19 +34,13 @@ static void next_state( aes_ctr_state_t* state )
     }
 }
 
-unsigned long aes_ctr_prng_genrand_uint32( aes_ctr_state_t* state )
-{
-    unsigned long result = 0;
+void aes_ctr_prng_genrand_uint128(aes_ctr_state_t* state, unsigned char output[16]) {
+    // Initialize the output array with zeros
+    memset(output, 0, 16);
 
-    CRYPTO_ctr128_encrypt( (unsigned char*) &result,
-                           (unsigned char*) &result,
-                           sizeof( result ),
-                           &state->aes_key,
-                           state->ivec,
-                           state->ecount,
-                           &state->num,
-                           (block128_f) AES_encrypt );
-    next_state( state );  // Ensure this function does not cause errors
+    // Use CRYPTO_ctr128_encrypt to directly encrypt 128 bits (16 bytes)
+    CRYPTO_ctr128_encrypt(output, output, 16, &state->aes_key, state->ivec, state->ecount, &state->num, (block128_f) AES_encrypt);
 
-    return result & 0xFFFFFFFF;
+    // No need to mask the result as we are already dealing with a 128-bit array
+    next_state(state); // Ensure this function does not cause errors
 }

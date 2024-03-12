@@ -275,21 +275,38 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
 int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
-    size_t words = count / SIZE_OF_AES_CTR_PRNG;  // the values of aes_ctr_prng_genrand_uint32 is strictly 4 bytes
+    size_t words = count / SIZE_OF_AES_CTR_PRNG;
 
-    /* AES CTR PRNG returns 4-bytes per call, so progress by 4 bytes. */
+    unsigned char output[16];  // Buffer to hold the 128-bit random number
+
+    /* Loop to fill the buffer with 128-bit blocks */
     for( size_t ii = 0; ii < words; ++ii )
     {
-        u32_to_buffer( bufpos, aes_ctr_prng_genrand_uint32( (aes_ctr_state_t*) *state ), SIZE_OF_AES_CTR_PRNG );
-        bufpos += SIZE_OF_AES_CTR_PRNG;
+        aes_ctr_prng_genrand_uint128( (aes_ctr_state_t*) *state, output );
+
+        // Extracting 64-bit parts from the 128-bit output
+        uint64_t part1 = ( (uint64_t) output[0] << 56 ) | ( (uint64_t) output[1] << 48 )
+            | ( (uint64_t) output[2] << 40 ) | ( (uint64_t) output[3] << 32 ) | ( (uint64_t) output[4] << 24 )
+            | ( (uint64_t) output[5] << 16 ) | ( (uint64_t) output[6] << 8 ) | (uint64_t) output[7];
+        uint64_t part2 = ( (uint64_t) output[8] << 56 ) | ( (uint64_t) output[9] << 48 )
+            | ( (uint64_t) output[10] << 40 ) | ( (uint64_t) output[11] << 32 ) | ( (uint64_t) output[12] << 24 )
+            | ( (uint64_t) output[13] << 16 ) | ( (uint64_t) output[14] << 8 ) | (uint64_t) output[15];
+
+        // Writing the 64-bit parts to the buffer
+        u64_to_buffer( bufpos, part1, 8 );  // Write the first 64-bit part
+        bufpos += SIZE_OF_AES_CTR_PRNG / 2;  // Advance the buffer position
+        u64_to_buffer( bufpos, part2, 8 );  // Write the second 64-bit part
+        bufpos += SIZE_OF_AES_CTR_PRNG / 2;  // Advance the buffer position
     }
 
-    /* If there is some remainder copy only relevant number of bytes to not overflow the buffer. */
-    const size_t remain = count % SIZE_OF_AES_CTR_PRNG;  // SIZE_OF_AES_CTR_PRNG is strictly 4 bytes
+    /* Handle remaining bytes if count is not a multiple of SIZE_OF_AES_CTR_PRNG */
+    const size_t remain = count % SIZE_OF_AES_CTR_PRNG;
     if( remain > 0 )
     {
-        u32_to_buffer( bufpos, aes_ctr_prng_genrand_uint32( (aes_ctr_state_t*) *state ), remain );
+        aes_ctr_prng_genrand_uint128( (aes_ctr_state_t*) *state, output );
+        // Copy the remaining bytes
+        memcpy( bufpos, output, remain );
     }
 
-    return 0;
+    return 0;  // Success
 }

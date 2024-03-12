@@ -46,7 +46,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 #define SIZE_OF_ISAAC 4
 #define SIZE_OF_ISAAC64 8
 
-/* Size of the AES-CTR is not derived from the architecture, but it is strictly 4 or 8 bytes */
-#define SIZE_OF_AES_CTR_PRNG 4
+/* Size of the AES-CTR is not derived from the architecture, but it is strictly 16 bytes */
+#define SIZE_OF_AES_CTR_PRNG 16
 
 #endif /* PRNG_H_ */
