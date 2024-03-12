@@ -15,9 +15,8 @@ typedef struct {
 // Initializes the AES-CTR random number generator
 void init_aes_ctr(aes_ctr_state_t* state, const unsigned char* key);
 
-// Generates a 128-bit random number using AES-CTR and stores it in the provided output array
-// The output array must be an unsigned char array with at least 16 elements
-void aes_ctr_prng_genrand_uint128(aes_ctr_state_t* state, unsigned char output[16]);
+// Generates a 128-bit random number using AES-CTR and stores it directly in the output buffer
+void aes_ctr_prng_genrand_uint128_to_buf(aes_ctr_state_t* state, unsigned char* bufpos);
 
 #endif  // AES_CTR_RNG_H
 

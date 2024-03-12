@@ -29,13 +29,11 @@ static void next_state(aes_ctr_state_t* state)
     }
 }
 
-void aes_ctr_prng_genrand_uint128(aes_ctr_state_t* state, unsigned char output[16]) {
-    // Initialize the output array with zeros
-    memset(output, 0, 16);
+void aes_ctr_prng_genrand_uint128_to_buf(aes_ctr_state_t* state, unsigned char* bufpos) {
+    // Initialize bufpos directly with random numbers, avoiding the use of a separate output buffer
+    CRYPTO_ctr128_encrypt(bufpos, bufpos, 16, &state->aes_key, state->ivec, state->ecount, &state->num, (block128_f) AES_encrypt);
 
-    // Use CRYPTO_ctr128_encrypt to directly encrypt 128 bits (16 bytes)
-    CRYPTO_ctr128_encrypt(output, output, 16, &state->aes_key, state->ivec, state->ecount, &state->num, (block128_f)AES_encrypt);
-
-    next_state(state); // Ensure this function does not cause errors
+    // Ensure that next_state is called correctly without causing errors
+    next_state(state);
 }
 

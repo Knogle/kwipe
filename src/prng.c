@@ -21,9 +21,6 @@
 #include "prng.h"
 #include "context.h"
 #include "logging.h"
-#include <emmintrin.h>  // For SSE2
-#include <stdint.h>
-#include <string.h>
 
 #include "mt19937ar-cok/mt19937ar-cok.h"
 #include "isaac_rand/isaac_rand.h"
@@ -280,16 +277,10 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_AES_CTR_PRNG;
 
-    unsigned char output[16];  // Buffer to hold the 128-bit random number
-
-    /* Loop to fill the buffer with 128-bit blocks */
+    /* Loop to fill the buffer with 128-bit blocks directly */
     for( size_t ii = 0; ii < words; ++ii )
     {
-        aes_ctr_prng_genrand_uint128( (aes_ctr_state_t*) *state, output );
-
-        // Using SSE to load and store the 128-bit output directly
-        __m128i data = _mm_loadu_si128( (__m128i*) output );
-        _mm_storeu_si128( (__m128i*) bufpos, data );
+        aes_ctr_prng_genrand_uint128_to_buf( (aes_ctr_state_t*) *state, bufpos );
         bufpos += 16;  // Move to the next block
     }
 
@@ -297,9 +288,10 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
     const size_t remain = count % SIZE_OF_AES_CTR_PRNG;
     if( remain > 0 )
     {
-        aes_ctr_prng_genrand_uint128( (aes_ctr_state_t*) *state, output );
+        unsigned char temp_output[16];  // Temporary buffer for the last block
+        aes_ctr_prng_genrand_uint128_to_buf( (aes_ctr_state_t*) *state, temp_output );
         // Copy the remaining bytes
-        memcpy( bufpos, output, remain );
+        memcpy( bufpos, temp_output, remain );
     }
 
     return 0;  // Success
