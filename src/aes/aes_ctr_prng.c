@@ -1,35 +1,31 @@
 #include "aes_ctr_prng.h"
 #include <openssl/rand.h>
 #include <string.h>
-// #include <stdio.h> // Necessary for printf
 #include <openssl/aes.h>
 #include <openssl/modes.h>
+#include <openssl/sha.h> // Include for SHA256
 
-void aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigned long key_length )
+void aes_ctr_prng_init(aes_ctr_state_t* state, unsigned long init_key[], unsigned long key_length)
 {
-    unsigned char key[16];  // Expanded to 128 Bit
-    memset( key, 0, 16 );
+    unsigned char key[32]; // Size for 256 Bit
+    memset(key, 0, 32);
+    printf("Aufruf");
+    // Assuming init_key is already a pointer to a sufficient amount of data,
+    // or you adjust this part to match your actual key format and size.
+    // Use SHA-256 to generate a 256-bit key.
+    SHA256((unsigned char*)init_key, key_length * sizeof(unsigned long), key);
 
-    // printf("Original key length (in unsigned long units): %lu\n", key_length);
-    // printf("Original key (64 Bit): %016lx\n", init_key[0]);
-
-    // Repeat the 64-bit key to create a 128-bit key.
-    for( size_t i = 0; i < 16; i++ )
-    {
-        key[i] = ( (unsigned char*) init_key )[i % 8];
-    }
-
-    AES_set_encrypt_key( key, 128, &state->aes_key );  // 128 Bit key
-    memset( state->ivec, 0, AES_BLOCK_SIZE );
+    AES_set_encrypt_key(key, 256, &state->aes_key); // Use the 256-bit key
+    memset(state->ivec, 0, AES_BLOCK_SIZE);
     state->num = 0;
-    memset( state->ecount, 0, AES_BLOCK_SIZE );
+    memset(state->ecount, 0, AES_BLOCK_SIZE);
 }
 
-static void next_state( aes_ctr_state_t* state )
+static void next_state(aes_ctr_state_t* state)
 {
-    for( int i = 0; i < AES_BLOCK_SIZE; ++i )
+    for(int i = 0; i < AES_BLOCK_SIZE; ++i)
     {
-        if( ++state->ivec[i] )
+        if(++state->ivec[i])
             break;
     }
 }
@@ -39,8 +35,8 @@ void aes_ctr_prng_genrand_uint128(aes_ctr_state_t* state, unsigned char output[1
     memset(output, 0, 16);
 
     // Use CRYPTO_ctr128_encrypt to directly encrypt 128 bits (16 bytes)
-    CRYPTO_ctr128_encrypt(output, output, 16, &state->aes_key, state->ivec, state->ecount, &state->num, (block128_f) AES_encrypt);
+    CRYPTO_ctr128_encrypt(output, output, 16, &state->aes_key, state->ivec, state->ecount, &state->num, (block128_f)AES_encrypt);
 
-    // No need to mask the result as we are already dealing with a 128-bit array
     next_state(state); // Ensure this function does not cause errors
 }
+
