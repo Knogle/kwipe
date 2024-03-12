@@ -21,6 +21,9 @@
 #include "prng.h"
 #include "context.h"
 #include "logging.h"
+#include <emmintrin.h>  // For SSE2
+#include <stdint.h>
+#include <string.h>
 
 #include "mt19937ar-cok/mt19937ar-cok.h"
 #include "isaac_rand/isaac_rand.h"
@@ -284,19 +287,10 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
     {
         aes_ctr_prng_genrand_uint128( (aes_ctr_state_t*) *state, output );
 
-        // Extracting 64-bit parts from the 128-bit output
-        uint64_t part1 = ( (uint64_t) output[0] << 56 ) | ( (uint64_t) output[1] << 48 )
-            | ( (uint64_t) output[2] << 40 ) | ( (uint64_t) output[3] << 32 ) | ( (uint64_t) output[4] << 24 )
-            | ( (uint64_t) output[5] << 16 ) | ( (uint64_t) output[6] << 8 ) | (uint64_t) output[7];
-        uint64_t part2 = ( (uint64_t) output[8] << 56 ) | ( (uint64_t) output[9] << 48 )
-            | ( (uint64_t) output[10] << 40 ) | ( (uint64_t) output[11] << 32 ) | ( (uint64_t) output[12] << 24 )
-            | ( (uint64_t) output[13] << 16 ) | ( (uint64_t) output[14] << 8 ) | (uint64_t) output[15];
-
-        // Writing the 64-bit parts to the buffer
-        u64_to_buffer( bufpos, part1, 8 );  // Write the first 64-bit part
-        bufpos += SIZE_OF_AES_CTR_PRNG / 2;  // Advance the buffer position
-        u64_to_buffer( bufpos, part2, 8 );  // Write the second 64-bit part
-        bufpos += SIZE_OF_AES_CTR_PRNG / 2;  // Advance the buffer position
+        // Using SSE to load and store the 128-bit output directly
+        __m128i data = _mm_loadu_si128( (__m128i*) output );
+        _mm_storeu_si128( (__m128i*) bufpos, data );
+        bufpos += 16;  // Move to the next block
     }
 
     /* Handle remaining bytes if count is not a multiple of SIZE_OF_AES_CTR_PRNG */
