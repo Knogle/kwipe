@@ -7,32 +7,24 @@
 
 void aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigned long key_length )
 {
-    unsigned char key[32];  // Größe für 256 Bits
+    unsigned char key[32];  // Size for 256 bits
 
     SHA256_CTX sha256;
     SHA256_Init( &sha256 );
-    SHA256_Update(
-        &sha256, (unsigned char*) init_key, key_length * sizeof( unsigned long ) );  // Füge den init_key hinzu
+    SHA256_Update( &sha256, (unsigned char*) init_key, key_length * sizeof( unsigned long ) );  // Add the init_key
 
-    // Optional: Ein Salt hinzufügen, um die Eindeutigkeit zu erhöhen
+    // Optional: Add a salt to increase uniqueness
     // const unsigned char salt[] = "optional salt value";
     // SHA256_Update(&sha256, salt, sizeof(salt));
 
-    SHA256_Final( key, &sha256 );  // Generiere den finalen Schlüssel
+    SHA256_Final( key, &sha256 );  // Generate the final key
 
-    AES_set_encrypt_key( key, 256, &state->aes_key );  // Verwende den 256-Bit-Schlüssel
-    memset( state->ivec, 0, AES_BLOCK_SIZE );  // Initialisiere das IV mit Nullen
+    AES_set_encrypt_key( key, 256, &state->aes_key );  // Use the 256-bit key
+    memset( state->ivec, 0, AES_BLOCK_SIZE );  // Initialize the IV with zeros
     state->num = 0;
     memset( state->ecount, 0, AES_BLOCK_SIZE );
-
-    // Drucke den finalen Schlüssel in Hexadezimal
-    printf( "Final Key: " );
-    for( int i = 0; i < sizeof( key ); i++ )
-    {
-        printf( "%02x", key[i] );
-    }
-    printf( "\n" );
 }
+
 static void next_state( aes_ctr_state_t* state )
 {
     for( int i = 0; i < AES_BLOCK_SIZE; ++i )
