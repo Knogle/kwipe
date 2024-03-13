@@ -5,20 +5,29 @@
 #include <openssl/modes.h>
 #include <openssl/sha.h> // Include for SHA256
 
-void aes_ctr_prng_init(aes_ctr_state_t* state, unsigned long init_key[], unsigned long key_length)
-{
-    unsigned char key[32]; // Size for 256 Bit
-    memset(key, 0, 32);
-    // Assuming init_key is already a pointer to a sufficient amount of data,
-    // or you adjust this part to match your actual key format and size.
-    // Use SHA-256 to generate a 256-bit key.
-    SHA256((unsigned char*)init_key, key_length * sizeof(unsigned long), key);
+void aes_ctr_prng_init(aes_ctr_state_t* state, unsigned long init_key[], unsigned long key_length) {
+    unsigned char temp_key[32]; // Temporary storage for the random key
+    unsigned char key[32]; // Size for 256 bits
+    
+    // Generate a strong, random key using RAND_bytes
+    if (RAND_bytes(temp_key, sizeof(temp_key)) != 1) {
+        // Error handling: RAND_bytes failed to generate a key
+        // Insert abort or error handling here
+    }
+    
+    // Use SHA256 to generate the final key from the random key and init_key
+    SHA256_CTX sha256;
+    SHA256_Init(&sha256);
+    SHA256_Update(&sha256, temp_key, sizeof(temp_key)); // Add the random key
+    SHA256_Update(&sha256, (unsigned char*)init_key, key_length * sizeof(unsigned long)); // Add the init_key
+    SHA256_Final(key, &sha256); // Generate the final key
 
     AES_set_encrypt_key(key, 256, &state->aes_key); // Use the 256-bit key
-    memset(state->ivec, 0, AES_BLOCK_SIZE);
+    memset(state->ivec, 0, AES_BLOCK_SIZE); // Initialize the IV with zeros (or use RAND_bytes for the IV)
     state->num = 0;
     memset(state->ecount, 0, AES_BLOCK_SIZE);
 }
+
 
 static void next_state(aes_ctr_state_t* state)
 {
