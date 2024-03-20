@@ -57,6 +57,31 @@ static void next_state( aes_ctr_state_t* state )
             break;
     }
 }
+/*
+void print_aes_ctr_state_to_file(const aes_ctr_state_t* state, const char* filename) {
+    FILE* file = fopen(filename, "a"); // Öffne die Datei im Append-Modus
+    if (file == NULL) {
+        perror("Fehler beim Öffnen der Datei");
+        return;
+    }
+
+    fprintf(file, "AES CTR State:\n");
+    fprintf(file, "IVec: ");
+    for(int i = 0; i < AES_BLOCK_SIZE; i++) {
+        fprintf(file, "%02x", state->ivec[i]);
+    }
+    fprintf(file, "\nNum: %u\n", state->num);
+    fprintf(file, "ECount: ");
+    for(int i = 0; i < AES_BLOCK_SIZE; i++) {
+        fprintf(file, "%02x", state->ecount[i]);
+    }
+    // Der AES-Schlüssel ist direkt nicht zugänglich für Ausgabe,
+    // aus Sicherheitsgründen überspringen wir diesen Teil.
+    fprintf(file, "\nAES Key: [Nicht direkt zugänglich]\n\n");
+
+    fclose(file); // Schließe die Datei
+}
+*/
 
 void aes_ctr_prng_genrand_uint128_to_buf( aes_ctr_state_t* state, unsigned char* bufpos )
 {
