@@ -48,12 +48,12 @@
 #include <stdio.h>
 #include "mt19937ar-cok.h"
 
-/* initializes state[N] with a seed */
+/* initializes state[MT_STATE_SIZE] with a seed */
 void init_genrand( twister_state_t* state, unsigned long s)
 {
 	int j;
 	state->array[0]= s & 0xffffffffUL;
-	for( j = 1; j < N; j++ )
+	for( j = 1; j < MT_STATE_SIZE; j++ )
 	{
 		state->array[j] = (1812433253UL * (state->array[j-1] ^ (state->array[j-1] >> 30)) + j); 
 		state->array[j] &= 0xffffffffUL;  /* for >32 bit machines */
@@ -67,7 +67,7 @@ void twister_init( twister_state_t* state, unsigned long init_key[], unsigned lo
 {
     int i = 1;
 	 int j = 0;
-    int k = ( N > key_length ? N : key_length );
+    int k = ( MT_STATE_SIZE > key_length ? MT_STATE_SIZE : key_length );
 
     init_genrand( state, 19650218UL );
 
@@ -78,9 +78,9 @@ void twister_init( twister_state_t* state, unsigned long init_key[], unsigned lo
 		++i;
 		++j;
 
-		if ( i >= N )
+		if ( i >= MT_STATE_SIZE )
 		{
-			state->array[0] = state->array[N-1];
+			state->array[0] = state->array[MT_STATE_SIZE-1];
 			i = 1;
 		}
 
@@ -90,15 +90,15 @@ void twister_init( twister_state_t* state, unsigned long init_key[], unsigned lo
 		}
     }
 
-    for( k = N -1; k; k-- )
+    for( k = MT_STATE_SIZE -1; k; k-- )
 	 {
 		state->array[i] = (state->array[i] ^ ((state->array[i-1] ^ (state->array[i-1] >> 30)) * 1566083941UL)) - i;
 		state->array[i] &= 0xffffffffUL;
 		++i;
 
-		if ( i >= N )
+		if ( i >= MT_STATE_SIZE )
 		{
-			state->array[0] = state->array[N-1];
+			state->array[0] = state->array[MT_STATE_SIZE-1];
 			i = 1;
 		}
     }
@@ -113,12 +113,14 @@ static void next_state( twister_state_t* state )
     unsigned long *p = state->array;
     int j;
 
+    // Ensures the generator is initialized
     if( state->initf == 0) { init_genrand( state, 5489UL ); }
-    state->left = N;
+    state->left = MT_STATE_SIZE;
     state->next = state->array;
-    for( j = N - M + 1; --j; p++ ) { *p = p[M]   ^ TWIST(p[0], p[1]); }
-    for( j = M; --j; p++ )         { *p = p[M-N] ^ TWIST(p[0], p[1]); }
-    *p = p[M-N] ^ TWIST(p[0], state->array[0]);
+
+    for( j = MT_STATE_SIZE - MT_MIDDLE_WORD + 1; --j; p++ ) { *p = p[MT_MIDDLE_WORD]   ^ TWIST(p[0], p[1]); }
+    for( j = MT_MIDDLE_WORD; --j; p++ )         { *p = p[MT_MIDDLE_WORD-MT_STATE_SIZE] ^ TWIST(p[0], p[1]); }
+    *p = p[MT_MIDDLE_WORD-MT_STATE_SIZE] ^ TWIST(p[0], state->array[0]);
 }
 
 /* generates a random number on [0,0xffffffff]-interval */
@@ -126,10 +128,11 @@ unsigned long twister_genrand_int32( twister_state_t* state )
 {
     unsigned long y;
 
+    // Advance internal state if necessary
     if ( --state->left == 0 ) { next_state( state ); }
     y = *state->next++;
 
-    /* Tempering */
+    // Tempering
     y ^= (y >> 11);
     y ^= (y << 7) & 0x9d2c5680UL;
     y ^= (y << 15) & 0xefc60000UL;
@@ -137,3 +140,5 @@ unsigned long twister_genrand_int32( twister_state_t* state )
 
     return y;
 }
+
+	
