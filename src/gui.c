@@ -1599,7 +1599,7 @@ void nwipe_gui_prng( void )
     extern nwipe_prng_t nwipe_twister;
     extern nwipe_prng_t nwipe_isaac;
     extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
+    extern nwipe_prng_t nwipe_sha_dbrg_prng;
     extern int terminate_signal;
 
     /* The number of implemented PRNGs. */
@@ -1637,7 +1637,7 @@ void nwipe_gui_prng( void )
     {
         focus = 2;
     }
-    if( nwipe_options.prng == &nwipe_aes_ctr_prng )
+    if( nwipe_options.prng == &nwipe_sha_dbrg_prng )
     {
         focus = 3;
     }
@@ -1656,7 +1656,7 @@ void nwipe_gui_prng( void )
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_twister.label );
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_isaac.label );
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_isaac64.label );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_aes_ctr_prng.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_sha_dbrg_prng.label );
         yy++;
 
         /* Print the cursor. */
@@ -1741,7 +1741,7 @@ void nwipe_gui_prng( void )
                 break;
             case 3:
 
-                mvwprintw( main_window, yy++, tab1, "AES-CTR Ni Prototype   " );
+                mvwprintw( main_window, yy++, tab1, "SHA-512 DBRG Prototype   " );
                 break;
         }
 
@@ -1807,7 +1807,7 @@ void nwipe_gui_prng( void )
                 }
                 if( focus == 3 )
                 {
-                    nwipe_options.prng = &nwipe_aes_ctr_prng;
+                    nwipe_options.prng = &nwipe_sha_dbrg_prng;
                 }
                 return;
 

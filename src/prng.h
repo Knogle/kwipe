@@ -35,9 +35,9 @@ int nwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE );
 int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE );
 int nwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE );
 
-/* AES-CTR-NI prototypes. */
-int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE );
+/* SHA-512 DBRG prototypes. */
+int nwipe_sha_dbrg_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
+int nwipe_sha_dbrg_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 
 /* Size of the twister is not derived from the architecture, but it is strictly 4 bytes */
 #define SIZE_OF_TWISTER 4
@@ -46,7 +46,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 #define SIZE_OF_ISAAC 4
 #define SIZE_OF_ISAAC64 8
 
-/* Size of the AES-CTR is not derived from the architecture, but it is strictly 16 bytes */
-#define SIZE_OF_AES_CTR_PRNG 16
+/* Size of the SHA-512 DBRG is not derived from the architecture, but it is strictly 64 bytes */
+#define SIZE_OF_SHA_DBRG_PRNG 64
 
 #endif /* PRNG_H_ */

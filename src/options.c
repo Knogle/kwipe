@@ -42,7 +42,7 @@ int nwipe_options_parse( int argc, char** argv )
     extern nwipe_prng_t nwipe_twister;
     extern nwipe_prng_t nwipe_isaac;
     extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
+    extern nwipe_prng_t nwipe_sha_dbrg_prng;
 
     /* The getopt() result holder. */
     int nwipe_opt;
@@ -491,9 +491,9 @@ int nwipe_options_parse( int argc, char** argv )
                     nwipe_options.prng = &nwipe_isaac64;
                     break;
                 }
-                if( strcmp( optarg, "aes_ctr_prng" ) == 0 )
+                if( strcmp( optarg, "sha_dbrg" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_aes_ctr_prng;
+                    nwipe_options.prng = &nwipe_sha_dbrg_prng;
                     break;
                 }
 
@@ -545,7 +545,7 @@ void nwipe_options_log( void )
     extern nwipe_prng_t nwipe_twister;
     extern nwipe_prng_t nwipe_isaac;
     extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
+    extern nwipe_prng_t nwipe_sha_dbrg_prng;
 
     /**
      *  Prints a manifest of options to the log.
@@ -597,9 +597,9 @@ void nwipe_options_log( void )
     {
         nwipe_log( NWIPE_LOG_NOTICE, "  prng     = Mersenne Twister" );
     }
-    if( nwipe_options.prng == &nwipe_aes_ctr_prng )
+    if( nwipe_options.prng == &nwipe_sha_dbrg_prng )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = AES-CTR New Instructions (EXPERIMENTAL!)" );
+        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = SHA-512 HMAC DBRG (EXPERIMENTAL!)" );
     }
     else
     {
@@ -692,7 +692,7 @@ void display_help()
     puts( "  -l, --logfile=FILE      Filename to log to. Default is STDOUT\n" );
     puts( "  -P, --PDFreportpath=PATH Path to write PDF reports to. Default is \".\"" );
     puts( "                           If set to \"noPDF\" no PDF reports are written.\n" );
-    puts( "  -p, --prng=METHOD       PRNG option (mersenne|twister|isaac|isaac64|aes-ctr)\n" );
+    puts( "  -p, --prng=METHOD       PRNG option (mersenne|twister|isaac|isaac64|sha_dbrg)\n" );
     puts( "  -q, --quiet             Anonymize logs and the GUI by removing unique data, i.e." );
     puts( "                          serial numbers, LU WWN Device ID, and SMBIOS/DMI data" );
     puts( "                          XXXXXX = S/N exists, ????? = S/N not obtainable\n" );
