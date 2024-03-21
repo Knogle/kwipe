@@ -5,7 +5,7 @@
 
 void sha_dbrg_prng_init(sha_dbrg_state_t* state, unsigned long init_key[], unsigned long key_length) {
     EVP_MD_CTX* mdctx;
-    const EVP_MD* md = EVP_sha512();
+    const EVP_MD* md = EVP_sha256();
     mdctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(mdctx, md, NULL);
 
@@ -19,7 +19,7 @@ void sha_dbrg_prng_init(sha_dbrg_state_t* state, unsigned long init_key[], unsig
 
 static void next_state(sha_dbrg_state_t* state) {
     EVP_MD_CTX* mdctx;
-    const EVP_MD* md = EVP_sha512();
+    const EVP_MD* md = EVP_sha256();
     mdctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(mdctx, md, NULL);
 
@@ -30,10 +30,10 @@ static void next_state(sha_dbrg_state_t* state) {
     EVP_MD_CTX_free(mdctx);
 }
 
-void sha_dbrg_prng_genrand_uint512_to_buf(sha_dbrg_state_t* state, unsigned char* bufpos) {
+void sha_dbrg_prng_genrand_uint256_to_buf(sha_dbrg_state_t* state, unsigned char* bufpos) {
     // Generate random data based on the current state
     EVP_MD_CTX* mdctx;
-    const EVP_MD* md = EVP_sha512();
+    const EVP_MD* md = EVP_sha256();
     mdctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(mdctx, md, NULL);
     EVP_DigestUpdate(mdctx, state->seed, sizeof(state->seed));

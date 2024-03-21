@@ -1741,7 +1741,7 @@ void nwipe_gui_prng( void )
                 break;
             case 3:
 
-                mvwprintw( main_window, yy++, tab1, "SHA-512 DBRG Prototype   " );
+                mvwprintw( main_window, yy++, tab1, "SHA-256 DBRG Prototype   " );
                 break;
         }
 

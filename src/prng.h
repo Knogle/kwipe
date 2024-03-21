@@ -46,7 +46,7 @@ int nwipe_sha_dbrg_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 #define SIZE_OF_ISAAC 4
 #define SIZE_OF_ISAAC64 8
 
-/* Size of the SHA-512 DBRG is not derived from the architecture, but it is strictly 64 bytes */
-#define SIZE_OF_SHA_DBRG_PRNG 64
+/* Size of the SHA-256 DBRG is not derived from the architecture, but it is strictly 32 bytes */
+#define SIZE_OF_SHA_DBRG_PRNG 32
 
 #endif /* PRNG_H_ */
