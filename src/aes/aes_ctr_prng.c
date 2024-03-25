@@ -60,29 +60,15 @@ void aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsign
 /* Generates pseudorandom numbers and writes them to a buffer.
    - state: Pointer to the initialized AES CTR PRNG state.
    - bufpos: Target buffer where the pseudorandom numbers will be written. */
-void aes_ctr_prng_genrand_uint128_to_buf( aes_ctr_state_t* state, unsigned char* bufpos )
-{
-    unsigned char temp_buffer[16]; /* Intermediate buffer for 128 bits */
+void aes_ctr_prng_genrand_uint128_to_buf(aes_ctr_state_t* state, unsigned char* bufpos) {
+    unsigned char temp_buffer[16]; // Intermediate buffer for 128 bits
     int outlen;
 
-    /* Generate pseudorandom numbers in the intermediate buffer */
-    EVP_EncryptUpdate( state->ctx, temp_buffer, &outlen, temp_buffer, sizeof( temp_buffer ) );
+    // Generate pseudorandom numbers in the intermediate buffer
+    EVP_EncryptUpdate(state->ctx, temp_buffer, &outlen, temp_buffer, sizeof(temp_buffer));
 
-    /* Write the data from the intermediate buffer to bufpos in four 32-bit steps.
-       This process is crucial to prevent a buffer overflow of bufpos, as it ensures
-       that exactly 16 bytes (128 bits) of pseudorandom data are safely transferred
-       into bufpos. Copying the data in controlled 32-bit segments allows for precise
-       management of the memory space allocated to bufpos, mitigating the risk of
-       writing beyond its allocated size. */
-    int i = 0;
-    while( i < 4 )
-    {
-        /* Copy each 32-bit segment from the intermediate buffer to the target buffer.
-           This step-by-step approach is essential for maintaining the integrity of
-           the buffer and ensuring that only the intended amount of data is written.
-           The ternary operator is used here for illustrative purposes and does not
-           alter the functionality. */
-        memcpy( bufpos + ( i * 4 ), temp_buffer + ( i * 4 ), 4 );
-        i = ( i < 4 ) ? i + 1 : 4;  // Ternary operator to increment i or keep it at 4
-    }
+    // Directly copy the generated random data to the destination buffer
+    memcpy(bufpos, temp_buffer, 16);
 }
+
+

@@ -375,27 +375,37 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;  // Success
 }
 
-int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
-{
+int nwipe_aes_ctr_prng_read(NWIPE_PRNG_READ_SIGNATURE) {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_AES_CTR_PRNG;
 
-    /* Loop to fill the buffer with 128-bit blocks directly */
-    for( size_t ii = 0; ii < words; ++ii )
-    {
-        aes_ctr_prng_genrand_uint128_to_buf( (aes_ctr_state_t*) *state, bufpos );
-        bufpos += SIZE_OF_AES_CTR_PRNG;  // Move to the next block
+    /* Loop to fill the buffer with 128-bit blocks */
+    for (size_t ii = 0; ii < words; ++ii) {
+        unsigned char temp_buffer[16]; // Temporary buffer for 128-bit random data
+        aes_ctr_prng_genrand_uint128_to_buf((aes_ctr_state_t*)*state, temp_buffer);
+
+        // Now, instead of incrementing bufpos by SIZE_OF_AES_CTR_PRNG, we use u32_to_buffer to write each 32-bit block
+        for (int i = 0; i < 4; ++i) {
+            // Extract a 32-bit value from temp_buffer
+            u32 val;
+            memcpy(&val, temp_buffer + (i * 4), 4);
+
+            // Use u32_to_buffer to write this 32-bit value into the main buffer
+            u32_to_buffer(bufpos, val, 4);
+            bufpos += 4; // Move to the next position in buffer for the next 32-bit block
+        }
     }
 
     /* Handle remaining bytes if count is not a multiple of SIZE_OF_AES_CTR_PRNG */
     const size_t remain = count % SIZE_OF_AES_CTR_PRNG;
-    if( remain > 0 )
-    {
-        unsigned char temp_output[16];  // Temporary buffer for the last block
-        aes_ctr_prng_genrand_uint128_to_buf( (aes_ctr_state_t*) *state, temp_output );
-        // Copy the remaining bytes
-        memcpy( bufpos, temp_output, remain );
+    if (remain > 0) {
+        unsigned char temp_output[16]; // Temporary buffer for the last block
+        aes_ctr_prng_genrand_uint128_to_buf((aes_ctr_state_t*)*state, temp_output);
+
+        // For the remaining bytes, directly copy them to the buffer
+        memcpy(bufpos, temp_output, remain);
     }
 
     return 0;  // Success
 }
+
