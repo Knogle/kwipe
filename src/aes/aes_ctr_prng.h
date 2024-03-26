@@ -29,14 +29,18 @@
 #include <stdint.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
+#include <stdbool.h> // Für bool Datentyp
 
 // Structure to store the state of the AES-CTR random number generator
 typedef struct
 {
-    EVP_CIPHER_CTX* ctx;
-    unsigned char ivec[AES_BLOCK_SIZE];
-    unsigned int num;
-    unsigned char ecount[AES_BLOCK_SIZE];
+    EVP_CIPHER_CTX* ctx;            // Verschlüsselungskontext
+    unsigned char *key;             // Dynamisch zugewiesener Schlüssel
+    size_t key_size;                // Größe des Schlüssels
+    unsigned char ivec[AES_BLOCK_SIZE]; // Initialisierungsvektor
+    unsigned int num;               // Zähler für CTR-Modus
+    unsigned char ecount[AES_BLOCK_SIZE]; // Zählerblock
+    bool is_initialized;            // Initialisierungsstatus
 } aes_ctr_state_t;
 
 // Initializes the AES-CTR random number generator

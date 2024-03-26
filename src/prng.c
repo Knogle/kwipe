@@ -405,7 +405,7 @@ int nwipe_aes_ctr_prng_read(NWIPE_PRNG_READ_SIGNATURE) {
         // For the remaining bytes, directly copy them to the buffer
         memcpy(bufpos, temp_output, remain);
     }
-
+    aes_ctr_prng_cleanup((aes_ctr_state_t*)*state);
     return 0;  // Success
 }
 
