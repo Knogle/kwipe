@@ -354,25 +354,19 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
 
     if( *state == NULL )
     {
-        // Use calloc for memory allocation and initialization
-        *state = calloc( 1, sizeof( aes_ctr_state_t ) );  
+        *state = calloc( 1, sizeof( aes_ctr_state_t ) );  // Verwende calloc für Speicherzuweisung und Initialisierung
         if( *state == NULL )
         {
-            // If calloc failed, log the error and exit
+            // calloc fehlgeschlagen, logge den Fehler und breche ab
             nwipe_log( NWIPE_LOG_FATAL, "Failed to allocate memory for AES CTR PRNG state." );
-            return -1;  // Returning an error code to signal a problem
+            return -1;  // Rückgabe eines Fehlercodes signalisiert ein Problem
         }
     }
 
-    // Set static seed and its length
-    unsigned long static_seed[] = {0x12345678, 0x9abcdef0}; // Example of a static seed
-    unsigned long seed_length = sizeof(static_seed) / sizeof(unsigned long); // Calculate the length of the seed
-
-    // Call aes_ctr_prng_init with the static seed and its length
     aes_ctr_prng_init(
-        (aes_ctr_state_t*) *state, static_seed, seed_length );
+        (aes_ctr_state_t*) *state, (unsigned long*) ( seed->s ), seed->length / sizeof( unsigned long ) );
 
-    return 0;  // Success
+    return 0;  // Erfolg
 }
 
 int nwipe_aes_ctr_prng_read(NWIPE_PRNG_READ_SIGNATURE) {
