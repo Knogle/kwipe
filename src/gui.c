@@ -2317,7 +2317,7 @@ void nwipe_gui_method( void )
     extern int terminate_signal;
 
     /* The number of implemented methods. */
-    const int count = 10;
+    const int count = 11;
 
     /* The first tabstop. */
     const int tab1 = 2;
@@ -2379,6 +2379,10 @@ void nwipe_gui_method( void )
     {
         focus = 9;
     }
+    if( nwipe_options.method == &nwipe_non_seq_random )
+    {
+        focus = 10;
+    }
 
     do
     {
@@ -2401,6 +2405,7 @@ void nwipe_gui_method( void )
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_verify_zero ) );
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_verify_one ) );
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_is5enh ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_non_seq_random ) );
         mvwprintw( main_window, yy++, tab1, "                                             " );
 
         /* Print the cursor. */
@@ -2536,6 +2541,18 @@ void nwipe_gui_method( void )
                 mvwprintw( main_window, 10, tab2, "device to verify the PRNG stream was             " );
                 mvwprintw( main_window, 11, tab2, "successfully written.                            " );
                 break;
+            case 10:
+                mvwprintw( main_window, 2, tab2, "Security Level: Depends on Rounds" );
+
+                mvwprintw( main_window, 4, tab2, "Randomized Block Write:                          " );
+                mvwprintw( main_window, 5, tab2, "In contrast to a standard PRNG stream, this      " );
+                mvwprintw( main_window, 6, tab2, "method writes data blocks in a randomized order  " );
+                mvwprintw( main_window, 7, tab2, "across the entire disk. This ensures that even   " );
+                mvwprintw( main_window, 8, tab2, "if the wipe process is interrupted early,        " );
+                mvwprintw( main_window, 9, tab2, "a significant portion of the disk's data is      " );
+                mvwprintw( main_window, 10, tab2, "already destroyed. The security level of this    " );
+                mvwprintw( main_window, 11, tab2, "method increases with the number of rounds       " );
+                mvwprintw( main_window, 12, tab2, "performed, similar to the PRNG stream method.    " );
 
         } /* switch */
 
@@ -2630,6 +2647,9 @@ void nwipe_gui_method( void )
 
         case 9:
             nwipe_options.method = &nwipe_is5enh;
+            break;
+        case 10:
+            nwipe_options.method = &nwipe_non_seq_random;
             break;
     }
 

@@ -48,6 +48,10 @@
 #include "pass.h"
 #include "logging.h"
 
+#define MIN_BLOCK_SIZE_PERCENTAGE 0.01
+#define MAX_BLOCK_SIZE_PERCENTAGE 0.10
+#define MIN_BLOCK_SIZE 256
+
 /*
  * Comment Legend
  *
@@ -68,6 +72,7 @@ const char* nwipe_one_label = "Fill With Ones";
 const char* nwipe_verify_zero_label = "Verify Zeros (0x00)";
 const char* nwipe_verify_one_label = "Verify Ones  (0xFF)";
 const char* nwipe_is5enh_label = "HMG IS5 Enhanced";
+const char* nwipe_non_seq_random_label = "Non-Seq PRNG Stream";
 
 const char* nwipe_unknown_label = "Unknown Method (FIXME)";
 
@@ -117,6 +122,10 @@ const char* nwipe_method_label( void* method )
     if( method == &nwipe_is5enh )
     {
         return nwipe_is5enh_label;
+    }
+    if( method == &nwipe_non_seq_random )
+    {
+        return nwipe_non_seq_random_label;
     }
 
     /* else */
@@ -749,6 +758,89 @@ void* nwipe_random( void* ptr )
 
     return NULL;
 } /* nwipe_random */
+
+void* nwipe_non_seq_random( void* ptr )
+{
+    /**
+     * Fill the device with a stream from the PRNG in a non-sequential manner.
+     */
+
+    nwipe_context_t* c;
+    c = (nwipe_context_t*) ptr;
+
+    /* get current time at the start of the wipe */
+    time( &c->start_time );
+
+    /* set wipe in progress flag for GUI */
+    c->wipe_status = 1;
+
+    /* Define the random method. */
+    nwipe_pattern_t patterns[] = { { -1, "" }, { 0, NULL } };
+
+    size_t disk_size = c->device_size;
+    size_t min_block_size = MIN_BLOCK_SIZE;
+    size_t max_block_size = disk_size * MAX_BLOCK_SIZE_PERCENTAGE;
+    size_t written = 0;
+    size_t block_size;
+    off_t offset;
+
+    srand( time( NULL ) );
+
+    // Calculate number of blocks
+    size_t total_blocks = disk_size / min_block_size;
+
+    // Create an array of block indices and shuffle them
+    size_t* block_indices = malloc( total_blocks * sizeof( size_t ) );
+    for( size_t i = 0; i < total_blocks; i++ )
+    {
+        block_indices[i] = i;
+    }
+
+    for( size_t i = total_blocks - 1; i > 0; i-- )
+    {
+        size_t j = rand() % ( i + 1 );
+        size_t temp = block_indices[i];
+        block_indices[i] = block_indices[j];
+        block_indices[j] = temp;
+    }
+
+    for( size_t i = 0; i < total_blocks; i++ )
+    {
+        block_size = ( rand() % ( max_block_size - min_block_size + 1 ) ) + min_block_size;
+        if( written + block_size > disk_size )
+        {
+            block_size = disk_size - written;
+        }
+
+        offset = block_indices[i] * min_block_size;
+
+        // Seek to the random offset
+        if( lseek( c->device_fd, offset, SEEK_SET ) == -1 )
+        {
+            perror( "lseek error" );
+            break;
+        }
+
+        // Write random data
+        if( nwipe_runmethod( c, patterns ) != 0 )
+        {
+            perror( "write error" );
+            break;
+        }
+
+        written += block_size;
+    }
+
+    free( block_indices );
+
+    /* Finished. Set the wipe_status flag so that the GUI knows */
+    c->wipe_status = 0;
+
+    /* get current time at the end of the wipe */
+    time( &c->end_time );
+
+    return NULL;
+} /* nwipe_non_seq_random */
 
 int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
 {

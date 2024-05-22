@@ -54,6 +54,7 @@ void* nwipe_zero( void* ptr );
 void* nwipe_one( void* ptr );
 void* nwipe_verify_zero( void* ptr );
 void* nwipe_verify_one( void* ptr );
+void* nwipe_non_seq_random( void* ptr );
 
 void calculate_round_size( nwipe_context_t* );
 

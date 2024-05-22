@@ -410,6 +410,12 @@ int nwipe_options_parse( int argc, char** argv )
                     break;
                 }
 
+                if( strcmp( optarg, "non-seq-random" ) == 0 )
+                {
+                    nwipe_options.method = &nwipe_non_seq_random;
+                    break;
+                }
+
                 if( strcmp( optarg, "zero" ) == 0 || strcmp( optarg, "quick" ) == 0 )
                 {
                     nwipe_options.method = &nwipe_zero;
