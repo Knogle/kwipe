@@ -257,40 +257,12 @@ int main( int argc, char** argv )
         exit( 1 );
     }
 
-    /* Open the entropy source. */
-    nwipe_entropy = open( NWIPE_KNOB_ENTROPY, O_RDONLY );
-
-    /* Check the result. */
-    if( nwipe_entropy < 0 )
+    /* Initialize the entropy source using /dev/urandom, including validation */
+    if( nwipe_entropy_dev_urandom_init() != ENTROPY_INIT_SUCCESS )
     {
-        nwipe_perror( errno, __FUNCTION__, "open" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to open entropy source %s.", NWIPE_KNOB_ENTROPY );
+        nwipe_log( NWIPE_LOG_FATAL, "Unable to initialize and validate entropy source /dev/urandom." );
         cleanup();
-        return errno;
-    }
-
-    nwipe_log( NWIPE_LOG_NOTICE, "Opened entropy source '%s'.", NWIPE_KNOB_ENTROPY );
-
-    /* Validate the entropy using nwipe_check_entropy */
-    uint64_t entropy_sample;
-    if( read( nwipe_entropy, &entropy_sample, sizeof( entropy_sample ) ) != sizeof( entropy_sample ) )
-    {
-        nwipe_log( NWIPE_LOG_FATAL, "Failed to read sufficient entropy from the source." );
-        cleanup();
-        close( nwipe_entropy );
         return -1;
-    }
-
-    if( nwipe_check_entropy( entropy_sample ) == 0 )
-    {
-        nwipe_log( NWIPE_LOG_FATAL, "Entropy validation failed. Insufficient randomness detected." );
-        cleanup();
-        close( nwipe_entropy );
-        return -1;
-    }
-    else
-    {
-        nwipe_log( NWIPE_LOG_INFO, "Entropy validation passed. Sufficient randomness detected." );
     }
 
     /* Block relevant signals in main thread. Any other threads that are     */

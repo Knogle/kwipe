@@ -26,47 +26,56 @@ typedef enum {
     NWIPE_LOG_NOTIMESTAMP
 } nwipe_log_t;
 
-extern void nwipe_log(nwipe_log_t level, const char* format, ...);
+extern void nwipe_log( nwipe_log_t level, const char* format, ... );
 
 // Shannon entropy calculation
-double shannon_entropy(uint64_t num) {
-    int bit_count[2] = {0, 0};
+double shannon_entropy( uint64_t num )
+{
+    int bit_count[2] = { 0, 0 };
 
-    for (int i = 0; i < N; i++) {
-        bit_count[(num >> i) & 1]++;
+    for( int i = 0; i < N; i++ )
+    {
+        bit_count[( num >> i ) & 1]++;
     }
 
-    double p0 = (double)bit_count[0] / N;
-    double p1 = (double)bit_count[1] / N;
+    double p0 = (double) bit_count[0] / N;
+    double p1 = (double) bit_count[1] / N;
 
-    if (p0 == 0.0 || p1 == 0.0) {
+    if( p0 == 0.0 || p1 == 0.0 )
+    {
         return 0.0;
     }
 
-    return -p0 * log2(p0) - p1 * log2(p1);
+    return -p0 * log2( p0 ) - p1 * log2( p1 );
 }
 
 // Bit frequency test
-double bit_frequency_test(uint64_t num) {
+double bit_frequency_test( uint64_t num )
+{
     int count_ones = 0;
 
-    for (int i = 0; i < N; i++) {
-        if ((num >> i) & 1) {
+    for( int i = 0; i < N; i++ )
+    {
+        if( ( num >> i ) & 1 )
+        {
             count_ones++;
         }
     }
 
-    return (double)count_ones / N;
+    return (double) count_ones / N;
 }
 
 // Runs test
-int runs_test(uint64_t num) {
+int runs_test( uint64_t num )
+{
     int runs = 1;
     int prev_bit = num & 1;
 
-    for (int i = 1; i < N; i++) {
-        int current_bit = (num >> i) & 1;
-        if (current_bit != prev_bit) {
+    for( int i = 1; i < N; i++ )
+    {
+        int current_bit = ( num >> i ) & 1;
+        if( current_bit != prev_bit )
+        {
             runs++;
             prev_bit = current_bit;
         }
@@ -76,87 +85,104 @@ int runs_test(uint64_t num) {
 }
 
 // Auto-correlation test
-double auto_correlation_test(uint64_t num) {
+double auto_correlation_test( uint64_t num )
+{
     int matches = 0;
 
-    for (int i = 0; i < N - 1; i++) {
-        if (((num >> i) & 1) == ((num >> (i + 1)) & 1)) {
+    for( int i = 0; i < N - 1; i++ )
+    {
+        if( ( ( num >> i ) & 1 ) == ( ( num >> ( i + 1 ) ) & 1 ) )
+        {
             matches++;
         }
     }
 
-    return (double)matches / (N - 1);
+    return (double) matches / ( N - 1 );
 }
 
 // Entropy check function
-int nwipe_check_entropy(uint64_t num) {
-    double entropy = shannon_entropy(num);
-    if (entropy == 0.0) {
-        nwipe_log(NWIPE_LOG_FATAL, "Entropy calculation failed. All bits are identical.");
+int nwipe_check_entropy( uint64_t num )
+{
+    double entropy = shannon_entropy( num );
+    if( entropy == 0.0 )
+    {
+        nwipe_log( NWIPE_LOG_FATAL, "Entropy calculation failed. All bits are identical." );
         return 0;
     }
 
-    double frequency = bit_frequency_test(num);
-    int runs = runs_test(num);
-    double correlation = auto_correlation_test(num);
+    double frequency = bit_frequency_test( num );
+    int runs = runs_test( num );
+    double correlation = auto_correlation_test( num );
 
-    nwipe_log(NWIPE_LOG_INFO, "Shannon Entropy: %f", entropy);
-    nwipe_log(NWIPE_LOG_INFO, "Bit Frequency (proportion of 1s): %f", frequency);
-    nwipe_log(NWIPE_LOG_INFO, "Number of Runs: %d", runs);
-    nwipe_log(NWIPE_LOG_INFO, "Auto-correlation: %f", correlation);
+    nwipe_log( NWIPE_LOG_INFO, "Shannon Entropy: %f", entropy );
+    nwipe_log( NWIPE_LOG_INFO, "Bit Frequency (proportion of 1s): %f", frequency );
+    nwipe_log( NWIPE_LOG_INFO, "Number of Runs: %d", runs );
+    nwipe_log( NWIPE_LOG_INFO, "Auto-correlation: %f", correlation );
 
-    if (entropy > 0.9 && frequency > 0.3 && frequency < 0.7 && runs > 10 && runs < 54 && correlation < 0.7) {
-        nwipe_log(NWIPE_LOG_INFO, "Entropy check passed. Sufficient randomness detected. Entropy: %f", entropy);
+    if( entropy > 0.9 && frequency > 0.3 && frequency < 0.7 && runs > 10 && runs < 54 && correlation < 0.7 )
+    {
+        nwipe_log( NWIPE_LOG_INFO, "Entropy check passed. Sufficient randomness detected. Entropy: %f", entropy );
         return 1;
-    } else {
-        nwipe_log(NWIPE_LOG_ERROR, "Entropy check failed. Insufficient randomness. Entropy: %f", entropy);
+    }
+    else
+    {
+        nwipe_log( NWIPE_LOG_ERROR, "Entropy check failed. Insufficient randomness. Entropy: %f", entropy );
         return 0;
     }
 }
 
 // /dev/urandom Initialisierungsfunktion
-int nwipe_entropy_dev_urandom_init(void) {
-    nwipe_entropy_fd = open(NWIPE_KNOB_ENTROPY, O_RDONLY);
+int nwipe_entropy_dev_urandom_init( void )
+{
+    nwipe_entropy_fd = open( NWIPE_KNOB_ENTROPY, O_RDONLY );
 
-    if (nwipe_entropy_fd < 0) {
-        nwipe_perror(errno, __FUNCTION__, "open");
-        nwipe_log(NWIPE_LOG_FATAL, "Unable to open entropy source %s.", NWIPE_KNOB_ENTROPY);
+    if( nwipe_entropy_fd < 0 )
+    {
+        nwipe_perror( errno, __FUNCTION__, "open" );
+        nwipe_log( NWIPE_LOG_FATAL, "Unable to open entropy source %s.", NWIPE_KNOB_ENTROPY );
         return ENTROPY_INIT_FAILURE;
     }
 
-    nwipe_log(NWIPE_LOG_NOTICE, "Opened entropy source '%s'.", NWIPE_KNOB_ENTROPY);
+    nwipe_log( NWIPE_LOG_NOTICE, "Opened entropy source '%s'.", NWIPE_KNOB_ENTROPY );
 
     uint64_t entropy_sample;
-    if (read(nwipe_entropy_fd, &entropy_sample, sizeof(entropy_sample)) != sizeof(entropy_sample)) {
-        nwipe_log(NWIPE_LOG_FATAL, "Failed to read sufficient entropy from the source.");
-        close(nwipe_entropy_fd);
+    if( read( nwipe_entropy_fd, &entropy_sample, sizeof( entropy_sample ) ) != sizeof( entropy_sample ) )
+    {
+        nwipe_log( NWIPE_LOG_FATAL, "Failed to read sufficient entropy from the source." );
+        close( nwipe_entropy_fd );
         nwipe_entropy_fd = -1;
         return ENTROPY_INIT_FAILURE;
     }
 
-    if (nwipe_check_entropy(entropy_sample) == 0) {
-        nwipe_log(NWIPE_LOG_FATAL, "Entropy validation failed. Insufficient randomness detected.");
-        close(nwipe_entropy_fd);
+    if( nwipe_check_entropy( entropy_sample ) == 0 )
+    {
+        nwipe_log( NWIPE_LOG_FATAL, "Entropy validation failed. Insufficient randomness detected." );
+        close( nwipe_entropy_fd );
         nwipe_entropy_fd = -1;
         return ENTROPY_VALIDATION_FAILURE;
-    } else {
-        nwipe_log(NWIPE_LOG_INFO, "Entropy validation passed. Sufficient randomness detected.");
+    }
+    else
+    {
+        nwipe_log( NWIPE_LOG_INFO, "Entropy validation passed. Sufficient randomness detected." );
     }
 
     return ENTROPY_INIT_SUCCESS;
 }
 
 // /dev/urandom Lesefunktion
-uint64_t nwipe_entropy_dev_urandom_read(void) {
+uint64_t nwipe_entropy_dev_urandom_read( void )
+{
     uint64_t value = 0;
-    if (nwipe_entropy_fd == -1) {
-        fprintf(stderr, "Entropy source not initialized\n");
+    if( nwipe_entropy_fd == -1 )
+    {
+        fprintf( stderr, "Entropy source not initialized\n" );
         return 0;
     }
 
-    ssize_t result = read(nwipe_entropy_fd, &value, sizeof(value));
-    if (result != sizeof(value)) {
-        perror("Failed to read from entropy source");
+    ssize_t result = read( nwipe_entropy_fd, &value, sizeof( value ) );
+    if( result != sizeof( value ) )
+    {
+        perror( "Failed to read from entropy source" );
         return 0;
     }
 
@@ -164,35 +190,43 @@ uint64_t nwipe_entropy_dev_urandom_read(void) {
 }
 
 // OpenSSL Initialisierungsfunktion
-int nwipe_entropy_openssl_init(void) {
-    if (RAND_poll() == 0) {
-        nwipe_log(NWIPE_LOG_FATAL, "OpenSSL PRNG initialization failed.");
+int nwipe_entropy_openssl_init( void )
+{
+    if( RAND_poll() == 0 )
+    {
+        nwipe_log( NWIPE_LOG_FATAL, "OpenSSL PRNG initialization failed." );
         return ENTROPY_INIT_FAILURE;
     }
 
-    nwipe_log(NWIPE_LOG_NOTICE, "Initialized OpenSSL PRNG.");
+    nwipe_log( NWIPE_LOG_NOTICE, "Initialized OpenSSL PRNG." );
 
     uint64_t entropy_sample;
-    if (RAND_bytes((unsigned char*)&entropy_sample, sizeof(entropy_sample)) != 1) {
-        nwipe_log(NWIPE_LOG_FATAL, "Failed to read sufficient entropy from OpenSSL PRNG.");
+    if( RAND_bytes( (unsigned char*) &entropy_sample, sizeof( entropy_sample ) ) != 1 )
+    {
+        nwipe_log( NWIPE_LOG_FATAL, "Failed to read sufficient entropy from OpenSSL PRNG." );
         return ENTROPY_INIT_FAILURE;
     }
 
-    if (nwipe_check_entropy(entropy_sample) == 0) {
-        nwipe_log(NWIPE_LOG_FATAL, "Entropy validation failed. Insufficient randomness detected.");
+    if( nwipe_check_entropy( entropy_sample ) == 0 )
+    {
+        nwipe_log( NWIPE_LOG_FATAL, "Entropy validation failed. Insufficient randomness detected." );
         return ENTROPY_VALIDATION_FAILURE;
-    } else {
-        nwipe_log(NWIPE_LOG_INFO, "Entropy validation passed. Sufficient randomness detected.");
+    }
+    else
+    {
+        nwipe_log( NWIPE_LOG_INFO, "Entropy validation passed. Sufficient randomness detected." );
     }
 
     return ENTROPY_INIT_SUCCESS;
 }
 
 // OpenSSL Lesefunktion
-uint64_t nwipe_entropy_openssl_read(void) {
+uint64_t nwipe_entropy_openssl_read( void )
+{
     uint64_t value = 0;
-    if (RAND_bytes((unsigned char*)&value, sizeof(value)) != 1) {
-        perror("Failed to read from OpenSSL entropy source");
+    if( RAND_bytes( (unsigned char*) &value, sizeof( value ) ) != 1 )
+    {
+        perror( "Failed to read from OpenSSL entropy source" );
         return 0;
     }
 
@@ -249,18 +283,14 @@ uint64_t nwipe_entropy_rdseed_read(void) {
 }
 */
 // Instanz der Struktur für /dev/urandom
-nwipe_entropy_algorithm_t nwipe_entropy_dev_urandom = {
-    "Linux Kernel (/dev/urandom)",
-    nwipe_entropy_dev_urandom_init,
-    nwipe_entropy_dev_urandom_read
-};
+nwipe_entropy_algorithm_t nwipe_entropy_dev_urandom = { "Linux Kernel (/dev/urandom)",
+                                                        nwipe_entropy_dev_urandom_init,
+                                                        nwipe_entropy_dev_urandom_read };
 
 // Instanz der Struktur für OpenSSL
-nwipe_entropy_algorithm_t nwipe_entropy_openssl = {
-    "OpenSSL PRNG",
-    nwipe_entropy_openssl_init,
-    nwipe_entropy_openssl_read
-};
+nwipe_entropy_algorithm_t nwipe_entropy_openssl = { "OpenSSL PRNG",
+                                                    nwipe_entropy_openssl_init,
+                                                    nwipe_entropy_openssl_read };
 
 /*
 // Instanz der Struktur für RDSEED
