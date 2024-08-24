@@ -28,6 +28,11 @@ int cleanup();
 void check_for_autopoweroff( void );
 void* signal_hand( void* );
 
+#include <stdint.h>
+// Declare the long_seed_to_int function
+int long_seed_to_int(uint64_t seed);
+
+
 #ifndef _LARGEFILE64_SOURCE
 #define _LARGEFILE64_SOURCE
 #endif

@@ -80,6 +80,18 @@ int devnamecmp( const void* a, const void* b )
     return ( ret );
 }
 
+/**
+ * Converts a uint64_t entropy seed into an int.
+ * Only the lower 32 bits of the uint64_t value are used.
+ * 
+ * @param seed The 64-bit entropy seed to be converted.
+ * @return An int value derived from the lower 32 bits of the seed.
+ */
+int long_seed_to_int(uint64_t seed) {
+    return (int)(seed & 0xFFFFFFFF);  // Mask the upper 32 bits and convert to int
+}
+
+
 int main( int argc, char** argv )
 {
     int nwipe_optind;  // The result of nwipe_options().
@@ -257,13 +269,25 @@ int main( int argc, char** argv )
         exit( 1 );
     }
 
-    /* Initialize the entropy source using /dev/urandom, including validation */
-    if( nwipe_entropy_dev_urandom_init() != ENTROPY_INIT_SUCCESS )
-    {
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to initialize and validate entropy source /dev/urandom." );
+    // Initialize the entropy source using /dev/urandom
+    if (nwipe_entropy_dev_urandom_init() != ENTROPY_INIT_SUCCESS) {
+        nwipe_log(NWIPE_LOG_FATAL, "Unable to initialize and validate entropy source /dev/urandom.");
         cleanup();
         return -1;
     }
+
+    // Read entropy sample (uint64_t)
+    uint64_t entropy_sample = nwipe_entropy_dev_urandom_read();
+    if (entropy_sample == 0) {
+        nwipe_log(NWIPE_LOG_FATAL, "Failed to read sufficient entropy from /dev/urandom.");
+        cleanup();
+        return -1;
+    }
+
+    // Convert the uint64_t entropy sample to int using long_seed_to_int
+    nwipe_entropy = long_seed_to_int(entropy_sample);
+
+
 
     /* Block relevant signals in main thread. Any other threads that are     */
     /*        created after this will also block those signals.              */
