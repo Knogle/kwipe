@@ -27,6 +27,7 @@ typedef enum {
 } nwipe_log_t;
 
 extern void nwipe_log( nwipe_log_t level, const char* format, ... );
+extern void nwipe_perror( int nwipe_errno, const char* f, const char* s );
 
 // Shannon entropy calculation
 double shannon_entropy( uint64_t num )

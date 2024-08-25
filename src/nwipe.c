@@ -80,18 +80,6 @@ int devnamecmp( const void* a, const void* b )
     return ( ret );
 }
 
-/**
- * Converts a uint64_t entropy seed into an int.
- * Only the lower 32 bits of the uint64_t value are used.
- * 
- * @param seed The 64-bit entropy seed to be converted.
- * @return An int value derived from the lower 32 bits of the seed.
- */
-int long_seed_to_int(uint64_t seed) {
-    return (int)(seed & 0xFFFFFFFF);  // Mask the upper 32 bits and convert to int
-}
-
-
 int main( int argc, char** argv )
 {
     int nwipe_optind;  // The result of nwipe_options().
@@ -285,8 +273,8 @@ int main( int argc, char** argv )
     }
 
     // Convert the uint64_t entropy sample to int using long_seed_to_int
-    nwipe_entropy = long_seed_to_int(entropy_sample);
-
+    //Hier anpassen!
+    nwipe_entropy = (int)(entropy_sample);
 
 
     /* Block relevant signals in main thread. Any other threads that are     */
