@@ -1,155 +1,39 @@
-/*
-    This code is modified for use in nwipe.
-
-   A C-program for MT19937, with initialization improved 2002/2/10.
-   Coded by Takuji Nishimura and Makoto Matsumoto.
-   This is a faster version by taking Shawn Cokus's optimization,
-   Matthe Bellew's simplification, Isaku Wada's real version.
-
-   Before using, initialize the state by using init_genrand(seed)
-   or init_by_array(init_key, key_length).
-
-   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
-   All rights reserved.
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions
-   are met:
-
-     1. Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
-
-     2. Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
-
-     3. The names of its contributors may not be used to endorse or promote
-        products derived from this software without specific prior written
-        permission.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-
-   Any feedback is very welcome.
-   http://www.math.keio.ac.jp/matumoto/emt.html
-   email: matumoto@math.keio.ac.jp
-*/
-
 #include <stdio.h>
-#include "mt19937ar-cok.h"
+#include "../include/SFMT-src-1.5.1/SFMT.h"  // SFMT-Header-Datei
+#include <stdint.h> // Für uint32_t
 
-/* initializes state[MT_STATE_SIZE] with a seed */
-void init_genrand( twister_state_t* state, unsigned long s )
-{
-    int j;
-    state->array[0] = s & 0xffffffffUL;
-    for( j = 1; j < MT_STATE_SIZE; j++ )
-    {
-        state->array[j] = ( 1812433253UL * ( state->array[j - 1] ^ ( state->array[j - 1] >> 30 ) ) + j );
-        state->array[j] &= 0xffffffffUL; /* for >32 bit machines */
-    }
-    state->left = 1;
-    state->initf = 1;
+// Definition des Zustands für den Zufallszahlengenerator
+typedef struct {
+    sfmt_t sfmt_state;  // Der SFMT-Zustand
+    int initf;  // Flag zur Überprüfung, ob der Generator initialisiert wurde
+} twister_state_t;
+
+/* Initialisiert state mit einem Seed */
+void init_genrand(twister_state_t* state, unsigned long s) {
+    sfmt_init_gen_rand(&state->sfmt_state, s);  // Initialisiert den SFMT-Zustand
+    state->initf = 1;  // Markiert als initialisiert
 }
 
-void twister_init( twister_state_t* state, unsigned long init_key[], unsigned long key_length )
-{
-    int i = 1;
-    int j = 0;
-    int k = ( MT_STATE_SIZE > key_length ? MT_STATE_SIZE : key_length );
+/* Initialisiert state mit einem Array von Seed-Werten */
+void twister_init(twister_state_t* state, unsigned long init_key[], unsigned long key_length) {
+    uint32_t key32[key_length];  // Erstelle ein Array von uint32_t
 
-    init_genrand( state, 19650218UL );
-
-    for( ; k; k-- )
-    {
-        state->array[i] = ( state->array[i] ^ ( ( state->array[i - 1] ^ ( state->array[i - 1] >> 30 ) ) * 1664525UL ) )
-            + init_key[j] + j;
-        state->array[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
-        ++i;
-        ++j;
-
-        if( i >= MT_STATE_SIZE )
-        {
-            state->array[0] = state->array[MT_STATE_SIZE - 1];
-            i = 1;
-        }
-
-        if( j >= key_length )
-        {
-            j = 0;
-        }
+    // Konvertiere unsigned long in uint32_t
+    for (unsigned long i = 0; i < key_length; ++i) {
+        key32[i] = (uint32_t)init_key[i];
     }
 
-    for( k = MT_STATE_SIZE - 1; k; k-- )
-    {
-        state->array[i] =
-            ( state->array[i] ^ ( ( state->array[i - 1] ^ ( state->array[i - 1] >> 30 ) ) * 1566083941UL ) ) - i;
-        state->array[i] &= 0xffffffffUL;
-        ++i;
-
-        if( i >= MT_STATE_SIZE )
-        {
-            state->array[0] = state->array[MT_STATE_SIZE - 1];
-            i = 1;
-        }
-    }
-
-    state->array[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */
-    state->left = 1;
-    state->initf = 1;
+    // Initialisiere SFMT mit dem konvertierten Array
+    sfmt_init_by_array(&state->sfmt_state, key32, key_length);
+    state->initf = 1;  // Markiert als initialisiert
 }
 
-static void next_state( twister_state_t* state )
-{
-    unsigned long* p = state->array;
-    int j;
-
-    // Ensures the generator is initialized
-    if( state->initf == 0 )
-    {
-        init_genrand( state, 5489UL );
+/* Generiert eine Zufallszahl auf dem Intervall [0, 0xffffffff] */
+unsigned long twister_genrand_int32(twister_state_t* state) {
+    // Überprüfen, ob der Generator initialisiert wurde
+    if (state->initf == 0) {
+        init_genrand(state, 5489UL);  // Standard-Seed, wenn nicht initialisiert
     }
-    state->left = MT_STATE_SIZE;
-    state->next = state->array;
 
-    for( j = MT_STATE_SIZE - MT_MIDDLE_WORD + 1; --j; p++ )
-    {
-        *p = p[MT_MIDDLE_WORD] ^ TWIST( p[0], p[1] );
-    }
-    for( j = MT_MIDDLE_WORD; --j; p++ )
-    {
-        *p = p[MT_MIDDLE_WORD - MT_STATE_SIZE] ^ TWIST( p[0], p[1] );
-    }
-    *p = p[MT_MIDDLE_WORD - MT_STATE_SIZE] ^ TWIST( p[0], state->array[0] );
-}
-
-/* generates a random number on [0,0xffffffff]-interval */
-unsigned long twister_genrand_int32( twister_state_t* state )
-{
-    unsigned long y;
-
-    // Advance internal state if necessary
-    if( --state->left == 0 )
-    {
-        next_state( state );
-    }
-    y = *state->next++;
-
-    // Tempering
-    y ^= ( y >> 11 );
-    y ^= ( y << 7 ) & 0x9d2c5680UL;
-    y ^= ( y << 15 ) & 0xefc60000UL;
-    y ^= ( y >> 18 );
-
-    return y;
+    return sfmt_genrand_uint32(&state->sfmt_state);  // Generiert eine 32-Bit Zufallszahl
 }
