@@ -1,6 +1,6 @@
 # what flags you want to pass to the C compiler & linker
 #CFLAGS = -lncurses -lparted
-AM_CFLAGS =
+AM_CFLAGS = -DVERSION_HASH=\"$(shell git rev-parse --short HEAD)\"
 AM_LDFLAGS =
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
