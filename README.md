@@ -43,7 +43,7 @@ These can be used to overwrite a drive with a stream of randomly generated chara
 
 kwipe can be found in many [Linux distro repositories](#which-linux-distro-uses-the-latest-kwipe).
 
-kwipe is also included in [ShredOS](https://github.com/PartialVolume/shredos.x86_64) which was developed in particular to showcase kwipe as a fast-to-boot standalone method similar to DBAN. ShredOS always contains the latest kwipe version.
+kwipe is also included in [ShredOS](https://github.com/Knogle/shredos.x86_64) which was developed in particular to showcase kwipe as a fast-to-boot standalone method similar to DBAN. ShredOS always contains the latest kwipe version.
 
 ## Limitations regarding solid state drives
 In the current form kwipe does not sanitize solid state drives (hereinafter referred to as SSDs)
