@@ -227,37 +227,21 @@ void kwipe_init_pairs( void )
 
         if( can_change_color() )
         {
-            /* Redefine cyan to gray. */
+            /* Redefine cyan to gray (optional if needed). */
             init_color( COLOR_CYAN, 128, 128, 128 );
         }
 
-        /* If we are in tft saver mode set grey text on black background else
-         * Set white on blue as the emphasis color */
-        if( tft_saver )
-        {
-            init_pair( 1, COLOR_BLACK, COLOR_BLACK );
-        }
-        else
-        {
-            init_pair( 1, COLOR_WHITE, COLOR_BLUE );
-        }
+        /* Set white on black for the emphasis color */
+        init_pair( 1, COLOR_WHITE, COLOR_BLACK );
 
-        /* Set gray (or cyan) on blue as the normal color. */
-        init_pair( 2, COLOR_CYAN, COLOR_BLUE );
+        /* Set gray (or cyan) on black as the normal color. */
+        init_pair( 2, COLOR_CYAN, COLOR_BLACK );
 
-        /* Set red on blue as the hilite color. */
-        init_pair( 3, COLOR_RED, COLOR_BLUE );
+        /* Set red on black as the hilite color. */
+        init_pair( 3, COLOR_RED, COLOR_BLACK );
 
-        /* If we are in tft saver mode set grey text on black background else
-         * Set white on blue as the emphasis color */
-        if( tft_saver )
-        {
-            init_pair( 4, COLOR_BLACK, COLOR_BLACK );
-        }
-        else
-        {
-            init_pair( 4, COLOR_BLUE, COLOR_WHITE );
-        }
+        /* Set white on black for emphasis. */
+        init_pair( 4, COLOR_WHITE, COLOR_BLACK );
 
         /* Set white on green for success messages. */
         init_pair( 5, COLOR_WHITE, COLOR_GREEN );
@@ -268,13 +252,13 @@ void kwipe_init_pairs( void )
         /* Set black on black for when hiding the display. */
         init_pair( 7, COLOR_BLACK, COLOR_BLACK );
 
-        /* Set green on blue for reverse bold messages */
-        init_pair( 8, COLOR_GREEN, COLOR_WHITE );
+        /* Set black on white for reverse bold messages (highlighting). */
+        init_pair( 8, COLOR_BLACK, COLOR_WHITE );
 
-        /* Set green on blue for reverse bold error messages */
+        /* Set red on white for reverse bold error messages (highlighting). */
         init_pair( 9, COLOR_RED, COLOR_WHITE );
 
-        /* Set black on yellow for warning messages */
+        /* Set black on yellow for warning messages. */
         init_pair( 10, COLOR_BLACK, COLOR_YELLOW );
 
         /* Set black on blue for minimum temperature reached */
@@ -283,8 +267,8 @@ void kwipe_init_pairs( void )
         /* Set blue on blue to make temperature invisible */
         init_pair( 12, COLOR_BLUE, COLOR_BLUE );
 
-        /* Set magenta on blue  */
-        init_pair( 13, COLOR_MAGENTA, COLOR_BLUE );
+        /* Set magenta on black */
+        init_pair( 13, COLOR_MAGENTA, COLOR_BLACK );
 
         /* Set white on black for low critical temperature */
         init_pair( 14, COLOR_WHITE, COLOR_BLACK );
@@ -293,6 +277,7 @@ void kwipe_init_pairs( void )
         wbkgdset( stdscr, COLOR_PAIR( 1 ) | ' ' );
     }
 }
+
 
 void kwipe_gui_init( void )
 {
