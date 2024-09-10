@@ -278,7 +278,6 @@ void kwipe_init_pairs( void )
     }
 }
 
-
 void kwipe_gui_init( void )
 {
     /**
