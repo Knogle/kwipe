@@ -2,9 +2,6 @@
 ![GitHub CI badge](https://github.com/martijnvanbrummelen/kwipe/workflows/ci_ubuntu_latest/badge.svg)
 [![GitHub release](https://img.shields.io/github/release/martijnvanbrummelen/kwipe)](https://github.com/martijnvanbrummelen/kwipe/releases/)
 
-As there are requirements in Germany for BSI TR-03109 compliant erasure, this is a fork from https://github.com/martijnvanbrummelen/nwipe called kwipe (**k**ryptowipe).
-
-
 ## Reasons for forking nwipe
 
 As there are requirements in Germany for BSI TR-03109 compliant erasure, this is a fork from https://github.com/martijnvanbrummelen/nwipe called kwipe (**k**ryptowipe).
