@@ -33,7 +33,7 @@ kwipe is a program that will securely erase the entire contents of disks. It can
 > **Warning**
 > For some of kwipes features such as smart data in the PDF certificate, HPA/DCO detection and other uses, kwipe utilises smartmontools and hdparm. Therefore both hdparm & smartmontools are a mandatory requirement if you want all of kwipes features to be fully available. If you do not install smartmontools and hdparm, kwipe will provide a warning in the log that these programs cannot be found but will still run but many important features may not work as they should do.
 
-![Example wipe](/images/example_wipe.gif)
+![Example wipe](/images/output.gif)
 
 <i>The video above shows six drives being simultaneously erased. It skips to the completion of all six wipes and shows five drives that were successfully erased and one drive that failed due to an I/O error. The drive that failed would then normally be physically destroyed. The five drives that were successfully wiped with zero errors or failures can then be redeployed.</i>
 
