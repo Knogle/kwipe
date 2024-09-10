@@ -1,5 +1,5 @@
 # kwipe
-![GitHub CI badge](https://github.com/Knogle/nwipe/blob/kwipe/workflows/ci_ubuntu_latest/badge.svg)
+[![ci_formatting](https://github.com/Knogle/nwipe/actions/workflows/ci_formatting.yml/badge.svg)](https://github.com/Knogle/nwipe/actions/workflows/ci_formatting.yml)
 
 ## Reasons for forking nwipe
 
