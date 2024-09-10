@@ -37,8 +37,8 @@ kwipe is a program that will securely erase the entire contents of disks. It can
 
 <i>The video above shows six drives being simultaneously erased. It skips to the completion of all six wipes and shows five drives that were successfully erased and one drive that failed due to an I/O error. The drive that failed would then normally be physically destroyed. The five drives that were successfully wiped with zero errors or failures can then be redeployed.</i>
 
-![kwipe_certificate_0 35_5s](https://github.com/martijnvanbrummelen/kwipe/assets/22084881/cf181a9c-af2d-4bca-a6ed-15a4726cb12b)
-<i>The snapshot above shows kwipe's three page PDF certificate, drive identifiable information such as serial numbers have been anonymised using the kwipe command line option -q</i>
+![kwipe_certificate_0 35_5s](https://github.com/martijnvanbrummelen/nwipe/assets/22084881/cf181a9c-af2d-4bca-a6ed-15a4726cb12b)
+<i>The snapshot above shows nwipe's three page PDF certificate, drive identifiable information such as serial numbers have been anonymised using the kwipe command line option -q</i>
 
 ## Erasure methods
 The user can select from a variety of recognised secure erase methods which include:
