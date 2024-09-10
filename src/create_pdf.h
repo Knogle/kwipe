@@ -43,10 +43,10 @@
  * @param pointer to a drive context
  * @return returns 0 on success < 1 on error
  */
-int create_pdf( nwipe_context_t* ptr );
+int create_pdf( kwipe_context_t* ptr );
 
-int nwipe_get_smart_data( nwipe_context_t* );
+int kwipe_get_smart_data( kwipe_context_t* );
 
-void create_header_and_footer( nwipe_context_t*, char* );
+void create_header_and_footer( kwipe_context_t*, char* );
 
 #endif /* CREATE_PDF_H_ */

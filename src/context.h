@@ -1,5 +1,5 @@
 /*
- *  context.h: The internal state representation of nwipe.
+ *  context.h: The internal state representation of kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -28,7 +28,7 @@
 #include "hddtemp_scsi/hddtemp.h"
 #endif /* __HDDTEMP_H__ */
 
-typedef enum nwipe_device_t_ {
+typedef enum kwipe_device_t_ {
     NWIPE_DEVICE_UNKNOWN = 0,  // Unknown device.
     NWIPE_DEVICE_IDE,
     NWIPE_DEVICE_SCSI,
@@ -40,29 +40,29 @@ typedef enum nwipe_device_t_ {
     NWIPE_DEVICE_VIRT,
     NWIPE_DEVICE_SAS,
     NWIPE_DEVICE_MMC
-} nwipe_device_t;
+} kwipe_device_t;
 
-typedef enum nwipe_pass_t_ {
+typedef enum kwipe_pass_t_ {
     NWIPE_PASS_NONE = 0,  // Not running.
     NWIPE_PASS_WRITE,  // Writing patterns to the device.
     NWIPE_PASS_VERIFY,  // Verifying a pass.
     NWIPE_PASS_FINAL_BLANK,  // Filling the device with zeros.
-    NWIPE_PASS_FINAL_OPS2  // Special case for nwipe_ops2.
-} nwipe_pass_t;
+    NWIPE_PASS_FINAL_OPS2  // Special case for kwipe_ops2.
+} kwipe_pass_t;
 
-typedef enum nwipe_select_t_ {
+typedef enum kwipe_select_t_ {
     NWIPE_SELECT_NONE = 0,  // Unused.
     NWIPE_SELECT_TRUE,  // Wipe this device.
     NWIPE_SELECT_TRUE_PARENT,  // A parent of this device has been selected, so the wipe is implied.
     NWIPE_SELECT_FALSE,  // Do not wipe this device.
     NWIPE_SELECT_FALSE_CHILD,  // A child of this device has been selected, so we can't wipe this device.
     NWIPE_SELECT_DISABLED  // Do not wipe this device and do not allow it to be selected.
-} nwipe_select_t;
+} kwipe_select_t;
 
 #define NWIPE_KNOB_SPEEDRING_SIZE 30
 #define NWIPE_KNOB_SPEEDRING_GRANULARITY 10
 
-typedef struct nwipe_speedring_t_
+typedef struct kwipe_speedring_t_
 {
     u64 bytes[NWIPE_KNOB_SPEEDRING_SIZE];
     u64 bytestotal;
@@ -71,7 +71,7 @@ typedef struct nwipe_speedring_t_
     time_t timestotal;
     time_t timeslast;
     u32 position;
-} nwipe_speedring_t;
+} kwipe_speedring_t;
 
 #define NWIPE_DEVICE_LABEL_LENGTH 200
 #define NWIPE_DEVICE_SIZE_TXT_LENGTH 8
@@ -82,7 +82,7 @@ typedef struct nwipe_speedring_t_
 // 20 chracters for serial number plus null Byte
 #define NWIPE_SERIALNUMBER_LENGTH 20
 
-typedef struct nwipe_context_t_
+typedef struct kwipe_context_t_
 {
     /*
      * Device fields
@@ -112,8 +112,8 @@ typedef struct nwipe_context_t_
     char* device_model;  // The model of the device.
     char device_label[NWIPE_DEVICE_LABEL_LENGTH];  // The label (name, model, size and serial) of the device.
     struct stat device_stat;  // The device file state from fstat().
-    nwipe_device_t device_type;  // Indicates an IDE, SCSI, or Compaq SMART device in enumerated form (int)
-    char device_type_str[14];  // Indicates an IDE, SCSI, USB etc as per nwipe_device_t but in ascii
+    kwipe_device_t device_type;  // Indicates an IDE, SCSI, or Compaq SMART device in enumerated form (int)
+    char device_type_str[14];  // Indicates an IDE, SCSI, USB etc as per kwipe_device_t but in ascii
     int device_is_ssd;  // 0 = no SSD, 1 = is a SSD
     char device_serial_no[NWIPE_SERIALNUMBER_LENGTH
                           + 1];  // Serial number(processed, 20 characters plus null termination) of the device.
@@ -125,10 +125,10 @@ typedef struct nwipe_context_t_
     u64 pass_done;  // The number of bytes that have already been i/o'd in this pass.
     u64 pass_errors;  // The number of errors across all passes.
     u64 pass_size;  // The total number of i/o bytes across all passes.
-    nwipe_pass_t pass_type;  // The type of the current working pass.
+    kwipe_pass_t pass_type;  // The type of the current working pass.
     int pass_working;  // The current working pass.
-    nwipe_prng_t* prng;  // The PRNG implementation.
-    nwipe_entropy_t prng_seed;  // The random data that is used to seed the PRNG.
+    kwipe_prng_t* prng;  // The PRNG implementation.
+    kwipe_entropy_t prng_seed;  // The random data that is used to seed the PRNG.
     void* prng_state;  // The private internal state of the PRNG.
     int result;  // The process return value.
     int round_count;  // The number of rounds requested by the user for the working wipe method.
@@ -137,9 +137,9 @@ typedef struct nwipe_context_t_
     u64 round_size;  // The total number of i/o bytes across all rounds.
     double round_percent;  // The percentage complete across all rounds.
     int round_working;  // The current working round.
-    nwipe_select_t select;  // Indicates whether this device should be wiped.
+    kwipe_select_t select;  // Indicates whether this device should be wiped.
     int signal;  // Set when the child is killed by a signal.
-    nwipe_speedring_t speedring;  // Ring buffer for computing the rolling throughput average.
+    kwipe_speedring_t speedring;  // Ring buffer for computing the rolling throughput average.
     short sync_status;  // A flag to indicate when the method is syncing.
     pthread_t thread;  // The ID of the thread.
     u64 throughput;  // Average throughput in bytes per second.
@@ -194,12 +194,12 @@ typedef struct nwipe_context_t_
 
     /*
      * Identity contains the raw serial number of the drive
-     * (where applicable), however, for use within nwipe use the
+     * (where applicable), however, for use within kwipe use the
      * processed serial_no[21] string above. To access serial no. use
      * c[i]->serial_no) and not c[i]->identity.serial_no);
      */
     struct hd_driveid identity;
-} nwipe_context_t;
+} kwipe_context_t;
 
 /*
  * We use 2 data structs to pass data between threads.
@@ -208,21 +208,21 @@ typedef struct nwipe_context_t_
  */
 typedef struct
 {
-    int nwipe_enumerated;  // The number of devices available.
-    int nwipe_selected;  // The number of devices being wiped.
+    int kwipe_enumerated;  // The number of devices available.
+    int kwipe_selected;  // The number of devices being wiped.
     time_t maxeta;  // The estimated runtime of the slowest device.
     u64 throughput;  // Total throughput.
     u64 errors;  // The combined number of errors of all processes.
     pthread_t* gui_thread;  // The ID of GUI thread.
-} nwipe_misc_thread_data_t;
+} kwipe_misc_thread_data_t;
 
 /*
  * The second points to the first structure, as well as the structure of all the devices
  */
 typedef struct
 {
-    nwipe_context_t** c;  // Pointer to the nwipe context structure.
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;  // Pointer to the misc structure above.
-} nwipe_thread_data_ptr_t;
+    kwipe_context_t** c;  // Pointer to the kwipe context structure.
+    kwipe_misc_thread_data_t* kwipe_misc_thread_data;  // Pointer to the misc structure above.
+} kwipe_thread_data_ptr_t;
 
 #endif /* CONTEXT_H_ */

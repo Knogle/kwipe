@@ -1,5 +1,5 @@
 /*
- *  gui.c: An ncurses GUI for nwipe.
+ *  gui.c: An ncurses GUI for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -49,7 +49,7 @@
 #include <strings.h>
 #include <sys/stat.h>
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -184,7 +184,7 @@ int stdscr_cols_previous;
 
 int tft_saver = 0;
 
-void nwipe_gui_title( WINDOW* w, const char* s )
+void kwipe_gui_title( WINDOW* w, const char* s )
 {
     /**
      * Prints the string 's' centered on the first line of the window 'w'.
@@ -216,9 +216,9 @@ void nwipe_gui_title( WINDOW* w, const char* s )
     /* Print the title. */
     mvwprintw( w, 0, margin / 2, "%s", s );
 
-} /* nwipe_gui_title */
+} /* kwipe_gui_title */
 
-void nwipe_init_pairs( void )
+void kwipe_init_pairs( void )
 {
     if( has_colors() )
     {
@@ -294,7 +294,7 @@ void nwipe_init_pairs( void )
     }
 }
 
-void nwipe_gui_init( void )
+void kwipe_gui_init( void )
 {
     /**
      * Initializes the ncurses gui.
@@ -313,25 +313,25 @@ void nwipe_gui_init( void )
     keypad( stdscr, TRUE );
 
     /* Create the text/background color pairs */
-    nwipe_init_pairs();
+    kwipe_init_pairs();
 
     /* Clear the screen. */
     wclear( stdscr );
 
     /* Create the header window. */
-    nwipe_gui_create_header_window();
+    kwipe_gui_create_header_window();
 
     /* Create the footer window and panel */
-    nwipe_gui_create_footer_window( main_window_footer );
+    kwipe_gui_create_footer_window( main_window_footer );
 
     /* Create the options window and panel */
-    nwipe_gui_create_options_window();
+    kwipe_gui_create_options_window();
 
     /* Create the stats window. */
-    nwipe_gui_create_stats_window();
+    kwipe_gui_create_stats_window();
 
     /* Create a new main window and panel */
-    nwipe_gui_create_main_window();
+    kwipe_gui_create_main_window();
 
     update_panels();
     doupdate();
@@ -339,9 +339,9 @@ void nwipe_gui_init( void )
     /* Hide the cursor. */
     curs_set( 0 );
 
-} /* nwipe_gui_init */
+} /* kwipe_gui_init */
 
-void nwipe_gui_free( void )
+void kwipe_gui_free( void )
 {
     /**
      * Releases the ncurses gui.
@@ -350,52 +350,52 @@ void nwipe_gui_free( void )
     /* Free ncurses resources. */
     if( del_panel( footer_panel ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting footer panel failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting footer panel failed!." );
     }
     if( del_panel( header_panel ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting header panel failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting header panel failed!." );
     }
     if( del_panel( main_panel ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting main panel failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting main panel failed!." );
     }
     if( del_panel( options_panel ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting options panel failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting options panel failed!." );
     }
     if( del_panel( stats_panel ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting stats panel failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting stats panel failed!." );
     }
     if( delwin( footer_window ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting footer window failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting footer window failed!." );
     }
     if( delwin( header_window ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting header window failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting header window failed!." );
     }
     if( delwin( main_window ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting main window failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting main window failed!." );
     }
     if( delwin( options_window ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting options window failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting options window failed!." );
     }
     if( delwin( stats_window ) != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Deleting stats window failed!." );
+        kwipe_log( NWIPE_LOG_ERROR, "Deleting stats window failed!." );
     }
     if( endwin() != OK )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Curses endwin() failed !" );
+        kwipe_log( NWIPE_LOG_ERROR, "Curses endwin() failed !" );
     }
 
-} /* nwipe_gui_free */
+} /* kwipe_gui_free */
 
-void nwipe_gui_create_main_window()
+void kwipe_gui_create_main_window()
 {
     /* Create the main window. */
     main_window = newwin( NWIPE_GUI_MAIN_H, NWIPE_GUI_MAIN_W, NWIPE_GUI_MAIN_Y, NWIPE_GUI_MAIN_X );
@@ -429,9 +429,9 @@ void nwipe_gui_create_main_window()
     /* refresh main window */
     wnoutrefresh( main_window );
 
-} /* nwipe_gui_create_main_window */
+} /* kwipe_gui_create_main_window */
 
-void nwipe_gui_create_header_window()
+void kwipe_gui_create_header_window()
 {
     char anon_label[] = " (ANONYMIZED)";
     char bannerplus[80];
@@ -457,20 +457,20 @@ void nwipe_gui_create_header_window()
     /* If in anonymized mode modify the title banner to reflect this */
     strcpy( bannerplus, banner );
 
-    if( nwipe_options.quiet )
+    if( kwipe_options.quiet )
     {
         strcat( bannerplus, anon_label );
     }
 
     /* Print the product banner. */
-    nwipe_gui_title( header_window, bannerplus );
+    kwipe_gui_title( header_window, bannerplus );
 
     /* Refresh the header window */
     wnoutrefresh( header_window );
 
-} /* nwipe_gui_create_header_window */
+} /* kwipe_gui_create_header_window */
 
-void nwipe_gui_create_footer_window( const char* footer_text )
+void kwipe_gui_create_footer_window( const char* footer_text )
 {
     /* Create the footer window. */
     footer_window = newwin( NWIPE_GUI_FOOTER_H, NWIPE_GUI_FOOTER_W, NWIPE_GUI_FOOTER_Y, NWIPE_GUI_FOOTER_X );
@@ -486,27 +486,27 @@ void nwipe_gui_create_footer_window( const char* footer_text )
     werase( footer_window );
 
     /* Add help text to the footer */
-    nwipe_gui_title( footer_window, footer_text );
+    kwipe_gui_title( footer_window, footer_text );
 
     /* Refresh the footer window */
     wnoutrefresh( footer_window );
 
-} /* nwipe_gui_create_footer_window */
+} /* kwipe_gui_create_footer_window */
 
-void nwipe_gui_amend_footer_window( const char* footer_text )
+void kwipe_gui_amend_footer_window( const char* footer_text )
 {
     /* Clear the footer window. */
     werase( footer_window );
 
     /* Add help text to the footer */
-    nwipe_gui_title( footer_window, footer_text );
+    kwipe_gui_title( footer_window, footer_text );
 
     /* Refresh the footer window */
     wnoutrefresh( footer_window );
 
-} /* nwipe_gui_amend_footer_window */
+} /* kwipe_gui_amend_footer_window */
 
-void nwipe_gui_create_options_window()
+void kwipe_gui_create_options_window()
 {
     /* Create the options window. */
     options_window = newwin( NWIPE_GUI_OPTIONS_H, NWIPE_GUI_OPTIONS_W, NWIPE_GUI_OPTIONS_Y, NWIPE_GUI_OPTIONS_X );
@@ -532,9 +532,9 @@ void nwipe_gui_create_options_window()
     /* Add a border. */
     box( options_window, 0, 0 );
 
-} /* nwipe_gui_create_options_window */
+} /* kwipe_gui_create_options_window */
 
-void nwipe_gui_create_stats_window()
+void kwipe_gui_create_stats_window()
 {
     /* Create the stats window. */
     stats_window = newwin( NWIPE_GUI_STATS_H, NWIPE_GUI_STATS_W, NWIPE_GUI_STATS_Y, NWIPE_GUI_STATS_X );
@@ -561,7 +561,7 @@ void nwipe_gui_create_stats_window()
     box( stats_window, 0, 0 );
 
     /* Add a title. */
-    nwipe_gui_title( stats_window, stats_title );
+    kwipe_gui_title( stats_window, stats_title );
 
     /* Print field labels. */
     mvwprintw( stats_window, NWIPE_GUI_STATS_RUNTIME_Y, NWIPE_GUI_STATS_RUNTIME_X, "Runtime:       " );
@@ -570,9 +570,9 @@ void nwipe_gui_create_stats_window()
     mvwprintw( stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_THROUGHPUT_X, "Throughput:    " );
     mvwprintw( stats_window, NWIPE_GUI_STATS_ERRORS_Y, NWIPE_GUI_STATS_ERRORS_X, "Errors:        " );
 
-} /* nwipe_gui_create_stats_window */
+} /* kwipe_gui_create_stats_window */
 
-void nwipe_gui_create_all_windows_on_terminal_resize( int force_creation, const char* footer_text )
+void kwipe_gui_create_all_windows_on_terminal_resize( int force_creation, const char* footer_text )
 {
     /* Get the terminal size */
     getmaxyx( stdscr, stdscr_lines, stdscr_cols );
@@ -588,29 +588,29 @@ void nwipe_gui_create_all_windows_on_terminal_resize( int force_creation, const 
         wclear( stdscr );
 
         /* Create a new header window and panel due to terminal size having changed */
-        nwipe_gui_create_header_window();
+        kwipe_gui_create_header_window();
 
         /* Create a new main window and panel due to terminal size having changed */
-        nwipe_gui_create_main_window();
+        kwipe_gui_create_main_window();
 
         /* Create a new footer window and panel due to terminal size having changed */
-        nwipe_gui_create_footer_window( footer_text );
+        kwipe_gui_create_footer_window( footer_text );
 
         /* Create a new options window and panel due to terminal size having changed */
-        nwipe_gui_create_options_window();
+        kwipe_gui_create_options_window();
 
         /* Create a new stats window and panel due to terminal size having changed */
-        nwipe_gui_create_stats_window();
+        kwipe_gui_create_stats_window();
 
         /* Update the options window. */
-        nwipe_gui_options();
+        kwipe_gui_options();
 
         update_panels();
         doupdate();
     }
 }
 
-void nwipe_gui_select( int count, nwipe_context_t** c )
+void kwipe_gui_select( int count, kwipe_context_t** c )
 {
     extern int terminate_signal;
 
@@ -672,7 +672,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
     do
     {
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, main_window_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, main_window_footer );
 
         /* There is one slot per line. */
         getmaxyx( main_window, wlines, wcols );
@@ -720,7 +720,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
 
         /* If the user selected an option the footer text would have changed.
          * Here we set it back to the main key help text */
-        nwipe_gui_create_footer_window( main_window_footer );
+        kwipe_gui_create_footer_window( main_window_footer );
 
         /* Refresh the stats window */
         wnoutrefresh( stats_window );
@@ -729,7 +729,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
         wnoutrefresh( options_window );
 
         /* Update the options window. */
-        nwipe_gui_options();
+        kwipe_gui_options();
 
         /* Initialize the line offset. */
         yy = 2;
@@ -770,7 +770,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                 {
                     case NWIPE_SELECT_TRUE:
 
-                        if( nwipe_options.method == &nwipe_verify_zero || nwipe_options.method == &nwipe_verify_one )
+                        if( kwipe_options.method == &kwipe_verify_zero || kwipe_options.method == &kwipe_verify_one )
                         {
                             wprintw( main_window,
                                      "[vrfy] %s %s ",
@@ -828,7 +828,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                 wprintw( main_window, "[%s] ", c[i + offset]->device_size_text );
 
                 /* Read the drive temperature values */
-                // nwipe_update_temperature( c[i + offset] );
+                // kwipe_update_temperature( c[i + offset] );
 
                 /* print the temperature */
                 wprintw_temperature( c[i + offset] );
@@ -879,8 +879,8 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
             }
             else
             {
-                nwipe_log( NWIPE_LOG_DEBUG,
-                           "GUI.c,nwipe_gui_select(), scroll, array index out of bounds, i=%u, count=%u, slots=%u, "
+                kwipe_log( NWIPE_LOG_DEBUG,
+                           "GUI.c,kwipe_gui_select(), scroll, array index out of bounds, i=%u, count=%u, slots=%u, "
                            "focus=%u, offset=%u",
                            i,
                            count,
@@ -907,7 +907,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
         box( main_window, 0, 0 );
 
         /* Print a title. */
-        nwipe_gui_title( main_window, select_title );
+        kwipe_gui_title( main_window, select_title );
 
         /* Refresh the window. */
         wnoutrefresh( main_window );
@@ -946,11 +946,11 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
              * ie. a timeout(250) block value of 250ms means we should not see any more than (1000/250) = 4 iterations.
              * We increase this to 32 iterations to allow a little tolerance. Why is this necessary? It's been found
              * that in KDE konsole and other terminals based on the QT terminal engine exiting the terminal without
-             * first exiting nwipe results in nwipe remaining running but detached from any interface which causes
+             * first exiting kwipe results in kwipe remaining running but detached from any interface which causes
              * getch to fail and its associated timeout. So the CPU or CPU core rises to 100%. Here we detect that
-             * failure and exit nwipe gracefully with the appropriate error. This does not affect use of tmux for
-             * attaching or detaching from a running nwipe session when sitting at the selection screen. All other
-             * terminals correctly terminate nwipe when the terminal itself is exited.
+             * failure and exit kwipe gracefully with the appropriate error. This does not affect use of tmux for
+             * attaching or detaching from a running kwipe session when sitting at the selection screen. All other
+             * terminals correctly terminate kwipe when the terminal itself is exited.
              */
 
             iteration_counter++;
@@ -959,10 +959,10 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
             {
                 if( iteration_counter > expected_iterations )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR,
-                               "GUI.c,nwipe_gui_select(), loop runaway, did you close the terminal without exiting "
-                               "nwipe? Exiting nwipe now." );
-                    /* Issue signal to nwipe to exit immediately but gracefully */
+                    kwipe_log( NWIPE_LOG_ERROR,
+                               "GUI.c,kwipe_gui_select(), loop runaway, did you close the terminal without exiting "
+                               "kwipe? Exiting kwipe now." );
+                    /* Issue signal to kwipe to exit immediately but gracefully */
                     terminate_signal = 1;
                 }
             }
@@ -976,7 +976,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
             /* We don't necessarily use all of these. For future reference these are some CTRL+key values
              * ^A - 1, ^B - 2, ^D - 4, ^E - 5, ^F - 6, ^G - 7, ^H - 8, ^I - 9, ^K - 11, ^L - 12, ^N - 14,
              * ^O - 15, ^P - 16, ^R - 18, ^T - 20, ^U - 21, ^V - 22, ^W - 23, ^X - 24, ^Y - 25
-             * Use nwipe_log( NWIPE_LOG_DEBUG, "Key Name: %s - %u", keyname(keystroke),keystroke) to
+             * Use kwipe_log( NWIPE_LOG_DEBUG, "Key Name: %s - %u", keyname(keystroke),keystroke) to
              * figure out what code is returned by what ever key combination */
 
             switch( keystroke )
@@ -1162,7 +1162,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     validkeyhit = 1;
 
                     /*  Run the method dialog. */
-                    nwipe_gui_method();
+                    kwipe_gui_method();
                     break;
 
                 case 'p':
@@ -1171,7 +1171,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     validkeyhit = 1;
 
                     /* Run the PRNG dialog. */
-                    nwipe_gui_prng();
+                    kwipe_gui_prng();
 
                     break;
 
@@ -1181,7 +1181,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     validkeyhit = 1;
 
                     /* Run the rounds dialog. */
-                    nwipe_gui_rounds();
+                    kwipe_gui_rounds();
 
                     break;
 
@@ -1191,7 +1191,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     validkeyhit = 1;
 
                     /* Run the option dialog. */
-                    nwipe_gui_verify();
+                    kwipe_gui_verify();
                     break;
 
                 case 'b':
@@ -1199,40 +1199,40 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
 
                     validkeyhit = 1;
 
-                    if( nwipe_options.method == &nwipe_ops2 )
+                    if( kwipe_options.method == &kwipe_ops2 )
                     {
                         /* Warn the user about that zero blanking with the ops2 method is not allowed */
                         wattron( footer_window, COLOR_PAIR( 10 ) );
-                        nwipe_gui_amend_footer_window( main_window_footer_warning_no_blanking_with_ops2 );
+                        kwipe_gui_amend_footer_window( main_window_footer_warning_no_blanking_with_ops2 );
                         doupdate();
                         sleep( 3 );
                         wattroff( footer_window, COLOR_PAIR( 10 ) );
 
                         /* After the delay return footer text back to key help */
-                        nwipe_gui_amend_footer_window( main_window_footer );
+                        kwipe_gui_amend_footer_window( main_window_footer );
                         doupdate();
 
                         break;
                     }
 
-                    if( nwipe_options.method == &nwipe_verify_zero || nwipe_options.method == &nwipe_verify_one )
+                    if( kwipe_options.method == &kwipe_verify_zero || kwipe_options.method == &kwipe_verify_one )
                     {
                         /* Warn the user about that zero blanking with the ops2 method is not allowed */
                         wattron( footer_window, COLOR_PAIR( 10 ) );
-                        nwipe_gui_amend_footer_window( main_window_footer_warning_no_blanking_with_verify_only );
+                        kwipe_gui_amend_footer_window( main_window_footer_warning_no_blanking_with_verify_only );
                         doupdate();
                         sleep( 3 );
                         wattroff( footer_window, COLOR_PAIR( 10 ) );
 
                         /* After the delay return footer text back to key help */
-                        nwipe_gui_amend_footer_window( main_window_footer );
+                        kwipe_gui_amend_footer_window( main_window_footer );
                         doupdate();
 
                         break;
                     }
 
                     /* Run the noblank dialog. */
-                    nwipe_gui_noblank();
+                    kwipe_gui_noblank();
                     break;
 
                 case 'c':
@@ -1241,7 +1241,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     validkeyhit = 1;
 
                     /* Run the configuration dialog */
-                    nwipe_gui_config();
+                    kwipe_gui_config();
                     break;
 
                 case 'S':
@@ -1263,13 +1263,13 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     if( number_of_selected_contexts == 0 )
                     {
                         wattron( footer_window, COLOR_PAIR( 10 ) );
-                        nwipe_gui_amend_footer_window( main_window_footer_warning_no_drive_selected );
+                        kwipe_gui_amend_footer_window( main_window_footer_warning_no_drive_selected );
                         doupdate();
                         sleep( 3 );
                         wattroff( footer_window, COLOR_PAIR( 10 ) );
 
                         /* After the delay return footer text back to key help */
-                        nwipe_gui_amend_footer_window( main_window_footer );
+                        kwipe_gui_amend_footer_window( main_window_footer );
                         doupdate();
 
                         /* Remove any repeated S key strokes, without this the gui would hang
@@ -1295,13 +1295,13 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
 
                     /* Warn the user about their mistake */
                     wattron( footer_window, COLOR_PAIR( 10 ) );
-                    nwipe_gui_amend_footer_window( main_window_footer_warning_lower_case_s );
+                    kwipe_gui_amend_footer_window( main_window_footer_warning_lower_case_s );
                     doupdate();
                     sleep( 3 );
                     wattroff( footer_window, COLOR_PAIR( 10 ) );
 
                     /* After the delay return footer text back to key help */
-                    nwipe_gui_amend_footer_window( main_window_footer );
+                    kwipe_gui_amend_footer_window( main_window_footer );
                     doupdate();
 
                     /* Remove any repeated s key strokes, without this the gui would hang
@@ -1341,9 +1341,9 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                         }
                         else
                         {
-                            nwipe_log(
+                            kwipe_log(
                                 NWIPE_LOG_ERROR,
-                                "gui.c:nwipe_gui_select(), Invalid value in variable select_all_toggle_status = %d",
+                                "gui.c:kwipe_gui_select(), Invalid value in variable select_all_toggle_status = %d",
                                 select_all_toggle_status );
                         }
                     }
@@ -1357,7 +1357,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     {
                         if( system( "/usr/bin/shredos_toggle_font_size.sh > /dev/null 2>&1" ) == 0 )
                         {
-                            nwipe_log( NWIPE_LOG_INFO, "Toggle font size" );
+                            kwipe_log( NWIPE_LOG_INFO, "Toggle font size" );
                         }
                     }
 
@@ -1389,13 +1389,13 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
     {
         /* If user has pressed S to start wipe change status line */
         werase( footer_window );
-        nwipe_gui_title( footer_window, end_wipe_footer );
+        kwipe_gui_title( footer_window, end_wipe_footer );
         wnoutrefresh( footer_window );
     }
 
-} /* nwipe_gui_select */
+} /* kwipe_gui_select */
 
-void nwipe_gui_options( void )
+void kwipe_gui_options( void )
 {
     /**
      * Updates the options window.
@@ -1411,17 +1411,17 @@ void nwipe_gui_options( void )
         options_window, NWIPE_GUI_OPTIONS_ENTROPY_Y, NWIPE_GUI_OPTIONS_ENTROPY_X, "Entropy: Linux Kernel (urandom)" );
 
     mvwprintw(
-        options_window, NWIPE_GUI_OPTIONS_PRNG_Y, NWIPE_GUI_OPTIONS_PRNG_X, "PRNG:    %s", nwipe_options.prng->label );
+        options_window, NWIPE_GUI_OPTIONS_PRNG_Y, NWIPE_GUI_OPTIONS_PRNG_X, "PRNG:    %s", kwipe_options.prng->label );
 
     mvwprintw( options_window,
                NWIPE_GUI_OPTIONS_METHOD_Y,
                NWIPE_GUI_OPTIONS_METHOD_X,
                "Method:  %s",
-               nwipe_method_label( nwipe_options.method ) );
+               kwipe_method_label( kwipe_options.method ) );
 
     mvwprintw( options_window, NWIPE_GUI_OPTIONS_VERIFY_Y, NWIPE_GUI_OPTIONS_VERIFY_X, "Verify:  " );
 
-    switch( nwipe_options.verify )
+    switch( kwipe_options.verify )
     {
         case NWIPE_VERIFY_NONE:
             wprintw( options_window, "Off" );
@@ -1436,52 +1436,52 @@ void nwipe_gui_options( void )
             break;
 
         default:
-            wprintw( options_window, "Unknown %i", nwipe_options.verify );
+            wprintw( options_window, "Unknown %i", kwipe_options.verify );
 
     } /* switch verify */
 
     mvwprintw( options_window, NWIPE_GUI_OPTIONS_ROUNDS_Y, NWIPE_GUI_OPTIONS_ROUNDS_X, "Rounds:  " );
 
     /* Disable blanking for ops2 and verify methods */
-    if( nwipe_options.method == &nwipe_ops2 || nwipe_options.method == &nwipe_verify_zero
-        || nwipe_options.method == &nwipe_verify_one )
+    if( kwipe_options.method == &kwipe_ops2 || kwipe_options.method == &kwipe_verify_zero
+        || kwipe_options.method == &kwipe_verify_one )
     {
-        nwipe_options.noblank = 1;
+        kwipe_options.noblank = 1;
     }
 
-    if( nwipe_options.noblank )
+    if( kwipe_options.noblank )
     {
-        wprintw( options_window, "%i (no final blanking pass)", nwipe_options.rounds );
+        wprintw( options_window, "%i (no final blanking pass)", kwipe_options.rounds );
     }
     else
     {
-        wprintw( options_window, "%i (plus blanking pass)", nwipe_options.rounds );
+        wprintw( options_window, "%i (plus blanking pass)", kwipe_options.rounds );
     }
 
     /* Add a border. */
     box( options_window, 0, 0 );
 
     /* Add a title. */
-    nwipe_gui_title( options_window, options_title );
+    kwipe_gui_title( options_window, options_title );
 
     /* Refresh the window. */
     // wrefresh( options_window );
     wnoutrefresh( options_window );
 
-} /* nwipe_gui_options */
+} /* kwipe_gui_options */
 
-void nwipe_gui_rounds( void )
+void kwipe_gui_rounds( void )
 {
     /**
      * Allows the user to change the rounds option.
      *
-     * @modifies  nwipe_options.rounds
+     * @modifies  kwipe_options.rounds
      * @modifies  main_window
      *
      */
 
     /* Set the initial focus. */
-    int focus = nwipe_options.rounds;
+    int focus = kwipe_options.rounds;
 
     /* The first tabstop. */
     const int tab1 = 2;
@@ -1496,7 +1496,7 @@ void nwipe_gui_rounds( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, rounds_footer );
+    kwipe_gui_title( footer_window, rounds_footer );
     wrefresh( footer_window );
 
     do
@@ -1504,13 +1504,13 @@ void nwipe_gui_rounds( void )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Rounds " );
+        kwipe_gui_title( main_window, " Rounds " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -1595,28 +1595,28 @@ void nwipe_gui_rounds( void )
     if( focus > 0 )
     {
         /* Set the number of rounds. */
-        nwipe_options.rounds = focus;
+        kwipe_options.rounds = focus;
     }
 
-} /* nwipe_guid_rounds */
+} /* kwipe_guid_rounds */
 
-void nwipe_gui_prng( void )
+void kwipe_gui_prng( void )
 {
     /**
      * Allows the user to change the PRNG.
      *
-     * @modifies  nwipe_options.prng
+     * @modifies  kwipe_options.prng
      * @modifies  main_window
      *
      */
 
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
+    extern kwipe_prng_t kwipe_twister;
+    extern kwipe_prng_t kwipe_isaac;
+    extern kwipe_prng_t kwipe_isaac64;
+    extern kwipe_prng_t kwipe_aes_ctr_prng;
+    extern kwipe_prng_t kwipe_xoroshiro256_prng;
+    extern kwipe_prng_t kwipe_add_lagg_fibonacci_prng;
+    extern kwipe_prng_t kwipe_aes_ctr_prng;
 
     extern int terminate_signal;
 
@@ -1640,30 +1640,30 @@ void nwipe_gui_prng( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer );
+    kwipe_gui_title( footer_window, selection_footer );
     wrefresh( footer_window );
 
-    if( nwipe_options.prng == &nwipe_twister )
+    if( kwipe_options.prng == &kwipe_twister )
     {
         focus = 0;
     }
-    if( nwipe_options.prng == &nwipe_isaac )
+    if( kwipe_options.prng == &kwipe_isaac )
     {
         focus = 1;
     }
-    if( nwipe_options.prng == &nwipe_isaac64 )
+    if( kwipe_options.prng == &kwipe_isaac64 )
     {
         focus = 2;
     }
-    if( nwipe_options.prng == &nwipe_add_lagg_fibonacci_prng )
+    if( kwipe_options.prng == &kwipe_add_lagg_fibonacci_prng )
     {
         focus = 3;
     }
-    if( nwipe_options.prng == &nwipe_xoroshiro256_prng )
+    if( kwipe_options.prng == &kwipe_xoroshiro256_prng )
     {
         focus = 4;
     }
-    if( nwipe_options.prng == &nwipe_aes_ctr_prng )
+    if( kwipe_options.prng == &kwipe_aes_ctr_prng )
     {
         focus = 5;
     }
@@ -1672,18 +1672,18 @@ void nwipe_gui_prng( void )
         /* Clear the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
 
         /* Initialize the working row. */
         yy = 3;
 
         /* Print the options. */
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_twister.label );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_isaac.label );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_isaac64.label );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_add_lagg_fibonacci_prng.label );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_xoroshiro256_prng.label );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_aes_ctr_prng.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_twister.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_isaac.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_isaac64.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_add_lagg_fibonacci_prng.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_xoroshiro256_prng.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_aes_ctr_prng.label );
         yy++;
 
         /* Print the cursor. */
@@ -1865,7 +1865,7 @@ void nwipe_gui_prng( void )
                 mvwprintw( main_window,
                            yy++,
                            tab1,
-                           "within nwipe using OpenSSL, leverages the cryptographic robustness and " );
+                           "within kwipe using OpenSSL, leverages the cryptographic robustness and " );
                 mvwprintw( main_window,
                            yy++,
                            tab1,
@@ -1888,7 +1888,7 @@ void nwipe_gui_prng( void )
                            yy++,
                            tab1,
                            "of AES-NI accelerates cryptographic computations, making AES-256 CTR an" );
-                mvwprintw( main_window, yy++, tab1, "ideal choice for efficient and secure data erasure in nwipe." );
+                mvwprintw( main_window, yy++, tab1, "ideal choice for efficient and secure data erasure in kwipe." );
                 mvwprintw( main_window,
                            yy++,
                            tab1,
@@ -1909,7 +1909,7 @@ void nwipe_gui_prng( void )
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Pseudo Random Number Generator " );
+        kwipe_gui_title( main_window, " Pseudo Random Number Generator " );
 
         /* Refresh the window. */
         wrefresh( main_window );
@@ -1953,27 +1953,27 @@ void nwipe_gui_prng( void )
 
                 if( focus == 0 )
                 {
-                    nwipe_options.prng = &nwipe_twister;
+                    kwipe_options.prng = &kwipe_twister;
                 }
                 if( focus == 1 )
                 {
-                    nwipe_options.prng = &nwipe_isaac;
+                    kwipe_options.prng = &kwipe_isaac;
                 }
                 if( focus == 2 )
                 {
-                    nwipe_options.prng = &nwipe_isaac64;
+                    kwipe_options.prng = &kwipe_isaac64;
                 }
                 if( focus == 3 )
                 {
-                    nwipe_options.prng = &nwipe_add_lagg_fibonacci_prng;
+                    kwipe_options.prng = &kwipe_add_lagg_fibonacci_prng;
                 }
                 if( focus == 4 )
                 {
-                    nwipe_options.prng = &nwipe_xoroshiro256_prng;
+                    kwipe_options.prng = &kwipe_xoroshiro256_prng;
                 }
                 if( focus == 5 )
                 {
-                    nwipe_options.prng = &nwipe_aes_ctr_prng;
+                    kwipe_options.prng = &kwipe_aes_ctr_prng;
                 }
                 return;
 
@@ -1986,21 +1986,21 @@ void nwipe_gui_prng( void )
 
     } while( terminate_signal != 1 );
 
-} /* nwipe_gui_prng */
+} /* kwipe_gui_prng */
 
-void nwipe_gui_verify( void )
+void kwipe_gui_verify( void )
 {
     /**
      * Allows the user to change the verification option.
      *
-     * @modifies  nwipe_options.verify
+     * @modifies  kwipe_options.verify
      * @modifies  main_window
      *
      */
 
     extern int terminate_signal;
 
-    /* The number of definitions in the nwipe_verify_t enumeration. */
+    /* The number of definitions in the kwipe_verify_t enumeration. */
     const int count = 3;
 
     /* The first tabstop. */
@@ -2010,7 +2010,7 @@ void nwipe_gui_verify( void )
     const int tab2 = 30;
 
     /* Set the initial focus. */
-    int focus = nwipe_options.verify;
+    int focus = kwipe_options.verify;
 
     /* The current working row. */
     int yy;
@@ -2020,12 +2020,12 @@ void nwipe_gui_verify( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer );
+    kwipe_gui_title( footer_window, selection_footer );
     wrefresh( footer_window );
 
     do
     {
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
 
         /* Clear the main window. */
         werase( main_window );
@@ -2098,7 +2098,7 @@ void nwipe_gui_verify( void )
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Verification Mode " );
+        kwipe_gui_title( main_window, " Verification Mode " );
 
         /* Refresh the window. */
         wrefresh( main_window );
@@ -2142,7 +2142,7 @@ void nwipe_gui_verify( void )
 
                 if( focus >= 0 && focus < count )
                 {
-                    nwipe_options.verify = focus;
+                    kwipe_options.verify = focus;
                 }
                 return;
 
@@ -2155,14 +2155,14 @@ void nwipe_gui_verify( void )
 
     } while( terminate_signal != 1 );
 
-} /* nwipe_gui_verify */
+} /* kwipe_gui_verify */
 
-void nwipe_gui_noblank( void )
+void kwipe_gui_noblank( void )
 {
     /**
      * Allows the user to change the verification option.
      *
-     * @modifies  nwipe_options.noblank
+     * @modifies  kwipe_options.noblank
      * @modifies  main_window
      *
      */
@@ -2179,7 +2179,7 @@ void nwipe_gui_noblank( void )
     const int tab2 = 40;
 
     /* Set the initial focus. */
-    int focus = nwipe_options.noblank;
+    int focus = kwipe_options.noblank;
 
     /* The current working row. */
     int yy;
@@ -2189,12 +2189,12 @@ void nwipe_gui_noblank( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer );
+    kwipe_gui_title( footer_window, selection_footer );
     wrefresh( footer_window );
 
     do
     {
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
 
         /* Clear the main window. */
         werase( main_window );
@@ -2258,7 +2258,7 @@ void nwipe_gui_noblank( void )
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Final Blanking Pass " );
+        kwipe_gui_title( main_window, " Final Blanking Pass " );
 
         /* Refresh the window. */
         wrefresh( main_window );
@@ -2302,7 +2302,7 @@ void nwipe_gui_noblank( void )
 
                 if( focus >= 0 && focus < count )
                 {
-                    nwipe_options.noblank = focus;
+                    kwipe_options.noblank = focus;
                 }
                 return;
 
@@ -2316,14 +2316,14 @@ void nwipe_gui_noblank( void )
     }
 
     while( terminate_signal != 1 );
-} /* nwipe_gui_noblank */
+} /* kwipe_gui_noblank */
 
-void nwipe_gui_method( void )
+void kwipe_gui_method( void )
 {
     /**
      * Allows the user to change the wipe method.
      *
-     * @modifies  nwipe_options.method
+     * @modifies  kwipe_options.method
      * @modifies  main_window
      *
      */
@@ -2350,46 +2350,46 @@ void nwipe_gui_method( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer );
+    kwipe_gui_title( footer_window, selection_footer );
     wrefresh( footer_window );
 
-    if( nwipe_options.method == &nwipe_zero )
+    if( kwipe_options.method == &kwipe_zero )
     {
         focus = 0;
     }
-    if( nwipe_options.method == &nwipe_one )
+    if( kwipe_options.method == &kwipe_one )
     {
         focus = 1;
     }
-    if( nwipe_options.method == &nwipe_ops2 )
+    if( kwipe_options.method == &kwipe_ops2 )
     {
         focus = 2;
     }
-    if( nwipe_options.method == &nwipe_dodshort )
+    if( kwipe_options.method == &kwipe_dodshort )
     {
         focus = 3;
     }
-    if( nwipe_options.method == &nwipe_dod522022m )
+    if( kwipe_options.method == &kwipe_dod522022m )
     {
         focus = 4;
     }
-    if( nwipe_options.method == &nwipe_gutmann )
+    if( kwipe_options.method == &kwipe_gutmann )
     {
         focus = 5;
     }
-    if( nwipe_options.method == &nwipe_random )
+    if( kwipe_options.method == &kwipe_random )
     {
         focus = 6;
     }
-    if( nwipe_options.method == &nwipe_verify_zero )
+    if( kwipe_options.method == &kwipe_verify_zero )
     {
         focus = 7;
     }
-    if( nwipe_options.method == &nwipe_verify_one )
+    if( kwipe_options.method == &kwipe_verify_one )
     {
         focus = 8;
     }
-    if( nwipe_options.method == &nwipe_is5enh )
+    if( kwipe_options.method == &kwipe_is5enh )
     {
         focus = 9;
     }
@@ -2399,22 +2399,22 @@ void nwipe_gui_method( void )
         /* Clear the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
 
         /* Initialize the working row. */
         yy = 2;
 
         /* Print the options. */
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_zero ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_one ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_ops2 ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_dodshort ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_dod522022m ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_gutmann ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_random ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_verify_zero ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_verify_one ) );
-        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_method_label( &nwipe_is5enh ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_zero ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_one ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_ops2 ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_dodshort ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_dod522022m ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_gutmann ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_random ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_verify_zero ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_verify_one ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", kwipe_method_label( &kwipe_is5enh ) );
         mvwprintw( main_window, yy++, tab1, "                                             " );
 
         /* Print the cursor. */
@@ -2557,7 +2557,7 @@ void nwipe_gui_method( void )
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Wipe Method " );
+        kwipe_gui_title( main_window, " Wipe Method " );
 
         /* Refresh the window. */
         wrefresh( main_window );
@@ -2607,49 +2607,49 @@ void nwipe_gui_method( void )
     switch( focus )
     {
         case 0:
-            nwipe_options.method = &nwipe_zero;
+            kwipe_options.method = &kwipe_zero;
             break;
 
         case 1:
-            nwipe_options.method = &nwipe_one;
+            kwipe_options.method = &kwipe_one;
             break;
 
         case 2:
-            nwipe_options.method = &nwipe_ops2;
+            kwipe_options.method = &kwipe_ops2;
             break;
 
         case 3:
-            nwipe_options.method = &nwipe_dodshort;
+            kwipe_options.method = &kwipe_dodshort;
             break;
 
         case 4:
-            nwipe_options.method = &nwipe_dod522022m;
+            kwipe_options.method = &kwipe_dod522022m;
             break;
 
         case 5:
-            nwipe_options.method = &nwipe_gutmann;
+            kwipe_options.method = &kwipe_gutmann;
             break;
 
         case 6:
-            nwipe_options.method = &nwipe_random;
+            kwipe_options.method = &kwipe_random;
             break;
 
         case 7:
-            nwipe_options.method = &nwipe_verify_zero;
+            kwipe_options.method = &kwipe_verify_zero;
             break;
 
         case 8:
-            nwipe_options.method = &nwipe_verify_one;
+            kwipe_options.method = &kwipe_verify_one;
             break;
 
         case 9:
-            nwipe_options.method = &nwipe_is5enh;
+            kwipe_options.method = &kwipe_is5enh;
             break;
     }
 
-} /* nwipe_gui_method */
+} /* kwipe_gui_method */
 
-void nwipe_gui_config( void )
+void kwipe_gui_config( void )
 {
     /**
      * Display the configuration Main Menu selection window
@@ -2683,10 +2683,10 @@ void nwipe_gui_config( void )
 
         /* Update the footer window. */
         werase( footer_window );
-        nwipe_gui_title( footer_window, selection_footer_config );
+        kwipe_gui_title( footer_window, selection_footer_config );
         wrefresh( footer_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
 
         /* Initialize the working row. */
         yy = 2;
@@ -2710,7 +2710,7 @@ void nwipe_gui_config( void )
         {
             case 0:
 
-                if( nwipe_options.PDF_enable )
+                if( kwipe_options.PDF_enable )
                 {
                     mvwprintw( main_window, 2, tab2, "PDF Report = ENABLED" );
                 }
@@ -2744,7 +2744,7 @@ void nwipe_gui_config( void )
                 mvwprintw( main_window, 8, tab2, "contact name and contact phone.       " );
                 mvwprintw( main_window, 9, tab2, "                                      " );
                 mvwprintw( main_window, 10, tab2, "Customer data is located in:         " );
-                mvwprintw( main_window, 11, tab2, "/etc/nwipe/nwipe_customers.csv       " );
+                mvwprintw( main_window, 11, tab2, "/etc/kwipe/kwipe_customers.csv       " );
                 break;
 
             case 3:
@@ -2759,7 +2759,7 @@ void nwipe_gui_config( void )
                 mvwprintw( main_window, 9, tab2, "contact name and contact phone.       " );
                 mvwprintw( main_window, 10, tab2, "                                      " );
                 mvwprintw( main_window, 11, tab2, "Customer data is saved in:            " );
-                mvwprintw( main_window, 12, tab2, "/etc/nwipe/nwipe_customers.csv        " );
+                mvwprintw( main_window, 12, tab2, "/etc/kwipe/kwipe_customers.csv        " );
                 break;
 
             case 4:
@@ -2774,7 +2774,7 @@ void nwipe_gui_config( void )
                 mvwprintw( main_window, 9, tab2, "contact name and contact phone.       " );
                 mvwprintw( main_window, 10, tab2, "                                      " );
                 mvwprintw( main_window, 11, tab2, "Customer data is saved in:            " );
-                mvwprintw( main_window, 12, tab2, "/etc/nwipe/nwipe_customers.csv        " );
+                mvwprintw( main_window, 12, tab2, "/etc/kwipe/kwipe_customers.csv        " );
                 break;
 
             case 5:
@@ -2790,7 +2790,7 @@ void nwipe_gui_config( void )
 
             case 6:
 
-                if( nwipe_options.PDF_preview_details )
+                if( kwipe_options.PDF_preview_details )
                 {
                     mvwprintw( main_window, 2, tab2, "Preview Org. & Customer at start = ENABLED" );
                 }
@@ -2821,7 +2821,7 @@ void nwipe_gui_config( void )
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Configuration " );
+        kwipe_gui_title( main_window, " Configuration " );
 
         /* Refresh the window. */
         wrefresh( main_window );
@@ -2887,24 +2887,24 @@ void nwipe_gui_config( void )
             {
                 case 0:
                     /* Toggle on pressing ENTER key */
-                    if( nwipe_options.PDF_enable == 0 )
+                    if( kwipe_options.PDF_enable == 0 )
                     {
-                        nwipe_options.PDF_enable = 1;
+                        kwipe_options.PDF_enable = 1;
 
-                        /* write the setting to nwipe.conf */
-                        nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" );
+                        /* write the setting to kwipe.conf */
+                        kwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" );
                     }
                     else
                     {
-                        nwipe_options.PDF_enable = 0;
+                        kwipe_options.PDF_enable = 0;
 
-                        /* write the setting to nwipe.conf */
-                        nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "DISABLED" );
+                        /* write the setting to kwipe.conf */
+                        kwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "DISABLED" );
                     }
                     break;
 
                 case 1:
-                    nwipe_gui_edit_organisation();
+                    kwipe_gui_edit_organisation();
                     break;
 
                 case 2:
@@ -2913,7 +2913,7 @@ void nwipe_gui_config( void )
                     break;
 
                 case 3:
-                    nwipe_gui_add_customer();
+                    kwipe_gui_add_customer();
                     break;
 
                 case 4:
@@ -2921,29 +2921,29 @@ void nwipe_gui_config( void )
                     break;
 
                 case 5:
-                    nwipe_gui_preview_org_customer( SHOWING_IN_CONFIG_MENUS );
+                    kwipe_gui_preview_org_customer( SHOWING_IN_CONFIG_MENUS );
                     break;
 
                 case 6:
                     /* Toggle on pressing ENTER key */
-                    if( nwipe_options.PDF_preview_details == 0 )
+                    if( kwipe_options.PDF_preview_details == 0 )
                     {
-                        nwipe_options.PDF_preview_details = 1;
+                        kwipe_options.PDF_preview_details = 1;
 
-                        /* write the setting to nwipe.conf */
-                        nwipe_conf_update_setting( "PDF_Certificate.PDF_Preview", "ENABLED" );
+                        /* write the setting to kwipe.conf */
+                        kwipe_conf_update_setting( "PDF_Certificate.PDF_Preview", "ENABLED" );
                     }
                     else
                     {
-                        nwipe_options.PDF_preview_details = 0;
+                        kwipe_options.PDF_preview_details = 0;
 
-                        /* write the setting to nwipe.conf */
-                        nwipe_conf_update_setting( "PDF_Certificate.PDF_Preview", "DISABLED" );
+                        /* write the setting to kwipe.conf */
+                        kwipe_conf_update_setting( "PDF_Certificate.PDF_Preview", "DISABLED" );
                     }
                     break;
 
                 case 8:
-                    nwipe_gui_set_date_time();
+                    kwipe_gui_set_date_time();
                     break;
             }
             keystroke = -1;
@@ -2951,9 +2951,9 @@ void nwipe_gui_config( void )
 
     } while( keystroke != KEY_ENTER && /* keystroke != ' ' && */ keystroke != 10 && terminate_signal != 1 );
 
-} /* end of nwipe_config() */
+} /* end of kwipe_config() */
 
-void nwipe_gui_edit_organisation( void )
+void kwipe_gui_edit_organisation( void )
 {
     /**
      * Display the list of organisation details available for editing
@@ -2980,10 +2980,10 @@ void nwipe_gui_edit_organisation( void )
     /* Input buffer. */
     int keystroke;
 
-    /* variables used by libconfig for extracting data from nwipe.conf */
+    /* variables used by libconfig for extracting data from kwipe.conf */
     config_setting_t* setting;
     const char *business_name, *business_address, *contact_name, *contact_phone, *op_tech_name;
-    extern config_t nwipe_cfg;
+    extern config_t kwipe_cfg;
 
     do
     {
@@ -2994,10 +2994,10 @@ void nwipe_gui_edit_organisation( void )
 
             /* Update the footer window. */
             werase( footer_window );
-            nwipe_gui_title( footer_window, selection_footer_config );
+            kwipe_gui_title( footer_window, selection_footer_config );
             wrefresh( footer_window );
 
-            nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
+            kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
 
             /* Initialize the working row. */
             yy = 2;
@@ -3013,64 +3013,64 @@ void nwipe_gui_edit_organisation( void )
             /* Print the cursor. */
             mvwaddch( main_window, 2 + focus, tab1, ACS_RARROW );
 
-            /* libconfig: Locate the Organisation Details section in nwipe.conf */
-            setting = config_lookup( &nwipe_cfg, "Organisation_Details" );
+            /* libconfig: Locate the Organisation Details section in kwipe.conf */
+            setting = config_lookup( &kwipe_cfg, "Organisation_Details" );
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Business_Name", &business_name ) )
             {
                 mvwprintw( main_window, 2, tab2, ": %s", business_name );
             }
             else
             {
-                mvwprintw( main_window, 2, tab2, ": Cannot retrieve business_name, nwipe.conf" );
+                mvwprintw( main_window, 2, tab2, ": Cannot retrieve business_name, kwipe.conf" );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Business_Address", &business_address ) )
             {
                 mvwprintw( main_window, 3, tab2, ": %s", business_address );
             }
             else
             {
-                mvwprintw( main_window, 3, tab2, ": Cannot retrieve business address, nwipe.conf" );
+                mvwprintw( main_window, 3, tab2, ": Cannot retrieve business address, kwipe.conf" );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Contact_Name", &contact_name ) )
             {
                 mvwprintw( main_window, 4, tab2, ": %s", contact_name );
             }
             else
             {
-                mvwprintw( main_window, 4, tab2, ": Cannot retrieve contact name, nwipe.conf" );
+                mvwprintw( main_window, 4, tab2, ": Cannot retrieve contact name, kwipe.conf" );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Contact_Phone", &contact_phone ) )
             {
                 mvwprintw( main_window, 5, tab2, ": %s", contact_phone );
             }
             else
             {
-                mvwprintw( main_window, 5, tab2, ": Cannot retrieve contact phone, nwipe.conf" );
+                mvwprintw( main_window, 5, tab2, ": Cannot retrieve contact phone, kwipe.conf" );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Op_Tech_Name", &op_tech_name ) )
             {
                 mvwprintw( main_window, 6, tab2, ": %s", op_tech_name );
             }
             else
             {
-                mvwprintw( main_window, 6, tab2, ": Cannot retrieve op_tech_name, nwipe.conf" );
+                mvwprintw( main_window, 6, tab2, ": Cannot retrieve op_tech_name, kwipe.conf" );
             }
 
             /* Add a border. */
             box( main_window, 0, 0 );
 
             /* Add a title. */
-            nwipe_gui_title( main_window, " PDF Report - Edit Organisation " );
+            kwipe_gui_title( main_window, " PDF Report - Edit Organisation " );
 
             /* Refresh the window. */
             wrefresh( main_window );
@@ -3123,27 +3123,27 @@ void nwipe_gui_edit_organisation( void )
             switch( focus )
             {
                 case 0:
-                    nwipe_gui_organisation_business_name( business_name );
+                    kwipe_gui_organisation_business_name( business_name );
                     keystroke = 0;
                     break;
 
                 case 1:
-                    nwipe_gui_organisation_business_address( business_address );
+                    kwipe_gui_organisation_business_address( business_address );
                     keystroke = 0;
                     break;
 
                 case 2:
-                    nwipe_gui_organisation_contact_name( contact_name );
+                    kwipe_gui_organisation_contact_name( contact_name );
                     keystroke = 0;
                     break;
 
                 case 3:
-                    nwipe_gui_organisation_contact_phone( contact_phone );
+                    kwipe_gui_organisation_contact_phone( contact_phone );
                     keystroke = 0;
                     break;
 
                 case 4:
-                    nwipe_gui_organisation_op_tech_name( op_tech_name );
+                    kwipe_gui_organisation_op_tech_name( op_tech_name );
                     keystroke = 0;
                     break;
             }
@@ -3151,14 +3151,14 @@ void nwipe_gui_edit_organisation( void )
 
     } while( keystroke != KEY_ENTER && keystroke != 10 && terminate_signal != 1 );
 
-} /* end of nwipe_gui_edit_organisation( void ) */
+} /* end of kwipe_gui_edit_organisation( void ) */
 
-void nwipe_gui_organisation_business_name( const char* business_name )
+void kwipe_gui_organisation_business_name( const char* business_name )
 {
     /**
      * Allows the user to change the organisation business name as displayed on the PDF report.
      *
-     * @modifies  business_name in nwipe.conf
+     * @modifies  business_name in kwipe.conf
      * @modifies  main_window
      *
      */
@@ -3180,15 +3180,15 @@ void nwipe_gui_organisation_business_name( const char* business_name )
 
     extern int terminate_signal;
 
-    /* variables used by libconfig for inserting data into nwipe.conf */
+    /* variables used by libconfig for inserting data into kwipe.conf */
     config_setting_t* setting;
     // const char* business_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Copy the current business name to the buffer */
@@ -3202,13 +3202,13 @@ void nwipe_gui_organisation_business_name( const char* business_name )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Edit Organisation Business Name " );
+        kwipe_gui_title( main_window, " Edit Organisation Business Name " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -3266,39 +3266,39 @@ void nwipe_gui_organisation_business_name( const char* business_name )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-    /* libconfig: Locate the Organisation Details section in nwipe.conf */
-    if( !( setting = config_lookup( &nwipe_cfg, "Organisation_Details.Business_Name" ) ) )
+    /* libconfig: Locate the Organisation Details section in kwipe.conf */
+    if( !( setting = config_lookup( &kwipe_cfg, "Organisation_Details.Business_Name" ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Business_Name] in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Business_Name] in %s", kwipe_config_file );
     }
 
     /* libconfig: Write the new business name */
     if( config_setting_set_string( setting, buffer ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Failed to write [%s] to [Organisation_Details.Business_Name] in %s",
                    buffer,
-                   nwipe_config_file );
+                   kwipe_config_file );
     }
 
     /* Write out the new configuration. */
-    if( config_write_file( &nwipe_cfg, nwipe_config_file ) == CONFIG_FALSE )
+    if( config_write_file( &kwipe_cfg, kwipe_config_file ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation business name to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation business name to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "[Success] Business name written to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "[Success] Business name written to %s", kwipe_config_file );
     }
 
-} /* End of nwipe_gui_organisation_business_name() */
+} /* End of kwipe_gui_organisation_business_name() */
 
-void nwipe_gui_organisation_business_address( const char* business_address )
+void kwipe_gui_organisation_business_address( const char* business_address )
 {
     /**
      * Allows the user to change the organisation business address as displayed on the PDF report.
      *
-     * @modifies  business_address in nwipe.conf
+     * @modifies  business_address in kwipe.conf
      * @modifies  main_window
      *
      */
@@ -3320,15 +3320,15 @@ void nwipe_gui_organisation_business_address( const char* business_address )
 
     extern int terminate_signal;
 
-    /* variables used by libconfig for inserting data into nwipe.conf */
+    /* variables used by libconfig for inserting data into kwipe.conf */
     config_setting_t* setting;
     // const char* business_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Copy the current business address to the buffer */
@@ -3342,13 +3342,13 @@ void nwipe_gui_organisation_business_address( const char* business_address )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Edit Organisation Business Address " );
+        kwipe_gui_title( main_window, " Edit Organisation Business Address " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -3406,40 +3406,40 @@ void nwipe_gui_organisation_business_address( const char* business_address )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-    /* libconfig: Locate the Organisation Details section in nwipe.conf */
-    if( !( setting = config_lookup( &nwipe_cfg, "Organisation_Details.Business_Address" ) ) )
+    /* libconfig: Locate the Organisation Details section in kwipe.conf */
+    if( !( setting = config_lookup( &kwipe_cfg, "Organisation_Details.Business_Address" ) ) )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Business_Address] in %s", nwipe_config_file );
+        kwipe_log(
+            NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Business_Address] in %s", kwipe_config_file );
     }
 
     /* libconfig: Write the new business name */
     if( config_setting_set_string( setting, buffer ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Failed to write [%s] to [Organisation_Details.Business_Address] in %s",
                    buffer,
-                   nwipe_config_file );
+                   kwipe_config_file );
     }
 
     /* Write out the new configuration. */
-    if( config_write_file( &nwipe_cfg, nwipe_config_file ) == CONFIG_FALSE )
+    if( config_write_file( &kwipe_cfg, kwipe_config_file ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation business address to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation business address to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "[Success] Business address written to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "[Success] Business address written to %s", kwipe_config_file );
     }
 
-} /* End of nwipe_gui_organisation_business_address() */
+} /* End of kwipe_gui_organisation_business_address() */
 
-void nwipe_gui_organisation_contact_name( const char* contact_name )
+void kwipe_gui_organisation_contact_name( const char* contact_name )
 {
     /**
      * Allows the user to change the organisation business address as displayed on the PDF report.
      *
-     * @modifies  business_address in nwipe.conf
+     * @modifies  business_address in kwipe.conf
      * @modifies  main_window
      *
      */
@@ -3461,15 +3461,15 @@ void nwipe_gui_organisation_contact_name( const char* contact_name )
 
     extern int terminate_signal;
 
-    /* variables used by libconfig for inserting data into nwipe.conf */
+    /* variables used by libconfig for inserting data into kwipe.conf */
     config_setting_t* setting;
     // const char* business_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Copy the current business address to the buffer */
@@ -3483,13 +3483,13 @@ void nwipe_gui_organisation_contact_name( const char* contact_name )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Edit Organisation Contact Name " );
+        kwipe_gui_title( main_window, " Edit Organisation Contact Name " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -3547,39 +3547,39 @@ void nwipe_gui_organisation_contact_name( const char* contact_name )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-    /* libconfig: Locate the Organisation Details section in nwipe.conf */
-    if( !( setting = config_lookup( &nwipe_cfg, "Organisation_Details.Contact_Name" ) ) )
+    /* libconfig: Locate the Organisation Details section in kwipe.conf */
+    if( !( setting = config_lookup( &kwipe_cfg, "Organisation_Details.Contact_Name" ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Contact_Name] in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Contact_Name] in %s", kwipe_config_file );
     }
 
     /* libconfig: Write the new organisation contact name */
     if( config_setting_set_string( setting, buffer ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Failed to write [%s] to [Organisation_Details.Contact_Name] in %s",
                    buffer,
-                   nwipe_config_file );
+                   kwipe_config_file );
     }
 
     /* Write out the new configuration. */
-    if( config_write_file( &nwipe_cfg, nwipe_config_file ) == CONFIG_FALSE )
+    if( config_write_file( &kwipe_cfg, kwipe_config_file ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation contact name to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation contact name to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "[Success] Business contact name written to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "[Success] Business contact name written to %s", kwipe_config_file );
     }
 
-} /* End of nwipe_gui_organisation_contact_name() */
+} /* End of kwipe_gui_organisation_contact_name() */
 
-void nwipe_gui_organisation_contact_phone( const char* contact_phone )
+void kwipe_gui_organisation_contact_phone( const char* contact_phone )
 {
     /**
      * Allows the user to change the organisation contact name as displayed on the PDF report.
      *
-     * @modifies  organisation contact name in nwipe.conf
+     * @modifies  organisation contact name in kwipe.conf
      * @modifies  main_window
      *
      */
@@ -3601,15 +3601,15 @@ void nwipe_gui_organisation_contact_phone( const char* contact_phone )
 
     extern int terminate_signal;
 
-    /* variables used by libconfig for inserting data into nwipe.conf */
+    /* variables used by libconfig for inserting data into kwipe.conf */
     config_setting_t* setting;
     // const char* contact_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Copy the current business address to the buffer */
@@ -3623,13 +3623,13 @@ void nwipe_gui_organisation_contact_phone( const char* contact_phone )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Edit Organisation Contact Phone " );
+        kwipe_gui_title( main_window, " Edit Organisation Contact Phone " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -3687,39 +3687,39 @@ void nwipe_gui_organisation_contact_phone( const char* contact_phone )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-    /* libconfig: Locate the Organisation Details section in nwipe.conf */
-    if( !( setting = config_lookup( &nwipe_cfg, "Organisation_Details.Contact_Phone" ) ) )
+    /* libconfig: Locate the Organisation Details section in kwipe.conf */
+    if( !( setting = config_lookup( &kwipe_cfg, "Organisation_Details.Contact_Phone" ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Contact_Phone] in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Contact_Phone] in %s", kwipe_config_file );
     }
 
     /* libconfig: Write the organistion contact phone */
     if( config_setting_set_string( setting, buffer ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Failed to write [%s] to [Organisation_Details.Contact_Phone] in %s",
                    buffer,
-                   nwipe_config_file );
+                   kwipe_config_file );
     }
 
     /* Write out the new configuration. */
-    if( config_write_file( &nwipe_cfg, nwipe_config_file ) == CONFIG_FALSE )
+    if( config_write_file( &kwipe_cfg, kwipe_config_file ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation contact phone to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation contact phone to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "[Success] Business contact phone written to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "[Success] Business contact phone written to %s", kwipe_config_file );
     }
 
-} /* End of nwipe_gui_organisation_contact_phone() */
+} /* End of kwipe_gui_organisation_contact_phone() */
 
-void nwipe_gui_organisation_op_tech_name( const char* op_tech_name )
+void kwipe_gui_organisation_op_tech_name( const char* op_tech_name )
 {
     /**
      * Allows the user to change the organisation contact name as displayed on the PDF report.
      *
-     * @modifies  organisation contact name in nwipe.conf
+     * @modifies  organisation contact name in kwipe.conf
      * @modifies  main_window
      *
      */
@@ -3741,15 +3741,15 @@ void nwipe_gui_organisation_op_tech_name( const char* op_tech_name )
 
     extern int terminate_signal;
 
-    /* variables used by libconfig for inserting data into nwipe.conf */
+    /* variables used by libconfig for inserting data into kwipe.conf */
     config_setting_t* setting;
     // const char* contact_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Copy the current op_tech_name to the buffer */
@@ -3763,13 +3763,13 @@ void nwipe_gui_organisation_op_tech_name( const char* op_tech_name )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Edit Operator/Technician Name " );
+        kwipe_gui_title( main_window, " Edit Operator/Technician Name " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -3827,34 +3827,34 @@ void nwipe_gui_organisation_op_tech_name( const char* op_tech_name )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-    /* libconfig: Locate the Organisation Details section in nwipe.conf */
-    if( !( setting = config_lookup( &nwipe_cfg, "Organisation_Details.Op_Tech_Name" ) ) )
+    /* libconfig: Locate the Organisation Details section in kwipe.conf */
+    if( !( setting = config_lookup( &kwipe_cfg, "Organisation_Details.Op_Tech_Name" ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Op_Tech_Name] in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to locate [Organisation_Details.Op_Tech_Name] in %s", kwipe_config_file );
     }
 
     /* libconfig: Write the organistion operator/technician name */
     if( config_setting_set_string( setting, buffer ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Failed to write [%s] to [Organisation_Details.Op_Tech_Name] in %s",
                    buffer,
-                   nwipe_config_file );
+                   kwipe_config_file );
     }
 
     /* Write out the new configuration. */
-    if( config_write_file( &nwipe_cfg, nwipe_config_file ) == CONFIG_FALSE )
+    if( config_write_file( &kwipe_cfg, kwipe_config_file ) == CONFIG_FALSE )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation operator/technician to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write organisation operator/technician to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "[Success] operator/technician name written to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "[Success] operator/technician name written to %s", kwipe_config_file );
     }
 
-} /* End of nwipe_gui_organisation_op_tech_name() */
+} /* End of kwipe_gui_organisation_op_tech_name() */
 
-void nwipe_gui_list( int count, char* window_title, char** list, int* selected_entry )
+void kwipe_gui_list( int count, char* window_title, char** list, int* selected_entry )
 {
     /**
      * Displays a selectable list in a window, return 1 -n in selected entry.
@@ -3919,7 +3919,7 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
     do
     {
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, main_window_footer );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, main_window_footer );
 
         /* There is one slot per line. */
         getmaxyx( main_window, wlines, wcols );
@@ -3968,7 +3968,7 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
         /* Set footer help text */
         /* Update the footer window. */
         werase( footer_window );
-        nwipe_gui_title( footer_window, selection_footer );
+        kwipe_gui_title( footer_window, selection_footer );
         wrefresh( footer_window );
 
         /* Refresh the stats window */
@@ -3978,7 +3978,7 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
         wnoutrefresh( options_window );
 
         /* Update the options window. */
-        nwipe_gui_options();
+        kwipe_gui_options();
 
         /* Initialize the line offset. */
         yy = 2;
@@ -4029,8 +4029,8 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
             }
             else
             {
-                nwipe_log( NWIPE_LOG_DEBUG,
-                           "GUI.c,nwipe_gui_select(), scroll, array index out of bounds, i=%u, count=%u, slots=%u, "
+                kwipe_log( NWIPE_LOG_DEBUG,
+                           "GUI.c,kwipe_gui_select(), scroll, array index out of bounds, i=%u, count=%u, slots=%u, "
                            "focus=%u, offset=%u",
                            i,
                            count,
@@ -4057,7 +4057,7 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
         box( main_window, 0, 0 );
 
         /* Print a title. */
-        nwipe_gui_title( main_window, window_title );
+        kwipe_gui_title( main_window, window_title );
 
         /* Refresh the window. */
         wnoutrefresh( main_window );
@@ -4096,11 +4096,11 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
              * ie. a timeout(250) block value of 250ms means we should not see any more than (1000/250) = 4 iterations.
              * We increase this to 32 iterations to allow a little tolerance. Why is this necessary? It's been found
              * that in KDE konsole and other terminals based on the QT terminal engine exiting the terminal without
-             * first exiting nwipe results in nwipe remaining running but detached from any interface which causes
+             * first exiting kwipe results in kwipe remaining running but detached from any interface which causes
              * getch to fail and its associated timeout. So the CPU or CPU core rises to 100%. Here we detect that
-             * failure and exit nwipe gracefully with the appropriate error. This does not affect use of tmux for
-             * attaching or detaching from a running nwipe session when sitting at the selection screen. All other
-             * terminals correctly terminate nwipe when the terminal itself is exited.
+             * failure and exit kwipe gracefully with the appropriate error. This does not affect use of tmux for
+             * attaching or detaching from a running kwipe session when sitting at the selection screen. All other
+             * terminals correctly terminate kwipe when the terminal itself is exited.
              */
 
             iteration_counter++;
@@ -4109,10 +4109,10 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
             {
                 if( iteration_counter > expected_iterations )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR,
-                               "GUI.c,nwipe_gui_select(), loop runaway, did you close the terminal without exiting "
-                               "nwipe? Exiting nwipe now." );
-                    /* Issue signal to nwipe to exit immediately but gracefully */
+                    kwipe_log( NWIPE_LOG_ERROR,
+                               "GUI.c,kwipe_gui_select(), loop runaway, did you close the terminal without exiting "
+                               "kwipe? Exiting kwipe now." );
+                    /* Issue signal to kwipe to exit immediately but gracefully */
                     terminate_signal = 1;
                 }
             }
@@ -4126,7 +4126,7 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
             /* We don't necessarily use all of these. For future reference these are some CTRL+key values
              * ^A - 1, ^B - 2, ^D - 4, ^E - 5, ^F - 6, ^G - 7, ^H - 8, ^I - 9, ^K - 11, ^L - 12, ^N - 14,
              * ^O - 15, ^P - 16, ^R - 18, ^T - 20, ^U - 21, ^V - 22, ^W - 23, ^X - 24, ^Y - 25
-             * Use nwipe_log( NWIPE_LOG_DEBUG, "Key Name: %s - %u", keyname(keystroke),keystroke) to
+             * Use kwipe_log( NWIPE_LOG_DEBUG, "Key Name: %s - %u", keyname(keystroke),keystroke) to
              * figure out what code is returned by what ever key combination */
 
             switch( keystroke )
@@ -4222,9 +4222,9 @@ void nwipe_gui_list( int count, char* window_title, char** list, int* selected_e
 
     } while( terminate_signal != 1 );
 
-} /* nwipe_gui_list */
+} /* kwipe_gui_list */
 
-void nwipe_gui_add_customer( void )
+void kwipe_gui_add_customer( void )
 {
     /**
      * Add new customer top level menu
@@ -4262,14 +4262,14 @@ void nwipe_gui_add_customer( void )
     /* 0 = Display standard dialog footer, 1 = YES = display "Save Y/N" footer */
     int yes_no = NO;
 
-    /* variables used by libconfig for extracting data from nwipe.conf */
+    /* variables used by libconfig for extracting data from kwipe.conf */
     config_setting_t* setting;
     // const char *business_name, *business_address, *contact_name, *contact_phone, *op_tech_name;
-    extern config_t nwipe_cfg;
+    extern config_t kwipe_cfg;
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_config );
+    kwipe_gui_title( footer_window, selection_footer_config );
     wrefresh( footer_window );
 
     do
@@ -4284,19 +4284,19 @@ void nwipe_gui_add_customer( void )
             {
                 /* Update the footer window. */
                 werase( footer_window );
-                nwipe_gui_title( footer_window, selection_footer_add_customer_yes_no );
+                kwipe_gui_title( footer_window, selection_footer_add_customer_yes_no );
                 wrefresh( footer_window );
 
-                nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_add_customer_yes_no );
+                kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_add_customer_yes_no );
             }
             else
             {
                 /* Update the footer window. */
                 werase( footer_window );
-                nwipe_gui_title( footer_window, selection_footer_config );
+                kwipe_gui_title( footer_window, selection_footer_config );
                 wrefresh( footer_window );
 
-                nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
+                kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
             }
             /* Initialize the working row. */
             yy = 2;
@@ -4315,7 +4315,7 @@ void nwipe_gui_add_customer( void )
             box( main_window, 0, 0 );
 
             /* Add a title. */
-            nwipe_gui_title( main_window, " PDF Report - Add New Customer " );
+            kwipe_gui_title( main_window, " PDF Report - Add New Customer " );
 
             /* Refresh the window. */
             wrefresh( main_window );
@@ -4404,22 +4404,22 @@ void nwipe_gui_add_customer( void )
             switch( focus )
             {
                 case 0:
-                    nwipe_gui_add_customer_name( customer_name );
+                    kwipe_gui_add_customer_name( customer_name );
                     keystroke = 0;
                     break;
 
                 case 1:
-                    nwipe_gui_add_customer_address( customer_address );
+                    kwipe_gui_add_customer_address( customer_address );
                     keystroke = 0;
                     break;
 
                 case 2:
-                    nwipe_gui_add_customer_contact_name( customer_contact_name );
+                    kwipe_gui_add_customer_contact_name( customer_contact_name );
                     keystroke = 0;
                     break;
 
                 case 3:
-                    nwipe_gui_add_customer_contact_phone( customer_contact_phone );
+                    kwipe_gui_add_customer_contact_phone( customer_contact_phone );
                     keystroke = 0;
                     break;
             }
@@ -4434,9 +4434,9 @@ void nwipe_gui_add_customer( void )
         write_customer_csv_entry( customer_name, customer_address, customer_contact_name, customer_contact_phone );
     }
 
-} /* end of nwipe_gui_add_customer( void ) */
+} /* end of kwipe_gui_add_customer( void ) */
 
-void nwipe_gui_add_customer_name( char* customer_name )
+void kwipe_gui_add_customer_name( char* customer_name )
 {
     /**
      * Allows the user to change the customer's contact name as displayed on the PDF report.
@@ -4461,12 +4461,12 @@ void nwipe_gui_add_customer_name( char* customer_name )
     extern int terminate_signal;
 
     // const char* contact_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Set the buffer index to point to the end of the string, i.e the NULL */
@@ -4477,13 +4477,13 @@ void nwipe_gui_add_customer_name( char* customer_name )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Add New Customer Name " );
+        kwipe_gui_title( main_window, " Add New Customer Name " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -4541,9 +4541,9 @@ void nwipe_gui_add_customer_name( char* customer_name )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-} /* End of nwipe_gui_add_customer_name() */
+} /* End of kwipe_gui_add_customer_name() */
 
-void nwipe_gui_add_customer_address( char* customer_address )
+void kwipe_gui_add_customer_address( char* customer_address )
 {
     /**
      * Allows the user to change the customer's address as displayed on the PDF report.
@@ -4568,12 +4568,12 @@ void nwipe_gui_add_customer_address( char* customer_address )
     extern int terminate_signal;
 
     // const char* contact_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Set the buffer index to point to the end of the string, i.e the NULL */
@@ -4584,13 +4584,13 @@ void nwipe_gui_add_customer_address( char* customer_address )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Add New Customer Address " );
+        kwipe_gui_title( main_window, " Add New Customer Address " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -4648,9 +4648,9 @@ void nwipe_gui_add_customer_address( char* customer_address )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-} /* End of nwipe_gui_add_customer_address() */
+} /* End of kwipe_gui_add_customer_address() */
 
-void nwipe_gui_add_customer_contact_name( char* customer_contact_name )
+void kwipe_gui_add_customer_contact_name( char* customer_contact_name )
 {
     /**
      * Allows the user to change the customer contact name as displayed on the PDF report.
@@ -4675,12 +4675,12 @@ void nwipe_gui_add_customer_contact_name( char* customer_contact_name )
     extern int terminate_signal;
 
     // const char* contact_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Set the buffer index to point to the end of the string, i.e the NULL */
@@ -4691,13 +4691,13 @@ void nwipe_gui_add_customer_contact_name( char* customer_contact_name )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Add New Customer Contact Name " );
+        kwipe_gui_title( main_window, " Add New Customer Contact Name " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -4755,9 +4755,9 @@ void nwipe_gui_add_customer_contact_name( char* customer_contact_name )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-} /* End of nwipe_gui_add_customer_contact_name() */
+} /* End of kwipe_gui_add_customer_contact_name() */
 
-void nwipe_gui_add_customer_contact_phone( char* customer_contact_phone )
+void kwipe_gui_add_customer_contact_phone( char* customer_contact_phone )
 {
     /**
      * Allows the user to change the customer contact phone as displayed on the PDF report.
@@ -4782,12 +4782,12 @@ void nwipe_gui_add_customer_contact_phone( char* customer_contact_phone )
     extern int terminate_signal;
 
     // const char* contact_name;
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     /* Set the buffer index to point to the end of the string, i.e the NULL */
@@ -4798,13 +4798,13 @@ void nwipe_gui_add_customer_contact_phone( char* customer_contact_phone )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Add New Customer Contact Phone " );
+        kwipe_gui_title( main_window, " Add New Customer Contact Phone " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -4862,9 +4862,9 @@ void nwipe_gui_add_customer_contact_phone( char* customer_contact_phone )
 
     } while( keystroke != 10 && terminate_signal != 1 );
 
-} /* End of nwipe_gui_add_customer_contact_phone() */
+} /* End of kwipe_gui_add_customer_contact_phone() */
 
-void nwipe_gui_preview_org_customer( int mode )
+void kwipe_gui_preview_org_customer( int mode )
 {
     /**
      * Display the organisation and customers details and the current system date and time
@@ -4899,11 +4899,11 @@ void nwipe_gui_preview_org_customer( int mode )
     int wlines;
     int wcols;
 
-    /* variables used by libconfig for extracting data from nwipe.conf */
+    /* variables used by libconfig for extracting data from kwipe.conf */
     config_setting_t* setting;
     const char *business_name, *business_address, *contact_name, *contact_phone, *op_tech_name;
     const char *customer_name, *customer_address, *customer_contact_name, *customer_contact_phone;
-    extern config_t nwipe_cfg;
+    extern config_t kwipe_cfg;
 
     do
     {
@@ -4916,13 +4916,13 @@ void nwipe_gui_preview_org_customer( int mode )
             werase( footer_window );
             if( mode == SHOWING_IN_CONFIG_MENUS )
             {
-                nwipe_gui_title( footer_window, selection_footer );
-                nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
+                kwipe_gui_title( footer_window, selection_footer );
+                kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer );
             }
             else
             {
-                nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_preview_prior_to_drive_selection );
-                nwipe_gui_title( footer_window, selection_footer_preview_prior_to_drive_selection );
+                kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_preview_prior_to_drive_selection );
+                kwipe_gui_title( footer_window, selection_footer_preview_prior_to_drive_selection );
             }
             wrefresh( footer_window );
 
@@ -4950,12 +4950,12 @@ void nwipe_gui_preview_org_customer( int mode )
             mvwaddch( main_window, 2 + focus, tab1, ACS_RARROW );
 
             /******************************************************************
-             * libconfig: Locate the Organisation Details section in nwipe.conf
+             * libconfig: Locate the Organisation Details section in kwipe.conf
              */
 
-            setting = config_lookup( &nwipe_cfg, "Organisation_Details" );
+            setting = config_lookup( &kwipe_cfg, "Organisation_Details" );
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Business_Name", &business_name ) )
             {
                 str_truncate( wcols, tab2, business_name, output_str, FIELD_LENGTH );
@@ -4963,11 +4963,11 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve business_name, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve business_name, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 2, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Business_Address", &business_address ) )
             {
                 str_truncate( wcols, tab2, business_address, output_str, FIELD_LENGTH );
@@ -4975,11 +4975,11 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve business address, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve business address, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 3, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Contact_Name", &contact_name ) )
             {
                 str_truncate( wcols, tab2, contact_name, output_str, FIELD_LENGTH );
@@ -4987,11 +4987,11 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve contact name, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve contact name, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 4, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Contact_Phone", &contact_phone ) )
             {
                 str_truncate( wcols, tab2, contact_phone, output_str, FIELD_LENGTH );
@@ -5000,11 +5000,11 @@ void nwipe_gui_preview_org_customer( int mode )
             else
             {
                 str_truncate(
-                    wcols, tab2, "Cannot retrieve customer contact phone, nwipe.conf", output_str, FIELD_LENGTH );
+                    wcols, tab2, "Cannot retrieve customer contact phone, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 5, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Op_Tech_Name", &op_tech_name ) )
             {
                 str_truncate( wcols, tab2, op_tech_name, output_str, FIELD_LENGTH );
@@ -5012,16 +5012,16 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve op_tech_name, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve op_tech_name, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 6, tab2, ": %s", output_str );
             }
 
             /**********************************************************************
-             * libconfig: Locate the current customer details section in nwipe.conf
+             * libconfig: Locate the current customer details section in kwipe.conf
              */
-            setting = config_lookup( &nwipe_cfg, "Selected_Customer" );
+            setting = config_lookup( &kwipe_cfg, "Selected_Customer" );
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Customer_Name", &customer_name ) )
             {
                 str_truncate( wcols, tab2, customer_name, output_str, FIELD_LENGTH );
@@ -5029,11 +5029,11 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve Customer_Name, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve Customer_Name, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 8, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Customer_Address", &customer_address ) )
             {
                 str_truncate( wcols, tab2, customer_address, output_str, FIELD_LENGTH );
@@ -5041,11 +5041,11 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve customer address, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve customer address, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 9, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Contact_Name", &contact_name ) )
             {
                 str_truncate( wcols, tab2, contact_name, output_str, FIELD_LENGTH );
@@ -5053,11 +5053,11 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve contact name, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve contact name, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 10, tab2, ": %s", output_str );
             }
 
-            /* Retrieve data from nwipe.conf */
+            /* Retrieve data from kwipe.conf */
             if( config_setting_lookup_string( setting, "Contact_Phone", &contact_phone ) )
             {
                 str_truncate( wcols, tab2, contact_phone, output_str, FIELD_LENGTH );
@@ -5065,7 +5065,7 @@ void nwipe_gui_preview_org_customer( int mode )
             }
             else
             {
-                str_truncate( wcols, tab2, "Cannot retrieve contact phone, nwipe.conf", output_str, FIELD_LENGTH );
+                str_truncate( wcols, tab2, "Cannot retrieve contact phone, kwipe.conf", output_str, FIELD_LENGTH );
                 mvwprintw( main_window, 11, tab2, ": %s", output_str );
             }
 
@@ -5083,7 +5083,7 @@ void nwipe_gui_preview_org_customer( int mode )
             /*************
              * Add a title
              */
-            nwipe_gui_title( main_window, " PDF Report - Preview Organisation, customer and date/time " );
+            kwipe_gui_title( main_window, " PDF Report - Preview Organisation, customer and date/time " );
 
             /********************
              * Refresh the window
@@ -5160,27 +5160,27 @@ void nwipe_gui_preview_org_customer( int mode )
             switch( focus )
             {
                 case 0:
-                    nwipe_gui_organisation_business_name( business_name );
+                    kwipe_gui_organisation_business_name( business_name );
                     keystroke = 0;
                     break;
 
                 case 1:
-                    nwipe_gui_organisation_business_address( business_address );
+                    kwipe_gui_organisation_business_address( business_address );
                     keystroke = 0;
                     break;
 
                 case 2:
-                    nwipe_gui_organisation_contact_name( contact_name );
+                    kwipe_gui_organisation_contact_name( contact_name );
                     keystroke = 0;
                     break;
 
                 case 3:
-                    nwipe_gui_organisation_contact_phone( contact_phone );
+                    kwipe_gui_organisation_contact_phone( contact_phone );
                     keystroke = 0;
                     break;
 
                 case 4:
-                    nwipe_gui_organisation_op_tech_name( op_tech_name );
+                    kwipe_gui_organisation_op_tech_name( op_tech_name );
                     keystroke = 0;
                     break;
 
@@ -5188,20 +5188,20 @@ void nwipe_gui_preview_org_customer( int mode )
                 case 7:
                 case 8:
                 case 9:
-                    nwipe_gui_config();
+                    kwipe_gui_config();
                     break;
 
                 case 11:
-                    nwipe_gui_set_date_time();
+                    kwipe_gui_set_date_time();
             }
         }
 
     } while( keystroke != 'A' && keystroke != 'a' && keystroke != KEY_ENTER && keystroke != ' ' && keystroke != 10
              && terminate_signal != 1 );
 
-} /* end of nwipe_gui_preview_org_customer( void ) */
+} /* end of kwipe_gui_preview_org_customer( void ) */
 
-void nwipe_gui_set_date_time( void )
+void kwipe_gui_set_date_time( void )
 {
     /**
      * Set system date and time
@@ -5234,11 +5234,11 @@ void nwipe_gui_set_date_time( void )
     int wlines;
     int wcols;
 
-    extern config_t nwipe_cfg;
+    extern config_t kwipe_cfg;
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_config );
+    kwipe_gui_title( footer_window, selection_footer_config );
     wrefresh( footer_window );
 
     do
@@ -5248,7 +5248,7 @@ void nwipe_gui_set_date_time( void )
             /* Clear the main window. */
             werase( main_window );
 
-            nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
+            kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_config );
 
             /* Determine size of window */
             getmaxyx( main_window, wlines, wcols );
@@ -5297,7 +5297,7 @@ void nwipe_gui_set_date_time( void )
             /*************
              * Add a title
              */
-            nwipe_gui_title( main_window, " Set date/time " );
+            kwipe_gui_title( main_window, " Set date/time " );
 
             /********************
              * Refresh the window
@@ -5367,31 +5367,31 @@ void nwipe_gui_set_date_time( void )
             {
                 case 0:
                     /* Set year */
-                    nwipe_gui_set_system_year();
+                    kwipe_gui_set_system_year();
                     keystroke = 0;
                     break;
 
                 case 1:
                     /* Set month */
-                    nwipe_gui_set_system_month();
+                    kwipe_gui_set_system_month();
                     keystroke = 0;
                     break;
 
                 case 2:
                     /* Set day */
-                    nwipe_gui_set_system_day();
+                    kwipe_gui_set_system_day();
                     keystroke = 0;
                     break;
 
                 case 4:
                     /* Set hours */
-                    nwipe_gui_set_system_hour();
+                    kwipe_gui_set_system_hour();
                     keystroke = 0;
                     break;
 
                 case 5:
                     /* Set minutes */
-                    nwipe_gui_set_system_minute();
+                    kwipe_gui_set_system_minute();
                     keystroke = 0;
                     break;
             }
@@ -5399,9 +5399,9 @@ void nwipe_gui_set_date_time( void )
 
     } while( keystroke != KEY_ENTER && keystroke != ' ' && keystroke != 10 && terminate_signal != 1 );
 
-} /* end of nwipe_gui_set_date_time( void ) */
+} /* end of kwipe_gui_set_date_time( void ) */
 
-void nwipe_gui_set_system_year( void )
+void kwipe_gui_set_system_year( void )
 {
     /**
      * Allows the user to edit the host systems year
@@ -5442,19 +5442,19 @@ void nwipe_gui_set_system_year( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     fp = popen( "date +%Y", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%Y %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%Y %s", date_buffer );
         mvwprintw( main_window, yy + 4, tab1, "popen:date command failed retrieving year" );
     }
 
     if( fgets( date_buffer, sizeof( date_buffer ), fp ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve year %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve year %s", date_buffer );
         mvwprintw( main_window, yy + 5, tab1, "fgets:failed retrieving year" );
     }
 
@@ -5471,13 +5471,13 @@ void nwipe_gui_set_system_year( void )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Set System Year " );
+        kwipe_gui_title( main_window, " Set System Year " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -5539,7 +5539,7 @@ void nwipe_gui_set_system_year( void )
     status = read_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
     }
 
     strncpy( year, date_buffer, 4 );
@@ -5547,12 +5547,12 @@ void nwipe_gui_set_system_year( void )
     status = write_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
     }
 
-} /* End of nwipe_gui_set_system_year() */
+} /* End of kwipe_gui_set_system_year() */
 
-void nwipe_gui_set_system_month( void )
+void kwipe_gui_set_system_month( void )
 {
     /**
      * Allows the user to edit the host systems year
@@ -5593,19 +5593,19 @@ void nwipe_gui_set_system_month( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     fp = popen( "date +%m", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%m %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%m %s", date_buffer );
         mvwprintw( main_window, yy + 4, tab1, "popen:date command failed retrieving month" );
     }
 
     if( fgets( date_buffer, sizeof( date_buffer ), fp ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve month %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve month %s", date_buffer );
         mvwprintw( main_window, yy + 5, tab1, "fgets:failed retrieving month" );
     }
 
@@ -5622,13 +5622,13 @@ void nwipe_gui_set_system_month( void )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Set System Month " );
+        kwipe_gui_title( main_window, " Set System Month " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -5691,7 +5691,7 @@ void nwipe_gui_set_system_month( void )
     status = read_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
     }
 
     strncpy( month, date_buffer, 2 );
@@ -5699,12 +5699,12 @@ void nwipe_gui_set_system_month( void )
     status = write_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
     }
 
-} /* End of nwipe_gui_set_system_month() */
+} /* End of kwipe_gui_set_system_month() */
 
-void nwipe_gui_set_system_day( void )
+void kwipe_gui_set_system_day( void )
 {
     /**
      * Allows the user to edit the host systems year
@@ -5745,19 +5745,19 @@ void nwipe_gui_set_system_day( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     fp = popen( "date +%d", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%d %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%d %s", date_buffer );
         mvwprintw( main_window, yy + 4, tab1, "popen:date command failed retrieving day of month" );
     }
 
     if( fgets( date_buffer, sizeof( date_buffer ), fp ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve day of month %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve day of month %s", date_buffer );
         mvwprintw( main_window, yy + 5, tab1, "fgets:failed retrieving day of month" );
     }
 
@@ -5774,13 +5774,13 @@ void nwipe_gui_set_system_day( void )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Set System Day of Month " );
+        kwipe_gui_title( main_window, " Set System Day of Month " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -5845,7 +5845,7 @@ void nwipe_gui_set_system_day( void )
     status = read_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
     }
 
     strncpy( day, date_buffer, 2 );
@@ -5853,12 +5853,12 @@ void nwipe_gui_set_system_day( void )
     status = write_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
     }
 
-} /* End of nwipe_gui_set_system_day() */
+} /* End of kwipe_gui_set_system_day() */
 
-void nwipe_gui_set_system_hour( void )
+void kwipe_gui_set_system_hour( void )
 {
     /**
      * Allows the user to edit the host systems year
@@ -5899,19 +5899,19 @@ void nwipe_gui_set_system_hour( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     fp = popen( "date +%H", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%H %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%H %s", date_buffer );
         mvwprintw( main_window, yy + 4, tab1, "popen:date command failed retrieving hour" );
     }
 
     if( fgets( date_buffer, sizeof( date_buffer ), fp ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve the hour %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve the hour %s", date_buffer );
         mvwprintw( main_window, yy + 5, tab1, "fgets:failed retrieving the hour" );
     }
 
@@ -5928,13 +5928,13 @@ void nwipe_gui_set_system_hour( void )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Set System Hour " );
+        kwipe_gui_title( main_window, " Set System Hour " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -5997,7 +5997,7 @@ void nwipe_gui_set_system_hour( void )
     status = read_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
     }
 
     strncpy( hours, date_buffer, 2 );
@@ -6005,12 +6005,12 @@ void nwipe_gui_set_system_hour( void )
     status = write_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
     }
 
-} /* End of nwipe_gui_set_system_hour() */
+} /* End of kwipe_gui_set_system_hour() */
 
-void nwipe_gui_set_system_minute( void )
+void kwipe_gui_set_system_minute( void )
 {
     /**
      * Allows the user to edit the host systems year
@@ -6051,19 +6051,19 @@ void nwipe_gui_set_system_minute( void )
 
     /* Update the footer window. */
     werase( footer_window );
-    nwipe_gui_title( footer_window, selection_footer_text_entry );
+    kwipe_gui_title( footer_window, selection_footer_text_entry );
     wrefresh( footer_window );
 
     fp = popen( "date +%M", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%M %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "popen:Failed to retrieve date +%M %s", date_buffer );
         mvwprintw( main_window, yy + 4, tab1, "popen:date command failed retrieving minute" );
     }
 
     if( fgets( date_buffer, sizeof( date_buffer ), fp ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve the minute %s", date_buffer );
+        kwipe_log( NWIPE_LOG_INFO, "fgets:failed to retrieve the minute %s", date_buffer );
         mvwprintw( main_window, yy + 5, tab1, "fgets:failed retrieving the minute" );
     }
 
@@ -6080,13 +6080,13 @@ void nwipe_gui_set_system_minute( void )
         /* Erase the main window. */
         werase( main_window );
 
-        nwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
+        kwipe_gui_create_all_windows_on_terminal_resize( 0, selection_footer_text_entry );
 
         /* Add a border. */
         box( main_window, 0, 0 );
 
         /* Add a title. */
-        nwipe_gui_title( main_window, " Set System Minute " );
+        kwipe_gui_title( main_window, " Set System Minute " );
 
         /* Initialize the working row. */
         yy = 4;
@@ -6149,7 +6149,7 @@ void nwipe_gui_set_system_minute( void )
     status = read_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:read_system_datetime failed, see previous messages for detail" );
     }
 
     strncpy( minutes, date_buffer, 2 );
@@ -6157,12 +6157,12 @@ void nwipe_gui_set_system_minute( void )
     status = write_system_datetime( year, month, day, hours, minutes, seconds );
     if( status != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
+        kwipe_log( NWIPE_LOG_ERROR, "func:write_system_datetime failed, see previous messages for detail" );
     }
 
-} /* End of nwipe_gui_set_system_minute() */
+} /* End of kwipe_gui_set_system_minute() */
 
-void nwipe_gui_load( void )
+void kwipe_gui_load( void )
 {
     /**
      * Prints the system load average to the statistics window.
@@ -6172,7 +6172,7 @@ void nwipe_gui_load( void )
      */
 
     /* A file handle for the stat file. */
-    FILE* nwipe_fp;
+    FILE* kwipe_fp;
 
     /* The one, five, and fifteen minute load averages. */
     float load_01;
@@ -6180,15 +6180,15 @@ void nwipe_gui_load( void )
     float load_15;
 
     /* Open the loadavg file. */
-    nwipe_fp = fopen( NWIPE_KNOB_LOADAVG, "r" );
+    kwipe_fp = fopen( NWIPE_KNOB_LOADAVG, "r" );
 
     /* Print the label. */
     mvwprintw( stats_window, NWIPE_GUI_STATS_LOAD_Y, NWIPE_GUI_STATS_LOAD_X, "Load Averages:" );
 
-    if( nwipe_fp )
+    if( kwipe_fp )
     {
         /* The load averages are the first three numbers in the file. */
-        if( 3 == fscanf( nwipe_fp, "%f %f %f", &load_01, &load_05, &load_15 ) )
+        if( 3 == fscanf( kwipe_fp, "%f %f %f", &load_01, &load_05, &load_15 ) )
         {
             /* Print the load average. */
             mvwprintw( stats_window,
@@ -6206,16 +6206,16 @@ void nwipe_gui_load( void )
         }
 
         /* Close the loadavg file. */
-        fclose( nwipe_fp );
+        fclose( kwipe_fp );
     }
     else
     {
         mvwprintw( stats_window, NWIPE_GUI_STATS_LOAD_Y, NWIPE_GUI_STATS_TAB, "(fopen error %i)", errno );
     }
 
-} /* nwipe_gui_load */
+} /* kwipe_gui_load */
 
-void* nwipe_gui_status( void* ptr )
+void* kwipe_gui_status( void* ptr )
 {
     /**
      * Shows runtime statistics and overall progress.
@@ -6230,16 +6230,16 @@ void* nwipe_gui_status( void* ptr )
 
     extern int terminate_signal;
 
-    nwipe_thread_data_ptr_t* nwipe_thread_data_ptr;
-    nwipe_thread_data_ptr = (nwipe_thread_data_ptr_t*) ptr;
+    kwipe_thread_data_ptr_t* kwipe_thread_data_ptr;
+    kwipe_thread_data_ptr = (kwipe_thread_data_ptr_t*) ptr;
 
-    nwipe_context_t** c;
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;
+    kwipe_context_t** c;
+    kwipe_misc_thread_data_t* kwipe_misc_thread_data;
     int count;
 
-    c = nwipe_thread_data_ptr->c;
-    nwipe_misc_thread_data = nwipe_thread_data_ptr->nwipe_misc_thread_data;
-    count = nwipe_misc_thread_data->nwipe_selected;
+    c = kwipe_thread_data_ptr->c;
+    kwipe_misc_thread_data = kwipe_thread_data_ptr->kwipe_misc_thread_data;
+    count = kwipe_misc_thread_data->kwipe_selected;
 
     char nomenclature_result_str[NOMENCLATURE_RESULT_STR_SIZE]; /* temporary usage */
 
@@ -6250,7 +6250,7 @@ void* nwipe_gui_status( void* ptr )
      * and whether a logfile has been specified
      */
     char finish_message[NWIPE_GUI_FOOTER_W + 132];
-    if( nwipe_options.logfile[0] == 0 && nwipe_options.PDF_enable != 0 )
+    if( kwipe_options.logfile[0] == 0 && kwipe_options.PDF_enable != 0 )
     {
         snprintf( finish_message,
                   sizeof( finish_message ),
@@ -6258,25 +6258,25 @@ void* nwipe_gui_status( void* ptr )
     }
     else
     {
-        if( nwipe_options.logfile[0] != 0 && nwipe_options.PDF_enable != 0 )
+        if( kwipe_options.logfile[0] != 0 && kwipe_options.PDF_enable != 0 )
         {
             snprintf( finish_message,
                       sizeof( finish_message ),
                       "Wipe finished - press enter to create pdfs & exit. Logged to %s",
-                      nwipe_options.logfile );
+                      kwipe_options.logfile );
         }
         else
         {
-            if( nwipe_options.logfile[0] != 0 && nwipe_options.PDF_enable == 0 )
+            if( kwipe_options.logfile[0] != 0 && kwipe_options.PDF_enable == 0 )
             {
                 snprintf( finish_message,
                           sizeof( finish_message ),
                           "Wipe finished - press enter to exit (pdfs disabled in config). Logged to %s",
-                          nwipe_options.logfile );
+                          kwipe_options.logfile );
             }
             else
             {
-                if( nwipe_options.logfile[0] == 0 && nwipe_options.PDF_enable == 0 )
+                if( kwipe_options.logfile[0] == 0 && kwipe_options.PDF_enable == 0 )
                 {
                     snprintf( finish_message,
                               sizeof( finish_message ),
@@ -6294,16 +6294,16 @@ void* nwipe_gui_status( void* ptr )
     }
 
     /* We count time from when this function is first called. */
-    static time_t nwipe_time_start = 0;
+    static time_t kwipe_time_start = 0;
 
     /* Whether the screen has been blanked by the user. */
-    static int nwipe_gui_blank = 0;
+    static int kwipe_gui_blank = 0;
 
     /* The current time. */
-    time_t nwipe_time_now;
+    time_t kwipe_time_now;
 
     /* The time when all wipes ended */
-    time_t nwipe_time_stopped;
+    time_t kwipe_time_stopped;
 
     /* The index of the element that is visible in the first slot. */
     static int offset;
@@ -6328,29 +6328,29 @@ void* nwipe_gui_status( void* ptr )
     int loop_control;
 
     /* The combined througput of all processes. */
-    nwipe_misc_thread_data->throughput = 0;
+    kwipe_misc_thread_data->throughput = 0;
 
     /* The estimated runtime of the slowest device. */
-    nwipe_misc_thread_data->maxeta = 0;
+    kwipe_misc_thread_data->maxeta = 0;
 
     /* The combined number of errors of all processes. */
-    nwipe_misc_thread_data->errors = 0;
+    kwipe_misc_thread_data->errors = 0;
 
     /* Time values. */
-    int nwipe_hh;
-    int nwipe_mm;
-    int nwipe_ss;
+    int kwipe_hh;
+    int kwipe_mm;
+    int kwipe_ss;
 
     struct timespec tim, tim2;
     tim.tv_sec = 0;
     tim.tv_nsec = 100000000L; /* sleep for 0.1 seconds */
 
     /* Throughput variables */
-    u64 nwipe_throughput;
+    u64 kwipe_throughput;
 
     /* The number of active wipe processes. */
     /* Set to 1 initially to start loop.    */
-    int nwipe_active = 1;
+    int kwipe_active = 1;
 
     /* Used in the gui status loop to trap a failure of the halfdelay(), getch() mechanism to block for the designated
      * period */
@@ -6366,13 +6366,13 @@ void* nwipe_gui_status( void* ptr )
      * (typically 10) */
     expected_iterations = ( 1000 / GETCH_GUI_STATS_UPDATE_MS ) * 2;
 
-    if( nwipe_time_start == 0 )
+    if( kwipe_time_start == 0 )
     {
         /* This is the first time that we have been called. */
-        nwipe_time_start = time( NULL ) - 1;
+        kwipe_time_start = time( NULL ) - 1;
     }
 
-    nwipe_gui_title( footer_window, end_wipe_footer );
+    kwipe_gui_title( footer_window, end_wipe_footer );
 
     loop_control = 1;
 
@@ -6391,24 +6391,24 @@ void* nwipe_gui_status( void* ptr )
 
         iteration_counter++;
 
-        /* Much like the same check we perform in the nwipe_gui_select() function, here we check that we are not looping
+        /* Much like the same check we perform in the kwipe_gui_select() function, here we check that we are not looping
          * any faster than as defined by the halfdelay() function above, typically this loop runs at 10 times a second.
          * This check makes sure that if the loop runs faster than double this value i.e 20 times a second then the
          * program exits. This check is therefore determining whether the getch() function is returning immediately
          * rather than blocking for the defined period of 100ms. Why is this necessary? Some terminals (konsole &
-         * deriviatives) that are exited while nwipe is still running fail to terminate nwipe this causes the
+         * deriviatives) that are exited while kwipe is still running fail to terminate kwipe this causes the
          * halfdelay()/getch() functions to immediately fail causing the loop frequency to drastically increase. We
-         * detect that speed increase here and therefore close down nwipe. This doesn't affect the use of the tmux
-         * terminal by which you can detach and reattach to running nwipe processes. tmux still works correctly.
+         * detect that speed increase here and therefore close down kwipe. This doesn't affect the use of the tmux
+         * terminal by which you can detach and reattach to running kwipe processes. tmux still works correctly.
          */
         if( previous_iteration_timestamp == time( NULL ) )
         {
             if( iteration_counter > expected_iterations )
             {
-                nwipe_log( NWIPE_LOG_ERROR,
-                           "GUI.c,nwipe_gui_status(), loop runaway, did you close the terminal without exiting "
-                           "nwipe? Initiating shutdown now." );
-                /* Issue signal to nwipe to shutdown immediately but gracefully */
+                kwipe_log( NWIPE_LOG_ERROR,
+                           "GUI.c,kwipe_gui_status(), loop runaway, did you close the terminal without exiting "
+                           "kwipe? Initiating shutdown now." );
+                /* Issue signal to kwipe to shutdown immediately but gracefully */
                 terminate_signal = 1;
             }
         }
@@ -6420,14 +6420,14 @@ void* nwipe_gui_status( void* ptr )
         }
 
         /* Get the current time. */
-        if( nwipe_active && terminate_signal != 1 )
+        if( kwipe_active && terminate_signal != 1 )
         {
-            nwipe_time_now = time( NULL );
-            nwipe_time_stopped = nwipe_time_now;
+            kwipe_time_now = time( NULL );
+            kwipe_time_stopped = kwipe_time_now;
         }
         else
         {
-            nwipe_time_now = nwipe_time_stopped;
+            kwipe_time_now = kwipe_time_stopped;
         }
 
         /* Erase the main window. */
@@ -6440,17 +6440,17 @@ void* nwipe_gui_status( void* ptr )
         werase( footer_window );
 
         /* Only repaint the windows on terminal resize if the user hasn't blanked the screen */
-        if( nwipe_gui_blank == 0 )
+        if( kwipe_gui_blank == 0 )
         {
-            if( nwipe_active != 0 )
+            if( kwipe_active != 0 )
             {
                 /* if resizing the terminal during a wipe a specific footer is required */
-                nwipe_gui_create_all_windows_on_terminal_resize( 0, end_wipe_footer );
+                kwipe_gui_create_all_windows_on_terminal_resize( 0, end_wipe_footer );
             }
             else
             {
                 /* and if the wipes have finished a different footer is required */
-                nwipe_gui_create_all_windows_on_terminal_resize( 0, finish_message );
+                kwipe_gui_create_all_windows_on_terminal_resize( 0, finish_message );
             }
         }
 
@@ -6466,9 +6466,9 @@ void* nwipe_gui_status( void* ptr )
         /* Each element prints three lines. */
         slots /= 3;
 
-        if( nwipe_active == 0 || terminate_signal == 1 )
+        if( kwipe_active == 0 || terminate_signal == 1 )
         {
-            nwipe_gui_title( footer_window, finish_message );
+            kwipe_gui_title( footer_window, finish_message );
 
             // Refresh the footer_window ;
             wnoutrefresh( footer_window );
@@ -6479,14 +6479,14 @@ void* nwipe_gui_status( void* ptr )
             loop_control = 0;
         }
 
-        if( keystroke > 0x0a && keystroke < 0x7e && nwipe_gui_blank == 1 )
+        if( keystroke > 0x0a && keystroke < 0x7e && kwipe_gui_blank == 1 )
         {
             tft_saver = 0;
-            nwipe_init_pairs();
-            nwipe_gui_create_all_windows_on_terminal_resize( 1, end_wipe_footer );
+            kwipe_init_pairs();
+            kwipe_gui_create_all_windows_on_terminal_resize( 1, end_wipe_footer );
 
             /* Show screen */
-            nwipe_gui_blank = 0;
+            kwipe_gui_blank = 0;
 
             /* Set background */
             wbkgdset( stdscr, COLOR_PAIR( 1 ) );
@@ -6500,7 +6500,7 @@ void* nwipe_gui_status( void* ptr )
             show_panel( main_panel );
 
             /* Reprint the footer */
-            nwipe_gui_title( footer_window, end_wipe_footer );
+            kwipe_gui_title( footer_window, end_wipe_footer );
 
             // Refresh the footer_window ;
             wnoutrefresh( footer_window );
@@ -6518,20 +6518,20 @@ void* nwipe_gui_status( void* ptr )
                 case 'b':
                 case 'B':
 
-                    if( nwipe_gui_blank == 0 && tft_saver != 1 )
+                    if( kwipe_gui_blank == 0 && tft_saver != 1 )
                     {
                         /* grey text on black background */
                         tft_saver = 1;
-                        nwipe_init_pairs();
-                        nwipe_gui_create_all_windows_on_terminal_resize( 1, end_wipe_footer );
+                        kwipe_init_pairs();
+                        kwipe_gui_create_all_windows_on_terminal_resize( 1, end_wipe_footer );
                     }
                     else
                     {
-                        if( nwipe_gui_blank == 0 && tft_saver == 1 )
+                        if( kwipe_gui_blank == 0 && tft_saver == 1 )
                         {
                             /* Blank screen. */
                             tft_saver = 0;
-                            nwipe_gui_blank = 1;
+                            kwipe_gui_blank = 1;
                             hide_panel( header_panel );
                             hide_panel( footer_panel );
                             hide_panel( stats_panel );
@@ -6584,7 +6584,7 @@ void* nwipe_gui_status( void* ptr )
 
                     /* Check whether we have finished all wipes, if yes exit while loop if user pressed spacebar or
                      * return. */
-                    if( !nwipe_active || terminate_signal == 1 )
+                    if( !kwipe_active || terminate_signal == 1 )
                     {
                         loop_control = 0;
                     }
@@ -6601,9 +6601,9 @@ void* nwipe_gui_status( void* ptr )
 
         /* If wipe has completed and user has specified auto poweroff or nowait then we can skip waiting for the user to
          * press return */
-        if( !nwipe_active )
+        if( !kwipe_active )
         {
-            if( nwipe_options.autopoweroff || nwipe_options.nowait )
+            if( kwipe_options.autopoweroff || kwipe_options.nowait )
             {
                 loop_control = 0;
             }
@@ -6615,11 +6615,11 @@ void* nwipe_gui_status( void* ptr )
             /* Always run compute_stats() as we need to whether any threads are still active */
             if( terminate_signal != 1 )
             {
-                nwipe_active = compute_stats( ptr );  // Returns number of active wipe threads
+                kwipe_active = compute_stats( ptr );  // Returns number of active wipe threads
             }
 
             /* Only print the stats if the user hasn't blanked the screen */
-            if( nwipe_gui_blank == 0 )
+            if( kwipe_gui_blank == 0 )
             {
 
                 /* Print information for the user. */
@@ -6767,15 +6767,15 @@ void* nwipe_gui_status( void* ptr )
                 wnoutrefresh( main_window );
 
                 /* Update the load average field, but only if we are still wiping */
-                if( nwipe_active && terminate_signal != 1 )
+                if( kwipe_active && terminate_signal != 1 )
                 {
-                    nwipe_gui_load();
+                    kwipe_gui_load();
                 }
 
-                nwipe_throughput = nwipe_misc_thread_data->throughput;
+                kwipe_throughput = kwipe_misc_thread_data->throughput;
 
                 /* Determine the nomenclature for the combined throughput */
-                Determine_C_B_nomenclature( nwipe_throughput, nomenclature_result_str, NOMENCLATURE_RESULT_STR_SIZE );
+                Determine_C_B_nomenclature( kwipe_throughput, nomenclature_result_str, NOMENCLATURE_RESULT_STR_SIZE );
 
                 /* Print the combined throughput. */
                 mvwprintw( stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_THROUGHPUT_X, "Throughput:" );
@@ -6784,14 +6784,14 @@ void* nwipe_gui_status( void* ptr )
                     stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_TAB, "%s/s", nomenclature_result_str );
 
                 /* Change the current time into a delta. */
-                nwipe_time_now -= nwipe_time_start;
+                kwipe_time_now -= kwipe_time_start;
 
                 /* Put the delta into HH:mm:ss form. */
-                nwipe_hh = nwipe_time_now / 3600;
-                nwipe_time_now %= 3600;
-                nwipe_mm = nwipe_time_now / 60;
-                nwipe_time_now %= 60;
-                nwipe_ss = nwipe_time_now;
+                kwipe_hh = kwipe_time_now / 3600;
+                kwipe_time_now %= 3600;
+                kwipe_mm = kwipe_time_now / 60;
+                kwipe_time_now %= 60;
+                kwipe_ss = kwipe_time_now;
 
                 /* Print the runtime. */
                 mvwprintw( stats_window, NWIPE_GUI_STATS_RUNTIME_Y, 1, "Runtime:" );
@@ -6799,30 +6799,30 @@ void* nwipe_gui_status( void* ptr )
                            NWIPE_GUI_STATS_RUNTIME_Y,
                            NWIPE_GUI_STATS_TAB,
                            "%02i:%02i:%02i",
-                           nwipe_hh,
-                           nwipe_mm,
-                           nwipe_ss );
+                           kwipe_hh,
+                           kwipe_mm,
+                           kwipe_ss );
 
                 mvwprintw( stats_window, NWIPE_GUI_STATS_ETA_Y, 1, "Remaining:" );
 
-                time_t nwipe_maxeta = nwipe_misc_thread_data->maxeta;
-                if( nwipe_maxeta > 0 )
+                time_t kwipe_maxeta = kwipe_misc_thread_data->maxeta;
+                if( kwipe_maxeta > 0 )
                 {
                     /* Do it again for the estimated runtime remaining. */
-                    nwipe_hh = nwipe_maxeta / 3600;
-                    nwipe_maxeta %= 3600;
-                    nwipe_mm = nwipe_maxeta / 60;
-                    nwipe_maxeta %= 60;
-                    nwipe_ss = nwipe_maxeta;
+                    kwipe_hh = kwipe_maxeta / 3600;
+                    kwipe_maxeta %= 3600;
+                    kwipe_mm = kwipe_maxeta / 60;
+                    kwipe_maxeta %= 60;
+                    kwipe_ss = kwipe_maxeta;
 
                     /* Print the estimated runtime remaining. */
                     mvwprintw( stats_window,
                                NWIPE_GUI_STATS_ETA_Y,
                                NWIPE_GUI_STATS_TAB,
                                "%02i:%02i:%02i",
-                               nwipe_hh,
-                               nwipe_mm,
-                               nwipe_ss );
+                               kwipe_hh,
+                               kwipe_mm,
+                               kwipe_ss );
                 }
 
                 /* Print the error count. */
@@ -6831,7 +6831,7 @@ void* nwipe_gui_status( void* ptr )
                            NWIPE_GUI_STATS_ERRORS_Y,
                            NWIPE_GUI_STATS_TAB,
                            "  %llu",
-                           nwipe_misc_thread_data->errors );
+                           kwipe_misc_thread_data->errors );
 
                 /* Add a border. */
                 box( stats_window, 0, 0 );
@@ -6851,32 +6851,32 @@ void* nwipe_gui_status( void* ptr )
 
     } /* End of while loop */
 
-    nwipe_gui_title( footer_window, finish_message );
+    kwipe_gui_title( footer_window, finish_message );
     terminate_signal = 1;
 
     return NULL;
-} /* nwipe_gui_status */
+} /* kwipe_gui_status */
 
 int compute_stats( void* ptr )
 {
-    nwipe_thread_data_ptr_t* nwipe_thread_data_ptr;
-    nwipe_thread_data_ptr = (nwipe_thread_data_ptr_t*) ptr;
+    kwipe_thread_data_ptr_t* kwipe_thread_data_ptr;
+    kwipe_thread_data_ptr = (kwipe_thread_data_ptr_t*) ptr;
 
-    nwipe_context_t** c;
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;
+    kwipe_context_t** c;
+    kwipe_misc_thread_data_t* kwipe_misc_thread_data;
 
-    c = nwipe_thread_data_ptr->c;
-    nwipe_misc_thread_data = nwipe_thread_data_ptr->nwipe_misc_thread_data;
-    int count = nwipe_misc_thread_data->nwipe_selected;
+    c = kwipe_thread_data_ptr->c;
+    kwipe_misc_thread_data = kwipe_thread_data_ptr->kwipe_misc_thread_data;
+    int count = kwipe_misc_thread_data->kwipe_selected;
 
-    int nwipe_active = 0;
+    int kwipe_active = 0;
     int i;
 
-    time_t nwipe_time_now = time( NULL );
+    time_t kwipe_time_now = time( NULL );
 
-    nwipe_misc_thread_data->throughput = 0;
-    nwipe_misc_thread_data->maxeta = 0;
-    nwipe_misc_thread_data->errors = 0;
+    kwipe_misc_thread_data->throughput = 0;
+    kwipe_misc_thread_data->maxeta = 0;
+    kwipe_misc_thread_data->errors = 0;
 
     /* Enumerate all contexts to compute statistics. */
     for( i = 0; i < count; i++ )
@@ -6885,11 +6885,11 @@ int compute_stats( void* ptr )
         if( c[i]->wipe_status == 1 )
         {
             /* Increment the child counter. */
-            nwipe_active += 1;
+            kwipe_active += 1;
 
             /* Even if the wipe has finished ALWAYS run the stats one last time so the final SUCCESS percentage value is
              * correct. Maintain a rolling average of throughput. */
-            nwipe_update_speedring( &c[i]->speedring, c[i]->round_done, nwipe_time_now );
+            kwipe_update_speedring( &c[i]->speedring, c[i]->round_done, kwipe_time_now );
 
             if( c[i]->speedring.timestotal > 0 && c[i]->wipe_status == 1 )
             {
@@ -6904,15 +6904,15 @@ int compute_stats( void* ptr )
                 {
                     c[i]->eta = ( c[i]->round_size - c[i]->round_done ) / c[i]->throughput;
 
-                    if( c[i]->eta > nwipe_misc_thread_data->maxeta )
+                    if( c[i]->eta > kwipe_misc_thread_data->maxeta )
                     {
-                        nwipe_misc_thread_data->maxeta = c[i]->eta;
+                        kwipe_misc_thread_data->maxeta = c[i]->eta;
                     }
                 }
             }
 
             /* Calculate the average throughput */
-            c[i]->throughput = (double) c[i]->round_done / (double) difftime( nwipe_time_now, c[i]->start_time );
+            c[i]->throughput = (double) c[i]->round_done / (double) difftime( kwipe_time_now, c[i]->start_time );
         }
 
         /* Update the percentage value. */
@@ -6921,26 +6921,26 @@ int compute_stats( void* ptr )
         if( c[i]->wipe_status == 1 )
         {
             /* Accumulate combined throughput. */
-            nwipe_misc_thread_data->throughput += c[i]->throughput;
+            kwipe_misc_thread_data->throughput += c[i]->throughput;
         }
 
         /* Accumulate the error count. */
-        nwipe_misc_thread_data->errors += c[i]->pass_errors;
-        nwipe_misc_thread_data->errors += c[i]->verify_errors;
-        nwipe_misc_thread_data->errors += c[i]->fsyncdata_errors;
+        kwipe_misc_thread_data->errors += c[i]->pass_errors;
+        kwipe_misc_thread_data->errors += c[i]->verify_errors;
+        kwipe_misc_thread_data->errors += c[i]->fsyncdata_errors;
 
         /* Read the drive temperature values */
-        //        if( nwipe_time_now > ( c[i]->temp1_time + 60 ) )
+        //        if( kwipe_time_now > ( c[i]->temp1_time + 60 ) )
         //        {
-        //            nwipe_update_temperature( c[i] );
+        //            kwipe_update_temperature( c[i] );
         //        }
 
     } /* for statistics */
 
-    return nwipe_active;
+    return kwipe_active;
 }
 
-void nwipe_update_speedring( nwipe_speedring_t* speedring, u64 speedring_bytes, time_t speedring_now )
+void kwipe_update_speedring( kwipe_speedring_t* speedring, u64 speedring_bytes, time_t speedring_now )
 {
 
     if( speedring->timeslast == 0 )
@@ -6978,9 +6978,9 @@ void nwipe_update_speedring( nwipe_speedring_t* speedring, u64 speedring_bytes, 
     }
 }
 
-int spinner( nwipe_context_t** ptr, int device_idx )
+int spinner( kwipe_context_t** ptr, int device_idx )
 {
-    nwipe_context_t** c;
+    kwipe_context_t** c;
 
     c = ptr;
 
@@ -7005,7 +7005,7 @@ int spinner( nwipe_context_t** ptr, int device_idx )
     return 0;
 }
 
-void temp1_flash( nwipe_context_t* c )
+void temp1_flash( kwipe_context_t* c )
 {
     if( c->temp1_flash_rate_counter < c->temp1_flash_rate )
     {
@@ -7025,7 +7025,7 @@ void temp1_flash( nwipe_context_t* c )
     }
 }
 
-void wprintw_temperature( nwipe_context_t* c )
+void wprintw_temperature( kwipe_context_t* c )
 {
     /* See header for description of function
      */

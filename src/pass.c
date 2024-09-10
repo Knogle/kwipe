@@ -23,7 +23,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdint.h>
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -33,9 +33,9 @@
 #include "gui.h"
 #include "aes/aes_ctr_prng.h"
 
-extern nwipe_prng_t nwipe_aes_ctr_prng;
+extern kwipe_prng_t kwipe_aes_ctr_prng;
 
-int nwipe_random_verify( nwipe_context_t* c )
+int kwipe_random_verify( kwipe_context_t* c )
 {
     /**
      * Verifies that a random pass was correctly written to the device.
@@ -62,13 +62,13 @@ int nwipe_random_verify( nwipe_context_t* c )
 
     if( c->prng_seed.s == NULL )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "Null seed pointer." );
+        kwipe_log( NWIPE_LOG_SANITY, "Null seed pointer." );
         return -1;
     }
 
     if( c->prng_seed.length <= 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "The entropy length member is %i.", c->prng_seed.length );
+        kwipe_log( NWIPE_LOG_SANITY, "The entropy length member is %i.", c->prng_seed.length );
         return -1;
     }
 
@@ -78,8 +78,8 @@ int nwipe_random_verify( nwipe_context_t* c )
     /* Check the memory allocation. */
     if( !b )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the input buffer." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the input buffer." );
         return -1;
     }
 
@@ -89,8 +89,8 @@ int nwipe_random_verify( nwipe_context_t* c )
     /* Check the memory allocation. */
     if( !d )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the pattern buffer." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the pattern buffer." );
         free( b );
         return -1;
     }
@@ -103,8 +103,8 @@ int nwipe_random_verify( nwipe_context_t* c )
 
     if( offset == (off64_t) -1 )
     {
-        nwipe_perror( errno, __FUNCTION__, "lseek" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "lseek" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
         free( b );
         free( d );
         return -1;
@@ -113,7 +113,7 @@ int nwipe_random_verify( nwipe_context_t* c )
     if( offset != 0 )
     {
         /* This is system insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "lseek() returned a bogus offset on '%s'.", c->device_name );
+        kwipe_log( NWIPE_LOG_SANITY, "lseek() returned a bogus offset on '%s'.", c->device_name );
         free( b );
         free( d );
         return -1;
@@ -130,8 +130,8 @@ int nwipe_random_verify( nwipe_context_t* c )
 
     if( r != 0 )
     {
-        nwipe_perror( errno, __FUNCTION__, "fdatasync" );
-        nwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "fdatasync" );
+        kwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
         c->fsyncdata_errors++;
     }
 
@@ -149,7 +149,7 @@ int nwipe_random_verify( nwipe_context_t* c )
             /* This is a seatbelt for buggy drivers and programming errors because */
             /* the device size should always be an even multiple of its blocksize. */
             blocksize = z;
-            nwipe_log( NWIPE_LOG_WARNING,
+            kwipe_log( NWIPE_LOG_WARNING,
                        "%s: The size of '%s' is not a multiple of its block size %i.",
                        __FUNCTION__,
                        c->device_name,
@@ -165,8 +165,8 @@ int nwipe_random_verify( nwipe_context_t* c )
         /* Check the result. */
         if( r < 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "read" );
-            nwipe_log( NWIPE_LOG_ERROR, "Unable to read from '%s'.", c->device_name );
+            kwipe_perror( errno, __FUNCTION__, "read" );
+            kwipe_log( NWIPE_LOG_ERROR, "Unable to read from '%s'.", c->device_name );
             return -1;
         }
 
@@ -178,7 +178,7 @@ int nwipe_random_verify( nwipe_context_t* c )
             /* The number of bytes that were not read. */
             int s = blocksize - r;
 
-            nwipe_log(
+            kwipe_log(
                 NWIPE_LOG_WARNING, "%s: Partial read from '%s', %i bytes short.", __FUNCTION__, c->device_name, s );
 
             /* Increment the error count. */
@@ -189,8 +189,8 @@ int nwipe_random_verify( nwipe_context_t* c )
 
             if( offset == (off64_t) -1 )
             {
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log(
+                kwipe_perror( errno, __FUNCTION__, "lseek" );
+                kwipe_log(
                     NWIPE_LOG_ERROR, "Unable to bump the '%s' file offset after a partial read.", c->device_name );
                 return -1;
             }
@@ -220,18 +220,18 @@ int nwipe_random_verify( nwipe_context_t* c )
 
     // Cleanup PRNG state at the end of function
     // Check before cleaning up AES PRNG state
-    if( c->prng == &nwipe_aes_ctr_prng )
+    if( c->prng == &kwipe_aes_ctr_prng )
     {
         aes_ctr_prng_general_cleanup( (aes_ctr_state_t*) c->prng_state );
-        nwipe_log( NWIPE_LOG_DEBUG, "Called aes_ctr_prng_general_cleanup(), and cleaned up AES context." );
+        kwipe_log( NWIPE_LOG_DEBUG, "Called aes_ctr_prng_general_cleanup(), and cleaned up AES context." );
     }
 
     /* We're done. */
     return 0;
 
-} /* nwipe_random_verify */
+} /* kwipe_random_verify */
 
-int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
+int kwipe_random_pass( NWIPE_METHOD_SIGNATURE )
 {
     /**
      * Writes a random pattern to the device.
@@ -254,7 +254,7 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
     u64 z = c->device_size;
 
     /* Number of writes to do before a fdatasync. */
-    int syncRate = nwipe_options.sync;
+    int syncRate = kwipe_options.sync;
 
     /* Counter to track when to do a fdatasync. */
     int i = 0;
@@ -264,13 +264,13 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
 
     if( c->prng_seed.s == NULL )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: Null seed pointer." );
+        kwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: Null seed pointer." );
         return -1;
     }
 
     if( c->prng_seed.length <= 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: The entropy length member is %i.", c->prng_seed.length );
+        kwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: The entropy length member is %i.", c->prng_seed.length );
         return -1;
     }
 
@@ -281,8 +281,8 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
     /* Check the memory allocation. */
     if( !b )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the output buffer." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the output buffer." );
         return -1;
     }
 
@@ -297,8 +297,8 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
 
     if( offset == (off64_t) -1 )
     {
-        nwipe_perror( errno, __FUNCTION__, "lseek" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "lseek" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
         free( b );
         return -1;
     }
@@ -306,7 +306,7 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
     if( offset != 0 )
     {
         /* This is system insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: lseek() returned a bogus offset on '%s'.", c->device_name );
+        kwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: lseek() returned a bogus offset on '%s'.", c->device_name );
         free( b );
         return -1;
     }
@@ -322,7 +322,7 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
             /* This is a seatbelt for buggy drivers and programming errors because */
             /* the device size should always be an even multiple of its blocksize. */
             blocksize = z;
-            nwipe_log( NWIPE_LOG_WARNING,
+            kwipe_log( NWIPE_LOG_WARNING,
                        "%s: The size of '%s' is not a multiple of its block size %i.",
                        __FUNCTION__,
                        c->device_name,
@@ -340,14 +340,14 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
             {
                 if( b[idx] != 0 )
                 {
-                    nwipe_log( NWIPE_LOG_NOTICE, "prng stream is active" );
+                    kwipe_log( NWIPE_LOG_NOTICE, "prng stream is active" );
                     break;
                 }
                 idx--;
             }
             if( idx == 0 )
             {
-                nwipe_log( NWIPE_LOG_FATAL, "ERROR, prng wrote nothing to the buffer" );
+                kwipe_log( NWIPE_LOG_FATAL, "ERROR, prng wrote nothing to the buffer" );
                 if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
                 {
                     c->bytes_erased = c->device_size - z;
@@ -362,8 +362,8 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
         /* Check the result for a fatal error. */
         if( r < 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "write" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to read from '%s'.", c->device_name );
+            kwipe_perror( errno, __FUNCTION__, "write" );
+            kwipe_log( NWIPE_LOG_FATAL, "Unable to read from '%s'.", c->device_name );
             if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
             {
                 c->bytes_erased = c->device_size - z;
@@ -382,15 +382,15 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
             /* Increment the error count by the number of bytes that were not written. */
             c->pass_errors += s;
 
-            nwipe_log( NWIPE_LOG_WARNING, "Partial write on '%s', %i bytes short.", c->device_name, s );
+            kwipe_log( NWIPE_LOG_WARNING, "Partial write on '%s', %i bytes short.", c->device_name, s );
 
             /* Bump the file pointer to the next block. */
             offset = lseek( c->device_fd, s, SEEK_CUR );
 
             if( offset == (off64_t) -1 )
             {
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log(
+                kwipe_perror( errno, __FUNCTION__, "lseek" );
+                kwipe_log(
                     NWIPE_LOG_ERROR, "Unable to bump the '%s' file offset after a partial write.", c->device_name );
                 if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
                 {
@@ -426,9 +426,9 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
 
                 if( r != 0 )
                 {
-                    nwipe_perror( errno, __FUNCTION__, "fdatasync" );
-                    nwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
-                    nwipe_log( NWIPE_LOG_WARNING, "Wrote %llu bytes on '%s'.", c->pass_done, c->device_name );
+                    kwipe_perror( errno, __FUNCTION__, "fdatasync" );
+                    kwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
+                    kwipe_log( NWIPE_LOG_WARNING, "Wrote %llu bytes on '%s'.", c->pass_done, c->device_name );
                     c->fsyncdata_errors++;
                     free( b );
                     if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
@@ -466,8 +466,8 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
 
     if( r != 0 )
     {
-        nwipe_perror( errno, __FUNCTION__, "fdatasync" );
-        nwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "fdatasync" );
+        kwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
         c->fsyncdata_errors++;
         if( c->bytes_erased < ( c->device_size - z - blocksize ) )  // How much of the device has been erased?
         {
@@ -478,18 +478,18 @@ int nwipe_random_pass( NWIPE_METHOD_SIGNATURE )
 
     // Cleanup PRNG state at the end of function
     // Check before cleaning up AES PRNG state
-    if( c->prng == &nwipe_aes_ctr_prng )
+    if( c->prng == &kwipe_aes_ctr_prng )
     {
         aes_ctr_prng_general_cleanup( (aes_ctr_state_t*) c->prng_state );
-        nwipe_log( NWIPE_LOG_DEBUG, "Called aes_ctr_prng_general_cleanup(), and cleaned up AES context." );
+        kwipe_log( NWIPE_LOG_DEBUG, "Called aes_ctr_prng_general_cleanup(), and cleaned up AES context." );
     }
 
     /* We're done. */
     return 0;
 
-} /* nwipe_random_pass */
+} /* kwipe_random_pass */
 
-int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
+int kwipe_static_verify( NWIPE_METHOD_SIGNATURE, kwipe_pattern_t* pattern )
 {
     /**
      * Verifies that a static pass was correctly written to the device.
@@ -522,14 +522,14 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     if( pattern == NULL )
     {
         /* Caught insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: Null entropy pointer." );
+        kwipe_log( NWIPE_LOG_SANITY, "kwipe_static_verify: Null entropy pointer." );
         return -1;
     }
 
     if( pattern->length <= 0 )
     {
         /* Caught insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: The pattern length member is %i.", pattern->length );
+        kwipe_log( NWIPE_LOG_SANITY, "kwipe_static_verify: The pattern length member is %i.", pattern->length );
         return -1;
     }
 
@@ -539,8 +539,8 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     /* Check the memory allocation. */
     if( !b )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the input buffer." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the input buffer." );
         return -1;
     }
 
@@ -550,8 +550,8 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     /* Check the memory allocation. */
     if( !d )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the pattern buffer." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the pattern buffer." );
         free( b );
         return -1;
     }
@@ -573,8 +573,8 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
 
     if( r != 0 )
     {
-        nwipe_perror( errno, __FUNCTION__, "fdatasync" );
-        nwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "fdatasync" );
+        kwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
         c->fsyncdata_errors++;
     }
 
@@ -586,8 +586,8 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
 
     if( offset == (off64_t) -1 )
     {
-        nwipe_perror( errno, __FUNCTION__, "lseek" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "lseek" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
         free( b );
         return -1;
     }
@@ -595,7 +595,7 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     if( offset != 0 )
     {
         /* This is system insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: lseek() returned a bogus offset on '%s'.", c->device_name );
+        kwipe_log( NWIPE_LOG_SANITY, "kwipe_static_verify: lseek() returned a bogus offset on '%s'.", c->device_name );
         free( b );
         free( d );
         return -1;
@@ -612,7 +612,7 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
             /* This is a seatbelt for buggy drivers and programming errors because */
             /* the device size should always be an even multiple of its blocksize. */
             blocksize = z;
-            nwipe_log( NWIPE_LOG_WARNING,
+            kwipe_log( NWIPE_LOG_WARNING,
                        "%s: The size of '%s' is not a multiple of its block size %i.",
                        __FUNCTION__,
                        c->device_name,
@@ -626,8 +626,8 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
         /* Check the result. */
         if( r < 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "read" );
-            nwipe_log( NWIPE_LOG_ERROR, "Unable to read from '%s'.", c->device_name );
+            kwipe_perror( errno, __FUNCTION__, "read" );
+            kwipe_log( NWIPE_LOG_ERROR, "Unable to read from '%s'.", c->device_name );
             return -1;
         }
 
@@ -650,15 +650,15 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
             /* Increment the error count. */
             c->verify_errors += 1;
 
-            nwipe_log( NWIPE_LOG_WARNING, "Partial read on '%s', %i bytes short.", c->device_name, s );
+            kwipe_log( NWIPE_LOG_WARNING, "Partial read on '%s', %i bytes short.", c->device_name, s );
 
             /* Bump the file pointer to the next block. */
             offset = lseek( c->device_fd, s, SEEK_CUR );
 
             if( offset == (off64_t) -1 )
             {
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log(
+                kwipe_perror( errno, __FUNCTION__, "lseek" );
+                kwipe_log(
                     NWIPE_LOG_ERROR, "Unable to bump the '%s' file offset after a partial read.", c->device_name );
                 return -1;
             }
@@ -691,9 +691,9 @@ int nwipe_static_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     /* We're done. */
     return 0;
 
-} /* nwipe_static_verify */
+} /* kwipe_static_verify */
 
-int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
+int kwipe_static_pass( NWIPE_METHOD_SIGNATURE, kwipe_pattern_t* pattern )
 {
     /**
      * Writes a static pattern to the device.
@@ -721,7 +721,7 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     u64 z = c->device_size;
 
     /* Number of writes to do before a fdatasync. */
-    int syncRate = nwipe_options.sync;
+    int syncRate = kwipe_options.sync;
 
     /* Counter to track when to do a fdatasync. */
     int i = 0;
@@ -729,14 +729,14 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     if( pattern == NULL )
     {
         /* Caught insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: Null pattern pointer." );
+        kwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: Null pattern pointer." );
         return -1;
     }
 
     if( pattern->length <= 0 )
     {
         /* Caught insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: The pattern length member is %i.", pattern->length );
+        kwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: The pattern length member is %i.", pattern->length );
         return -1;
     }
 
@@ -746,8 +746,8 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     /* Check the memory allocation. */
     if( !b )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the pattern buffer." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the pattern buffer." );
         return -1;
     }
 
@@ -765,15 +765,15 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
 
     if( offset == (off64_t) -1 )
     {
-        nwipe_perror( errno, __FUNCTION__, "lseek" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "lseek" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
         return -1;
     }
 
     if( offset != 0 )
     {
         /* This is system insanity. */
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: lseek() returned a bogus offset on '%s'.", c->device_name );
+        kwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: lseek() returned a bogus offset on '%s'.", c->device_name );
         return -1;
     }
 
@@ -788,7 +788,7 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
             /* This is a seatbelt for buggy drivers and programming errors because */
             /* the device size should always be an even multiple of its blocksize. */
             blocksize = z;
-            nwipe_log( NWIPE_LOG_WARNING,
+            kwipe_log( NWIPE_LOG_WARNING,
                        "%s: The size of '%s' is not a multiple of its block size %i.",
                        __FUNCTION__,
                        c->device_name,
@@ -802,8 +802,8 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
         /* Check the result for a fatal error. */
         if( r < 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "write" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to write to '%s'.", c->device_name );
+            kwipe_perror( errno, __FUNCTION__, "write" );
+            kwipe_log( NWIPE_LOG_FATAL, "Unable to write to '%s'.", c->device_name );
             if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
             {
                 c->bytes_erased = c->device_size - z;
@@ -822,15 +822,15 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
             /* Increment the error count. */
             c->pass_errors += s;
 
-            nwipe_log( NWIPE_LOG_WARNING, "Partial write on '%s', %i bytes short.", c->device_name, s );
+            kwipe_log( NWIPE_LOG_WARNING, "Partial write on '%s', %i bytes short.", c->device_name, s );
 
             /* Bump the file pointer to the next block. */
             offset = lseek( c->device_fd, s, SEEK_CUR );
 
             if( offset == (off64_t) -1 )
             {
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log(
+                kwipe_perror( errno, __FUNCTION__, "lseek" );
+                kwipe_log(
                     NWIPE_LOG_ERROR, "Unable to bump the '%s' file offset after a partial write.", c->device_name );
                 if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
                 {
@@ -875,9 +875,9 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
 
                 if( r != 0 )
                 {
-                    nwipe_perror( errno, __FUNCTION__, "fdatasync" );
-                    nwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
-                    nwipe_log( NWIPE_LOG_WARNING, "Wrote %llu bytes on '%s'.", c->pass_done, c->device_name );
+                    kwipe_perror( errno, __FUNCTION__, "fdatasync" );
+                    kwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
+                    kwipe_log( NWIPE_LOG_WARNING, "Wrote %llu bytes on '%s'.", c->pass_done, c->device_name );
                     c->fsyncdata_errors++;
                     free( b );
                     if( c->bytes_erased < ( c->device_size - z ) )  // How much of the device has been erased?
@@ -911,8 +911,8 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
 
     if( r != 0 )
     {
-        nwipe_perror( errno, __FUNCTION__, "fdatasync" );
-        nwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
+        kwipe_perror( errno, __FUNCTION__, "fdatasync" );
+        kwipe_log( NWIPE_LOG_WARNING, "Buffer flush failure on '%s'.", c->device_name );
         c->fsyncdata_errors++;
         if( c->bytes_erased < ( c->device_size - z - blocksize ) )  // How much of the device has been erased?
         {
@@ -927,4 +927,4 @@ int nwipe_static_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
     /* We're done. */
     return 0;
 
-} /* nwipe_static_pass */
+} /* kwipe_static_pass */

@@ -30,7 +30,7 @@
 #include <string.h>
 #include <scsi/sg.h>
 #include <scsi/scsi_ioctl.h>
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "version.h"
 #include "method.h"
@@ -47,9 +47,9 @@
  * come back to this and fully implement it without any reliance on hdparm.
  */
 
-int hpa_dco_status( nwipe_context_t* ptr )
+int hpa_dco_status( kwipe_context_t* ptr )
 {
-    nwipe_context_t* c;
+    kwipe_context_t* c;
     c = ptr;
 
     int r;  // A result buffer.
@@ -71,7 +71,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
 
     char result[512];
 
-    u64 nwipe_dco_real_max_sectors;
+    u64 kwipe_dco_real_max_sectors;
 
     char* p;
 
@@ -96,10 +96,10 @@ int hpa_dco_status( nwipe_context_t* ptr )
         {
             if( system( "which /usr/bin/hdparm > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "hdparm command not found." );
-                nwipe_log( NWIPE_LOG_WARNING,
-                           "Required by nwipe for HPA/DCO detection & correction and ATA secure erase." );
-                nwipe_log( NWIPE_LOG_WARNING, "** Please install hdparm **\n" );
+                kwipe_log( NWIPE_LOG_WARNING, "hdparm command not found." );
+                kwipe_log( NWIPE_LOG_WARNING,
+                           "Required by kwipe for HPA/DCO detection & correction and ATA secure erase." );
+                kwipe_log( NWIPE_LOG_WARNING, "** Please install hdparm **\n" );
                 cleanup();
                 exit( 1 );
             }
@@ -161,7 +161,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
 
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_WARNING, "hpa_dco_status: Failed to create stream to %s", hdparm_cmd_get_hpa );
+            kwipe_log( NWIPE_LOG_WARNING, "hpa_dco_status: Failed to create stream to %s", hdparm_cmd_get_hpa );
 
             set_return_value = 1;
         }
@@ -173,9 +173,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
             /* Read the output a line at a time - output it. */
             while( fgets( result, sizeof( result ) - 1, fp ) != NULL )
             {
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_DEBUG, "%s \n%s", hdparm_cmd_get_hpa, result );
+                    kwipe_log( NWIPE_LOG_DEBUG, "%s \n%s", hdparm_cmd_get_hpa, result );
                 }
 
                 /* Change the output of hdparm to lower case and search using lower case strings, to try
@@ -188,7 +188,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
                 if( strstr( result, "sg_io: bad/missing sense data" ) != 0 )
                 {
                     c->HPA_status = HPA_UNKNOWN;
-                    nwipe_log( NWIPE_LOG_ERROR, "SG_IO bad/missing sense data %s", hdparm_cmd_get_hpa );
+                    kwipe_log( NWIPE_LOG_ERROR, "SG_IO bad/missing sense data %s", hdparm_cmd_get_hpa );
                     break;
                 }
                 else
@@ -197,7 +197,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
                     {
                         c->HPA_status = HPA_DISABLED;
 
-                        nwipe_log( NWIPE_LOG_DEBUG,
+                        kwipe_log( NWIPE_LOG_DEBUG,
                                    "hdparm says the host protected area is disabled on %s but this information may or "
                                    "may not be correct, as occurs when you get a SG_IO error and 0/1 sectors and it "
                                    "says HPA is enabled. Further checks are conducted below..",
@@ -210,7 +210,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
                         if( strstr( result, "hpa is enabled" ) != 0 )
                         {
                             c->HPA_status = HPA_ENABLED;
-                            nwipe_log( NWIPE_LOG_DEBUG,
+                            kwipe_log( NWIPE_LOG_DEBUG,
                                        "hdparm says the host protected area is enabled on %s but this information may "
                                        "or may not be correct, as occurs when you get a SG_IO error and 0/1 sectors "
                                        "and it says HPA is enabled. Further checks are conducted below..",
@@ -223,7 +223,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
                             if( strstr( result, "accessible max address disabled" ) != 0 )
                             {
                                 c->HPA_status = HPA_DISABLED;
-                                nwipe_log( NWIPE_LOG_DEBUG,
+                                kwipe_log( NWIPE_LOG_DEBUG,
                                            "hdparm says the accessible max address disabled on %s"
                                            "this means that there are no hidden sectors,  "
                                            "",
@@ -236,7 +236,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
                                 if( strstr( result, "accessible max address enabled" ) != 0 )
                                 {
                                     c->HPA_status = HPA_ENABLED;
-                                    nwipe_log( NWIPE_LOG_DEBUG,
+                                    kwipe_log( NWIPE_LOG_DEBUG,
                                                "hdparm says the accessible max address enabled on %s"
                                                "this means that there are hidden sectors",
                                                c->device_name );
@@ -247,7 +247,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
                                 {
                                     if( strstr( result, "invalid" ) != 0 )
                                     {
-                                        nwipe_log(
+                                        kwipe_log(
                                             NWIPE_LOG_WARNING,
                                             "hdparm reports invalid output, sector information may be invalid, buggy "
                                             "drive firmware on %s?",
@@ -272,21 +272,21 @@ int hpa_dco_status( nwipe_context_t* ptr )
                 /* Extract the 'HPA set' value, the first value in the line and convert
                  * to binary and save in context */
 
-                nwipe_log( NWIPE_LOG_INFO, "HPA: %s on %s", result, c->device_name );
+                kwipe_log( NWIPE_LOG_INFO, "HPA: %s on %s", result, c->device_name );
 
                 c->HPA_reported_set = str_ascii_number_to_ll( result );
 
                 /* Check whether the number was too large or no number found & log */
                 if( c->HPA_reported_set == -1 )
                 {
-                    nwipe_log( NWIPE_LOG_INFO, "HPA_set_value: HPA set value too large on %s", c->device_name );
+                    kwipe_log( NWIPE_LOG_INFO, "HPA_set_value: HPA set value too large on %s", c->device_name );
                     c->HPA_reported_set = 0;
                 }
                 else
                 {
                     if( c->HPA_reported_set == -2 )
                     {
-                        nwipe_log( NWIPE_LOG_INFO, "HPA_set_value: No HPA set value found %s", c->device_name );
+                        kwipe_log( NWIPE_LOG_INFO, "HPA_set_value: No HPA set value found %s", c->device_name );
                         c->HPA_reported_set = 0;
                     }
                 }
@@ -312,19 +312,19 @@ int hpa_dco_status( nwipe_context_t* ptr )
                 /* Check whether the number was too large or no number found & log */
                 if( c->HPA_reported_real == -1 )
                 {
-                    nwipe_log( NWIPE_LOG_INFO, "HPA_set_value: HPA real value too large on %s", c->device_name );
+                    kwipe_log( NWIPE_LOG_INFO, "HPA_set_value: HPA real value too large on %s", c->device_name );
                     c->HPA_reported_real = 0;
                 }
                 else
                 {
                     if( c->HPA_reported_real == -2 )
                     {
-                        nwipe_log( NWIPE_LOG_INFO, "HPA_set_value: No HPA real value found %s", c->device_name );
+                        kwipe_log( NWIPE_LOG_INFO, "HPA_set_value: No HPA real value found %s", c->device_name );
                         c->HPA_reported_real = 0;
                     }
                 }
 
-                nwipe_log( NWIPE_LOG_INFO,
+                kwipe_log( NWIPE_LOG_INFO,
                            "HPA values %lli / %lli on %s",
                            c->HPA_reported_set,
                            c->HPA_reported_real,
@@ -333,7 +333,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
             else
             {
                 c->HPA_status = HPA_UNKNOWN;
-                nwipe_log( NWIPE_LOG_WARNING,
+                kwipe_log( NWIPE_LOG_WARNING,
                            "[UNKNOWN] We can't find the HPA line, has hdparm ouput unknown/changed? %s",
                            c->device_name );
             }
@@ -343,9 +343,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
             if( r > 0 )
             {
                 exit_status = WEXITSTATUS( r );
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING,
+                    kwipe_log( NWIPE_LOG_WARNING,
                                "hpa_dco_status(): hdparm failed, \"%s\" exit status = %u",
                                hdparm_cmd_get_hpa,
                                exit_status );
@@ -353,9 +353,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
 
                 if( exit_status == 127 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Command not found. Installing hdparm is mandatory !" );
+                    kwipe_log( NWIPE_LOG_WARNING, "Command not found. Installing hdparm is mandatory !" );
                     set_return_value = 2;
-                    if( nwipe_options.nousb )
+                    if( kwipe_options.nousb )
                     {
                         return set_return_value;
                     }
@@ -384,7 +384,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
 
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_WARNING, "hpa_dco_status: Failed to create stream to %s", hdparm_cmd_get_dco );
+            kwipe_log( NWIPE_LOG_WARNING, "hpa_dco_status: Failed to create stream to %s", hdparm_cmd_get_dco );
 
             set_return_value = 1;
         }
@@ -398,9 +398,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
                  * to avoid minor changes in case in hdparm's output from breaking HPA/DCO detection */
                 strlower( result );
 
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_DEBUG, "%s \n%s", hdparm_cmd_get_dco, result );
+                    kwipe_log( NWIPE_LOG_DEBUG, "%s \n%s", hdparm_cmd_get_dco, result );
                 }
 
                 if( strstr( result, "real max sectors" ) != 0 )
@@ -414,7 +414,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
             if( dco_line_found == 1 )
             {
                 c->DCO_reported_real_max_sectors = str_ascii_number_to_ll( result );
-                nwipe_log( NWIPE_LOG_INFO,
+                kwipe_log( NWIPE_LOG_INFO,
                            "hdparm:DCO Real max sectors reported as %lli on %s",
                            c->DCO_reported_real_max_sectors,
                            c->device_name );
@@ -430,23 +430,23 @@ int hpa_dco_status( nwipe_context_t* ptr )
                  */
                 if( c->DCO_reported_real_max_sectors > 0 && c->DCO_reported_real_max_sectors < 429496729600 )
                 {
-                    nwipe_log( NWIPE_LOG_INFO,
+                    kwipe_log( NWIPE_LOG_INFO,
                                "NWipe: DCO Real max sectors reported as %lli on %s",
                                c->DCO_reported_real_max_sectors,
                                c->device_name );
                 }
                 else
                 {
-                    /* Call nwipe's own low level function to retrieve the drive configuration
+                    /* Call kwipe's own low level function to retrieve the drive configuration
                      * overlay and retrieve the real max sectors. We may remove reliance on hdparm
-                     * if nwipes own low level drive access code works well.
+                     * if kwipes own low level drive access code works well.
                      */
-                    c->DCO_reported_real_max_sectors = nwipe_read_dco_real_max_sectors( c->device_name );
+                    c->DCO_reported_real_max_sectors = kwipe_read_dco_real_max_sectors( c->device_name );
 
                     /* Check our real max sectors function is returning sensible data too */
                     if( c->DCO_reported_real_max_sectors > 0 && c->DCO_reported_real_max_sectors < 429496729600 )
                     {
-                        nwipe_log( NWIPE_LOG_INFO,
+                        kwipe_log( NWIPE_LOG_INFO,
                                    "NWipe: DCO Real max sectors reported as %lli on %s",
                                    c->DCO_reported_real_max_sectors,
                                    c->device_name );
@@ -454,17 +454,17 @@ int hpa_dco_status( nwipe_context_t* ptr )
                     else
                     {
                         c->DCO_reported_real_max_sectors = 0;
-                        nwipe_log( NWIPE_LOG_INFO, "DCO Real max sectors not found" );
+                        kwipe_log( NWIPE_LOG_INFO, "DCO Real max sectors not found" );
                     }
                 }
             }
             else
             {
                 c->DCO_reported_real_max_sectors = 0;
-                nwipe_log( NWIPE_LOG_INFO, "DCO Real max sectors not found" );
+                kwipe_log( NWIPE_LOG_INFO, "DCO Real max sectors not found" );
             }
 
-            nwipe_log(
+            kwipe_log(
                 NWIPE_LOG_INFO,
                 "libata: apparent max sectors reported as %lli with sector size as %i/%i (logical/physical) on %s",
                 c->device_size_in_sectors,
@@ -477,9 +477,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
             if( r > 0 )
             {
                 exit_status = WEXITSTATUS( r );
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING,
+                    kwipe_log( NWIPE_LOG_WARNING,
                                "hpa_dco_status(): hdparm failed, \"%s\" exit status = %u",
                                hdparm_cmd_get_dco,
                                exit_status );
@@ -487,9 +487,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
 
                 if( exit_status == 127 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Command not found. Installing hdparm is mandatory !" );
+                    kwipe_log( NWIPE_LOG_WARNING, "Command not found. Installing hdparm is mandatory !" );
                     set_return_value = 2;
-                    if( nwipe_options.nousb )
+                    if( kwipe_options.nousb )
                     {
                         return set_return_value;
                     }
@@ -560,9 +560,9 @@ int hpa_dco_status( nwipe_context_t* ptr )
         || c->DCO_reported_real_max_sectors > c->device_size_in_512byte_sectors )
     {
         c->HPA_status = HPA_ENABLED;
-        nwipe_log( NWIPE_LOG_WARNING, " *********************************" );
-        nwipe_log( NWIPE_LOG_WARNING, " *** HIDDEN SECTORS DETECTED ! *** on %s", c->device_name );
-        nwipe_log( NWIPE_LOG_WARNING, " *********************************" );
+        kwipe_log( NWIPE_LOG_WARNING, " *********************************" );
+        kwipe_log( NWIPE_LOG_WARNING, " *** HIDDEN SECTORS DETECTED ! *** on %s", c->device_name );
+        kwipe_log( NWIPE_LOG_WARNING, " *********************************" );
     }
     else
     {
@@ -573,7 +573,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
             c->HPA_status = HPA_UNKNOWN;
             if( c->device_bus == NWIPE_DEVICE_USB )
             {
-                nwipe_log( NWIPE_LOG_WARNING,
+                kwipe_log( NWIPE_LOG_WARNING,
                            "HIDDEN SECTORS INDETERMINATE! on %s, Some USB adapters & memory sticks don't support "
                            "ATA pass through",
                            c->device_name );
@@ -582,13 +582,13 @@ int hpa_dco_status( nwipe_context_t* ptr )
         else
         {
             c->HPA_status = HPA_DISABLED;
-            nwipe_log( NWIPE_LOG_INFO, "No hidden sectors on %s", c->device_name );
+            kwipe_log( NWIPE_LOG_INFO, "No hidden sectors on %s", c->device_name );
         }
     }
 
     c->DCO_reported_real_max_size = c->DCO_reported_real_max_sectors * c->device_sector_size;
 
-    nwipe_dco_real_max_sectors = nwipe_read_dco_real_max_sectors( c->device_name );
+    kwipe_dco_real_max_sectors = kwipe_read_dco_real_max_sectors( c->device_name );
 
     /* Analyse all the variations to produce the final real max bytes which takes into
      * account drives that don't support DCO or HPA. This result is used in the PDF
@@ -672,7 +672,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
         c->HPA_size_text[0] = 0;
     }
 
-    nwipe_log( NWIPE_LOG_DEBUG,
+    kwipe_log( NWIPE_LOG_DEBUG,
                "c->Calculated_real_max_size_in_bytes=%lli, c->device_size=%lli, c->device_sector_size=%lli, "
                "c->DCO_reported_real_max_size=%lli, c->DCO_reported_real_max_sectors=%lli, c->HPA_sectors=%lli, "
                "c->HPA_reported_set=%lli, c->HPA_reported_real=%lli, c->device_type=%i, "
@@ -693,7 +693,7 @@ int hpa_dco_status( nwipe_context_t* ptr )
     return set_return_value;
 }
 
-u64 nwipe_read_dco_real_max_sectors( char* device )
+u64 kwipe_read_dco_real_max_sectors( char* device )
 {
     /* This function sends a device configuration overlay identify command 0xB1 (dco-identify)
      * to the drive and extracts the real max sectors. The value is incremented by 1 and
@@ -713,7 +713,7 @@ u64 nwipe_read_dco_real_max_sectors( char* device )
 #define LBA_MAX ( 1 << 30 )
 #define SENSE_BUFFER_SIZE 32
 
-    u64 nwipe_real_max_sectors;
+    u64 kwipe_real_max_sectors;
 
     /* This command issues command 0xb1 (dco-identify) 15th byte */
     unsigned char cmd_blk[CMD_LEN] = { 0x85, 0x08, 0x0e, 0x00, 0xc2, 0, 0x01, 0, 0, 0, 0, 0, 0, 0x40, 0xb1, 0 };
@@ -756,7 +756,7 @@ u64 nwipe_read_dco_real_max_sectors( char* device )
 
     if( ioctl( fd, SG_IO, &io_hdr ) < 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "IOCTL command failed retrieving DCO" );
+        kwipe_log( NWIPE_LOG_ERROR, "IOCTL command failed retrieving DCO" );
         i2 = 0;
         for( i = 0, i2 = 0; i < SENSE_BUFFER_SIZE; i++, i2 += 3 )
         {
@@ -764,7 +764,7 @@ u64 nwipe_read_dco_real_max_sectors( char* device )
             snprintf( &sense_buffer_hex[i2], sizeof( sense_buffer_hex ), "%02x ", sense_buffer[i] );
         }
         sense_buffer_hex[i2] = 0;  // terminate string
-        nwipe_log( NWIPE_LOG_DEBUG, "Sense buffer from failed DCO identify cmd:%s", sense_buffer_hex );
+        kwipe_log( NWIPE_LOG_DEBUG, "Sense buffer from failed DCO identify cmd:%s", sense_buffer_hex );
         return -2;
     }
 
@@ -776,7 +776,7 @@ u64 nwipe_read_dco_real_max_sectors( char* device )
      * Assuming the first word/byte is 0. We extract the bytes & switch
      * the endian. Words 3-6(bytes 6-13) contain the max sector address
      */
-    nwipe_real_max_sectors = (u64) ( (u64) buffer[13] << 56 ) | ( (u64) buffer[12] << 48 ) | ( (u64) buffer[11] << 40 )
+    kwipe_real_max_sectors = (u64) ( (u64) buffer[13] << 56 ) | ( (u64) buffer[12] << 48 ) | ( (u64) buffer[11] << 40 )
         | ( (u64) buffer[10] << 32 ) | ( (u64) buffer[9] << 24 ) | ( (u64) buffer[8] << 16 ) | ( (u64) buffer[7] << 8 )
         | buffer[6];
 
@@ -784,15 +784,15 @@ u64 nwipe_read_dco_real_max_sectors( char* device )
      * the real max sectors too, counting zero as sector?
      * but only increment if it's already greater than zero
      */
-    if( nwipe_real_max_sectors > 0 )
+    if( kwipe_real_max_sectors > 0 )
     {
-        nwipe_real_max_sectors++;
+        kwipe_real_max_sectors++;
     }
 
-    nwipe_log(
-        NWIPE_LOG_INFO, "func:nwipe_read_dco_real_max_sectors(), DCO real max sectors = %lli", nwipe_real_max_sectors );
+    kwipe_log(
+        NWIPE_LOG_INFO, "func:kwipe_read_dco_real_max_sectors(), DCO real max sectors = %lli", kwipe_real_max_sectors );
 
-    return nwipe_real_max_sectors;
+    return kwipe_real_max_sectors;
 }
 
 int ascii2binary_array( char* input, unsigned char* output_bin, int bin_size )

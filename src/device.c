@@ -1,5 +1,5 @@
 /*
- *  device.c:  Device routines for nwipe.
+ *  device.c:  Device routines for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <ctype.h>
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "device.h"
 #include "method.h"
@@ -47,18 +47,18 @@
 #include <parted/parted.h>
 #include <parted/debug.h>
 
-int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount );
+int check_device( kwipe_context_t*** c, PedDevice* dev, int dcount );
 char* trim( char* str );
 
 extern int terminate_signal;
 
-int nwipe_device_scan( nwipe_context_t*** c )
+int kwipe_device_scan( kwipe_context_t*** c )
 {
     /**
      * Scans the filesystem for storage device names.
      *
      * @parameter device_names  A reference to a null array pointer.
-     * @modifies  device_names  Populates device_names with an array of nwipe_context_t
+     * @modifies  device_names  Populates device_names with an array of kwipe_context_t
      * @returns                 The number of strings in the device_names array.
      *
      */
@@ -87,9 +87,9 @@ int nwipe_device_scan( nwipe_context_t*** c )
     /* Return the number of devices that were found. */
     return dcount;
 
-} /* nwipe_device_scan */
+} /* kwipe_device_scan */
 
-int nwipe_device_get( nwipe_context_t*** c, char** devnamelist, int ndevnames )
+int kwipe_device_get( kwipe_context_t*** c, char** devnamelist, int ndevnames )
 {
     PedDevice* dev = NULL;
 
@@ -104,7 +104,7 @@ int nwipe_device_get( nwipe_context_t*** c, char** devnamelist, int ndevnames )
         dev = ped_device_get( devnamelist[i] );
         if( !dev )
         {
-            nwipe_log( NWIPE_LOG_WARNING, "Device %s not found", devnamelist[i] );
+            kwipe_log( NWIPE_LOG_WARNING, "Device %s not found", devnamelist[i] );
             continue;
         }
 
@@ -122,17 +122,17 @@ int nwipe_device_get( nwipe_context_t*** c, char** devnamelist, int ndevnames )
     /* Return the number of devices that were found. */
     return dcount;
 
-} /* nwipe_device_get */
+} /* kwipe_device_get */
 
-int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
+int check_device( kwipe_context_t*** c, PedDevice* dev, int dcount )
 {
     /* Populate this struct, then assign it to overall array of structs. */
-    nwipe_context_t* next_device;
+    kwipe_context_t* next_device;
     int fd;
     int idx;
     int r;
     char tmp_serial[NWIPE_SERIALNUMBER_LENGTH + 1];
-    nwipe_device_t bus;
+    kwipe_device_t bus;
     int is_ssd;
     int check_HPA;  // a flag that indicates whether we check for a HPA on this device
 
@@ -142,9 +142,9 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
     idx = 0;
     while( idx < MAX_NUMBER_EXCLUDED_DRIVES )
     {
-        if( !strcmp( dev->path, nwipe_options.exclude[idx++] ) )
+        if( !strcmp( dev->path, kwipe_options.exclude[idx++] ) )
         {
-            nwipe_log( NWIPE_LOG_NOTICE, "Device %s excluded as per command line option -e", dev->path );
+            kwipe_log( NWIPE_LOG_NOTICE, "Device %s excluded as per command line option -e", dev->path );
             return 0;
         }
     }
@@ -153,17 +153,17 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
      * that all USB devices should not be displayed or wiped whether
      * in GUI, --nogui or --autonuke modes */
 
-    if( nwipe_options.nousb )
+    if( kwipe_options.nousb )
     {
         /* retrieve bus and drive serial number, HOWEVER we are only interested in the bus at this time */
-        r = nwipe_get_device_bus_type_and_serialno( dev->path, &bus, &is_ssd, tmp_serial );
+        r = kwipe_get_device_bus_type_and_serialno( dev->path, &bus, &is_ssd, tmp_serial );
 
-        /* See nwipe_get_device_bus_type_and_serialno() function for meaning of these codes */
+        /* See kwipe_get_device_bus_type_and_serialno() function for meaning of these codes */
         if( r == 0 || ( r >= 3 && r <= 6 ) )
         {
             if( bus == NWIPE_DEVICE_USB )
             {
-                nwipe_log( NWIPE_LOG_NOTICE, "Device %s ignored as per command line option --nousb", dev->path );
+                kwipe_log( NWIPE_LOG_NOTICE, "Device %s ignored as per command line option --nousb", dev->path );
                 return 0;
             }
         }
@@ -171,7 +171,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
         {
             if( r == 2 )
             {
-                nwipe_log(
+                kwipe_log(
                     NWIPE_LOG_NOTICE, "--nousb requires the 'readlink' program, please install readlink", dev->path );
                 terminate_signal = 1;
                 return 0;
@@ -182,26 +182,26 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
     /* Try opening the device to see if it's valid. Close on completion. */
     if( !ped_device_open( dev ) )
     {
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to open device" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to open device" );
         return 0;
     }
     ped_device_close( dev );
 
     /* New device, reallocate memory for additional struct pointer */
-    *c = realloc( *c, ( dcount + 1 ) * sizeof( nwipe_context_t* ) );
+    *c = realloc( *c, ( dcount + 1 ) * sizeof( kwipe_context_t* ) );
 
-    next_device = malloc( sizeof( nwipe_context_t ) );
+    next_device = malloc( sizeof( kwipe_context_t ) );
 
     /* Check the allocation. */
     if( !next_device )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to create the array of enumeration contexts." );
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to create the array of enumeration contexts." );
         return 0;
     }
 
     /* Zero the allocation. */
-    memset( next_device, 0, sizeof( nwipe_context_t ) );
+    memset( next_device, 0, sizeof( kwipe_context_t ) );
 
     /* Get device information */
     next_device->device_model = dev->model;
@@ -214,7 +214,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
     next_device->device_name = dev->path;
 
     /* remove /dev/ from device, right justify and prefix name so string length is eight characters */
-    nwipe_strip_path( next_device->device_name_without_path, next_device->device_name );
+    kwipe_strip_path( next_device->device_name_without_path, next_device->device_name );
 
     /* To maintain column alignment in the gui we have to remove /dev/ from device names that
      * exceed eight characters including the /dev/ path.
@@ -244,7 +244,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
 
     if( ( fd = open( next_device->device_name = dev->path, O_RDONLY ) ) == ERR )
     {
-        nwipe_log( NWIPE_LOG_WARNING, "Unable to open device %s to obtain serial number", next_device->device_name );
+        kwipe_log( NWIPE_LOG_WARNING, "Unable to open device %s to obtain serial number", next_device->device_name );
     }
 
     /*
@@ -274,7 +274,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
     trim( (char*) next_device->device_serial_no );
 
     /* if we couldn't obtain serial number by using the above method .. try this */
-    r = nwipe_get_device_bus_type_and_serialno(
+    r = kwipe_get_device_bus_type_and_serialno(
         next_device->device_name, &next_device->device_type, &next_device->device_is_ssd, tmp_serial );
 
     /* If serial number & bus retrieved (0) OR unsupported USB bus identified (5) */
@@ -288,7 +288,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
     }
 
     /* Does the user want to anonymize serial numbers ? */
-    if( nwipe_options.quiet )
+    if( kwipe_options.quiet )
     {
         if( next_device->device_serial_no[0] == 0 )
         {
@@ -407,7 +407,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
                   next_device->device_model );
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE,
+    kwipe_log( NWIPE_LOG_NOTICE,
                "Found %s, %s, %s, %s, S/N=%s",
                next_device->device_name,
                next_device->device_type_str,
@@ -415,7 +415,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
                next_device->device_size_text,
                next_device->device_serial_no );
 
-    nwipe_log( NWIPE_LOG_INFO,
+    kwipe_log( NWIPE_LOG_INFO,
                "%s, sector(logical)/block(physical) sizes %i/%i",
                next_device->device_name,
                dev->sector_size,
@@ -430,7 +430,7 @@ int check_device( nwipe_context_t*** c, PedDevice* dev, int dcount )
     }
 
     /* print an empty line to separate the drives in the log */
-    nwipe_log( NWIPE_LOG_INFO, " " );
+    kwipe_log( NWIPE_LOG_INFO, " " );
 
     ( *c )[dcount] = next_device;
     return 1;
@@ -489,19 +489,19 @@ char* trim( char* str )
     return str;
 }
 
-int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, int* is_ssd, char* serialnumber )
+int kwipe_get_device_bus_type_and_serialno( char* device, kwipe_device_t* bus, int* is_ssd, char* serialnumber )
 {
     /* The caller provides a string that contains the device, i.e. /dev/sdc, also a pointer
      * to an integer (bus type), another pointer to an integer (is_ssd), and finally a 21 byte
      * character string which this function populates with the serial number (20 characters + null terminator).
      *
      * The function populates the bus integer and serial number strings for the given device.
-     * Results for bus would typically be ATA or USB see nwipe_device_t in context.h
+     * Results for bus would typically be ATA or USB see kwipe_device_t in context.h
      *
      * Return Values:
      * 0 = Success
      * 1 = popen failed to create stream for readlink
-     * 2 = readlink exit code not 0, see nwipe logs
+     * 2 = readlink exit code not 0, see kwipe logs
      * 3 = popen failed to create stream for smartctl
      * 4 = smartctl command not found, install smartmontools
      * 5 = smartctl detected unsupported USB to IDE/SATA adapter
@@ -578,11 +578,11 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
         {
             if( system( "which /usr/bin/readlink > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install readlink !" );
+                kwipe_log( NWIPE_LOG_WARNING, "Command not found. Install readlink !" );
                 set_return_value = 2;
 
                 /* Return immediately if --nousb specified. Readlink is a requirement for this option. */
-                if( nwipe_options.nousb )
+                if( kwipe_options.nousb )
                 {
                     return set_return_value;
                 }
@@ -609,8 +609,8 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
 
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_WARNING,
-                       "nwipe_get_device_bus_type_and_serialno: Failed to create stream to %s",
+            kwipe_log( NWIPE_LOG_WARNING,
+                       "kwipe_get_device_bus_type_and_serialno: Failed to create stream to %s",
                        readlink_command );
 
             set_return_value = 1;
@@ -621,10 +621,10 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
             /* Read the output a line at a time - output it. */
             if( fgets( result, sizeof( result ) - 1, fp ) != NULL )
             {
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
                     strip_CR_LF( result );
-                    nwipe_log( NWIPE_LOG_DEBUG, "Readlink: %s", result );
+                    kwipe_log( NWIPE_LOG_DEBUG, "Readlink: %s", result );
                 }
 
                 /* Scan the readlink results for bus types, i.e. USB or ATA
@@ -671,19 +671,19 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
             if( r > 0 )
             {
                 exit_status = WEXITSTATUS( r );
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING,
-                               "nwipe_get_device_bus_type_and_serialno(): readlink failed, \"%s\" exit status = %u",
+                    kwipe_log( NWIPE_LOG_WARNING,
+                               "kwipe_get_device_bus_type_and_serialno(): readlink failed, \"%s\" exit status = %u",
                                final_cmd_readlink,
                                exit_status );
                 }
 
                 if( exit_status == 127 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install Readlink recommended !" );
+                    kwipe_log( NWIPE_LOG_WARNING, "Command not found. Install Readlink recommended !" );
                     set_return_value = 2;
-                    if( nwipe_options.nousb )
+                    if( kwipe_options.nousb )
                     {
                         return set_return_value;
                     }
@@ -706,7 +706,7 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
         {
             if( system( "which /usr/bin/smartctl > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install smartmontools !" );
+                kwipe_log( NWIPE_LOG_WARNING, "Command not found. Install smartmontools !" );
             }
             else
             {
@@ -729,8 +729,8 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
 
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_WARNING,
-                       "nwipe_get_device_bus_type_and_serialno(): Failed to create stream to %s",
+            kwipe_log( NWIPE_LOG_WARNING,
+                       "kwipe_get_device_bus_type_and_serialno(): Failed to create stream to %s",
                        smartctl_command );
 
             set_return_value = 3;
@@ -757,12 +757,12 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
                     idx++;
                 }
 
-                if( nwipe_options.verbose && result[0] != 0x0A )
+                if( kwipe_options.verbose && result[0] != 0x0A )
                 {
                     strip_CR_LF( result );
 
                     /* Remove serial number if -q option specified */
-                    if( nwipe_options.quiet )
+                    if( kwipe_options.quiet )
                     {
                         /* initialise index into string array */
                         idx2 = 0;
@@ -798,7 +798,7 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
                         }
                     }
 
-                    nwipe_log( NWIPE_LOG_INFO, "smartctl: %s", result );
+                    kwipe_log( NWIPE_LOG_INFO, "smartctl: %s", result );
                 }
 
                 if( strstr( result, "serial number:" ) != 0 )
@@ -865,10 +865,10 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
             if( r > 0 )
             {
                 exit_status = WEXITSTATUS( r );
-                if( nwipe_options.verbose && exit_status != 1 )
+                if( kwipe_options.verbose && exit_status != 1 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING,
-                               "nwipe_get_device_bus_type_and_serialno(): smartctl failed, \"%s\" exit status = %u",
+                    kwipe_log( NWIPE_LOG_WARNING,
+                               "kwipe_get_device_bus_type_and_serialno(): smartctl failed, \"%s\" exit status = %u",
                                final_cmd_smartctl,
                                exit_status );
                 }
@@ -876,14 +876,14 @@ int nwipe_get_device_bus_type_and_serialno( char* device, nwipe_device_t* bus, i
 
                 if( exit_status == 127 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install Smartctl recommended !" );
+                    kwipe_log( NWIPE_LOG_WARNING, "Command not found. Install Smartctl recommended !" );
 
                     set_return_value = 4;
                 }
 
                 if( exit_status == 1 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Smartctl is unable to provide smart data for %s", device );
+                    kwipe_log( NWIPE_LOG_WARNING, "Smartctl is unable to provide smart data for %s", device );
 
                     if( *bus == NWIPE_DEVICE_USB || *bus == NWIPE_DEVICE_MMC )
                     {

@@ -1,5 +1,5 @@
 /*
- *  prng.h: Pseudo Random Number Generator abstractions for nwipe.
+ *  prng.h: Pseudo Random Number Generator abstractions for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -28,44 +28,44 @@ typedef struct
 {
     size_t length;  // Length of the entropy string in bytes.
     u8* s;  // The actual bytes of the entropy string.
-} nwipe_entropy_t;
+} kwipe_entropy_t;
 
-#define NWIPE_PRNG_INIT_SIGNATURE void **state, nwipe_entropy_t *seed
+#define NWIPE_PRNG_INIT_SIGNATURE void **state, kwipe_entropy_t *seed
 #define NWIPE_PRNG_READ_SIGNATURE void **state, void *buffer, size_t count
 
 /* Function pointers for PRNG actions. */
-typedef int ( *nwipe_prng_init_t )( NWIPE_PRNG_INIT_SIGNATURE );
-typedef int ( *nwipe_prng_read_t )( NWIPE_PRNG_READ_SIGNATURE );
+typedef int ( *kwipe_prng_init_t )( NWIPE_PRNG_INIT_SIGNATURE );
+typedef int ( *kwipe_prng_read_t )( NWIPE_PRNG_READ_SIGNATURE );
 
 /* The generic PRNG definition. */
 typedef struct
 {
     const char* label;  // The name of the pseudo random number generator.
-    nwipe_prng_init_t init;  // Inialize the prng state with the seed.
-    nwipe_prng_read_t read;  // Read data from the prng.
-} nwipe_prng_t;
+    kwipe_prng_init_t init;  // Inialize the prng state with the seed.
+    kwipe_prng_read_t read;  // Read data from the prng.
+} kwipe_prng_t;
 
 /* Mersenne Twister prototypes. */
-int nwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE );
+int kwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE );
+int kwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE );
 
 /* ISAAC prototypes. */
-int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE );
-int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE );
+int kwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE );
+int kwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE );
+int kwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE );
+int kwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE );
 
 /* ALFG prototypes. */
-int nwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE );
+int kwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
+int kwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 
 /* XOROSHIRO-256 prototypes. */
-int nwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE );
+int kwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
+int kwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 
 /* AES-CTR-NI prototypes. */
-int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
-int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE );
+int kwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE );
+int kwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE );
 
 /* Size of the twister is not derived from the architecture, but it is strictly 4 bytes */
 #define SIZE_OF_TWISTER 4

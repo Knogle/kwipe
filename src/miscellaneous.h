@@ -1,7 +1,7 @@
 /*
  *  miscellaneous.h: header file for miscellaneous.c ..
  *
- *  functions that may be generally used throughout nwipes code,
+ *  functions that may be generally used throughout kwipes code,
  *  mainly string processing related functions.
  *
  *  Copyright PartialVolume <https://github.com/PartialVolume>.
@@ -57,7 +57,7 @@ u64 str_ascii_number_to_ll( char* );
 
 void Determine_C_B_nomenclature( u64, char*, int );
 void convert_seconds_to_hours_minutes_seconds( u64, int*, int*, int* );
-int nwipe_strip_path( char*, char* );
+int kwipe_strip_path( char*, char* );
 
 /**
  * Scan a string and replace any characters that are not alpha-numeric with
@@ -101,7 +101,7 @@ void convert_double_to_string( char*, double );
  * @param char* hours 3 bytes (2 numeric digits plus NULL terminator)
  * @param char* minutes 3 bytes (2 numeric digits plus NULL terminator)
  * @param char* seconds 3 bytes (2 numeric digits plus NULL terminator)
- * @return 0 = success, -1 = failure. See nwipe log for detail.
+ * @return 0 = success, -1 = failure. See kwipe log for detail.
  */
 int read_system_datetime( char*, char*, char*, char*, char*, char* );
 
@@ -116,7 +116,7 @@ int read_system_datetime( char*, char*, char*, char*, char*, char* );
  * @param char* hours 3 bytes (2 numeric digits plus NULL terminator)
  * @param char* minutes 3 bytes (2 numeric digits plus NULL terminator)
  * @param char* seconds 3 bytes (2 numeric digits plus NULL terminator)
- * @return 0 = success, -1 = failure. See nwipe log for detail.
+ * @return 0 = success, -1 = failure. See kwipe log for detail.
  */
 int write_system_datetime( char*, char*, char*, char*, char*, char* );
 

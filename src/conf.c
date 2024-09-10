@@ -1,10 +1,10 @@
 /*
- *  conf.c: functions that handle the nwipe.conf configuration file
- *  and the creation of the nwipe_customers.csv file. nwipe.conf uses
- *  libconfig format, while nwipe_customers.csv uses comma separted
+ *  conf.c: functions that handle the kwipe.conf configuration file
+ *  and the creation of the kwipe_customers.csv file. kwipe.conf uses
+ *  libconfig format, while kwipe_customers.csv uses comma separted
  *  values. CSV is used so that the user can build there own customer
  *  listing using spreadsheets rather than enter all the customer
- *  information via the nwipe GUI interface.
+ *  information via the kwipe GUI interface.
  *
  *  Copyright PartialVolume <https://github.com/PartialVolume>.
  *
@@ -28,163 +28,163 @@
 #include <libconfig.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "logging.h"
 #include "method.h"
 #include "options.h"
 #include "conf.h"
 
-config_t nwipe_cfg;
-config_setting_t *nwipe_conf_setting, *group_organisation, *root, *group, *previous_group, *setting;
-const char* nwipe_conf_str;
-char nwipe_config_directory[] = "/etc/nwipe";
-char nwipe_config_file[] = "/etc/nwipe/nwipe.conf";
-char nwipe_customers_file[] = "/etc/nwipe/nwipe_customers.csv";
-char nwipe_customers_file_backup[] = "/etc/nwipe/nwipe_customers.csv.backup";
-char nwipe_customers_file_backup_tmp[] = "/etc/nwipe/nwipe_customers.csv.backup.tmp";
+config_t kwipe_cfg;
+config_setting_t *kwipe_conf_setting, *group_organisation, *root, *group, *previous_group, *setting;
+const char* kwipe_conf_str;
+char kwipe_config_directory[] = "/etc/kwipe";
+char kwipe_config_file[] = "/etc/kwipe/kwipe.conf";
+char kwipe_customers_file[] = "/etc/kwipe/kwipe_customers.csv";
+char kwipe_customers_file_backup[] = "/etc/kwipe/kwipe_customers.csv.backup";
+char kwipe_customers_file_backup_tmp[] = "/etc/kwipe/kwipe_customers.csv.backup.tmp";
 
 /*
- * Checks for the existence of nwipe.conf and nwipe_customers.csv
+ * Checks for the existence of kwipe.conf and kwipe_customers.csv
  * If either one does not exist, they are created and formatted
  * with a basic configuration.
  */
 
-int nwipe_conf_init()
+int kwipe_conf_init()
 {
     FILE* fp_config;
     FILE* fp_customers;
 
-    config_init( &nwipe_cfg );
-    char nwipe_customers_initial_content[] =
+    config_init( &kwipe_cfg );
+    char kwipe_customers_initial_content[] =
         "\"Customer Name\";\"Contact Name\";\"Customer Address\";\"Contact Phone\"\n"
         "\"Not Applicable\";\"Not Applicable\";\"Not Applicable\";\"Not Applicable\"\n";
 
-    /* Read /etc/nwipe/nwipe.conf. If there is an error, determine whether
+    /* Read /etc/kwipe/kwipe.conf. If there is an error, determine whether
      * it's because it doesn't exist. If it doesn't exist create it and
      * populate it with a basic structure.
      */
 
-    /* Does the /etc/nwipe/nwipe.conf file exist? If not, then create it */
-    if( access( nwipe_config_file, F_OK ) == 0 )
+    /* Does the /etc/kwipe/kwipe.conf file exist? If not, then create it */
+    if( access( kwipe_config_file, F_OK ) == 0 )
     {
-        nwipe_log( NWIPE_LOG_INFO, "Nwipes config file %s exists", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "Nwipes config file %s exists", kwipe_config_file );
 
-        /* Read the nwipe.conf configuration file and report any errors */
+        /* Read the kwipe.conf configuration file and report any errors */
 
-        nwipe_log( NWIPE_LOG_INFO, "Reading nwipe's config file %s", nwipe_config_file );
-        if( !config_read_file( &nwipe_cfg, nwipe_config_file ) )
+        kwipe_log( NWIPE_LOG_INFO, "Reading kwipe's config file %s", kwipe_config_file );
+        if( !config_read_file( &kwipe_cfg, kwipe_config_file ) )
         {
-            nwipe_log( NWIPE_LOG_ERROR,
+            kwipe_log( NWIPE_LOG_ERROR,
                        "Syntax error: %s:%d - %s\n",
-                       config_error_file( &nwipe_cfg ),
-                       config_error_line( &nwipe_cfg ),
-                       config_error_text( &nwipe_cfg ) );
+                       config_error_file( &kwipe_cfg ),
+                       config_error_line( &kwipe_cfg ),
+                       config_error_text( &kwipe_cfg ) );
         }
     }
     else
     {
-        nwipe_log( NWIPE_LOG_WARNING, "%s does not exist", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_WARNING, "%s does not exist", kwipe_config_file );
 
-        /* We assume the /etc/nwipe directory doesn't exist, so try to create it */
-        mkdir( nwipe_config_directory, 0755 );
+        /* We assume the /etc/kwipe directory doesn't exist, so try to create it */
+        mkdir( kwipe_config_directory, 0755 );
 
-        /* create the nwipe.conf file */
-        if( !( fp_config = fopen( nwipe_config_file, "w" ) ) )
+        /* create the kwipe.conf file */
+        if( !( fp_config = fopen( kwipe_config_file, "w" ) ) )
         {
-            nwipe_log( NWIPE_LOG_ERROR, "Failed to create %s", nwipe_config_file );
+            kwipe_log( NWIPE_LOG_ERROR, "Failed to create %s", kwipe_config_file );
         }
         else
         {
-            nwipe_log( NWIPE_LOG_INFO, "Created %s", nwipe_config_file );
+            kwipe_log( NWIPE_LOG_INFO, "Created %s", kwipe_config_file );
             fclose( fp_config );
         }
     }
 
-    root = config_root_setting( &nwipe_cfg );
+    root = config_root_setting( &kwipe_cfg );
 
     /**
-     * If they don't already exist, populate nwipe.conf with groups, settings and values.
+     * If they don't already exist, populate kwipe.conf with groups, settings and values.
      * This will also fill in missing group or settings if they have been corrupted or
-     * accidently deleted by the user. It will also update an existing nwipe.conf
-     * file as new groups and settings are added to nwipe. If new settings are added
-     * to nwipes conf file they MUST appear below in this list of groups and settings.
+     * accidently deleted by the user. It will also update an existing kwipe.conf
+     * file as new groups and settings are added to kwipe. If new settings are added
+     * to kwipes conf file they MUST appear below in this list of groups and settings.
      */
 
-    nwipe_conf_populate( "Organisation_Details.Business_Name", "Not Applicable (BN)" );
-    nwipe_conf_populate( "Organisation_Details.Business_Address", "Not Applicable (BA)" );
-    nwipe_conf_populate( "Organisation_Details.Contact_Name", "Not Applicable (BCN)" );
-    nwipe_conf_populate( "Organisation_Details.Contact_Phone", "Not Applicable (BCP)" );
-    nwipe_conf_populate( "Organisation_Details.Op_Tech_Name", "Not Applicable (OTN)" );
+    kwipe_conf_populate( "Organisation_Details.Business_Name", "Not Applicable (BN)" );
+    kwipe_conf_populate( "Organisation_Details.Business_Address", "Not Applicable (BA)" );
+    kwipe_conf_populate( "Organisation_Details.Contact_Name", "Not Applicable (BCN)" );
+    kwipe_conf_populate( "Organisation_Details.Contact_Phone", "Not Applicable (BCP)" );
+    kwipe_conf_populate( "Organisation_Details.Op_Tech_Name", "Not Applicable (OTN)" );
 
     /**
      * Add PDF Certificate/Report settings
      */
-    nwipe_conf_populate( "PDF_Certificate.PDF_Enable", "ENABLED" );
-    nwipe_conf_populate( "PDF_Certificate.PDF_Preview", "DISABLED" );
+    kwipe_conf_populate( "PDF_Certificate.PDF_Enable", "ENABLED" );
+    kwipe_conf_populate( "PDF_Certificate.PDF_Preview", "DISABLED" );
 
     /**
      * The currently selected customer that will be printed on the report
      */
-    nwipe_conf_populate( "Selected_Customer.Customer_Name", "Not Applicable (CN)" );
-    nwipe_conf_populate( "Selected_Customer.Customer_Address", "Not Applicable (CA)" );
-    nwipe_conf_populate( "Selected_Customer.Contact_Name", "Not Applicable (CCN)" );
-    nwipe_conf_populate( "Selected_Customer.Contact_Phone", "Not Applicable (CP)" );
+    kwipe_conf_populate( "Selected_Customer.Customer_Name", "Not Applicable (CN)" );
+    kwipe_conf_populate( "Selected_Customer.Customer_Address", "Not Applicable (CA)" );
+    kwipe_conf_populate( "Selected_Customer.Contact_Name", "Not Applicable (CCN)" );
+    kwipe_conf_populate( "Selected_Customer.Contact_Phone", "Not Applicable (CP)" );
 
     /**
      * Write out the new configuration.
      */
-    if( !config_write_file( &nwipe_cfg, nwipe_config_file ) )
+    if( !config_write_file( &kwipe_cfg, kwipe_config_file ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write nwipe config to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write kwipe config to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "Sucessfully written nwipe config to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "Sucessfully written kwipe config to %s", kwipe_config_file );
     }
 
-    /* Read the nwipe.conf configuration file and report any errors */
-    if( !config_read_file( &nwipe_cfg, nwipe_config_file ) )
+    /* Read the kwipe.conf configuration file and report any errors */
+    if( !config_read_file( &kwipe_cfg, kwipe_config_file ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Syntax error: %s:%d - %s\n",
-                   config_error_file( &nwipe_cfg ),
-                   config_error_line( &nwipe_cfg ),
-                   config_error_text( &nwipe_cfg ) );
+                   config_error_file( &kwipe_cfg ),
+                   config_error_line( &kwipe_cfg ),
+                   config_error_text( &kwipe_cfg ) );
     }
 
     /* -----------------------------------------------------------------------------
-     * Now check nwipe_customers.csv exists, if not create it with a basic structure
+     * Now check kwipe_customers.csv exists, if not create it with a basic structure
      */
-    if( access( nwipe_customers_file, F_OK ) == 0 )
+    if( access( kwipe_customers_file, F_OK ) == 0 )
     {
-        nwipe_log( NWIPE_LOG_INFO, "Nwipes customer file %s exists", nwipe_customers_file );
+        kwipe_log( NWIPE_LOG_INFO, "Nwipes customer file %s exists", kwipe_customers_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_WARNING, "%s does not exist", nwipe_customers_file );
+        kwipe_log( NWIPE_LOG_WARNING, "%s does not exist", kwipe_customers_file );
 
-        /* We assume the /etc/nwipe directory doesn't exist, so try to create it */
-        mkdir( nwipe_config_directory, 0755 );
+        /* We assume the /etc/kwipe directory doesn't exist, so try to create it */
+        mkdir( kwipe_config_directory, 0755 );
 
-        /* create the nwipe_customers.csv file */
-        if( !( fp_customers = fopen( nwipe_customers_file, "w" ) ) )
+        /* create the kwipe_customers.csv file */
+        if( !( fp_customers = fopen( kwipe_customers_file, "w" ) ) )
         {
-            nwipe_log( NWIPE_LOG_ERROR, "Failed to create %s", nwipe_customers_file );
+            kwipe_log( NWIPE_LOG_ERROR, "Failed to create %s", kwipe_customers_file );
         }
         else
         {
-            nwipe_log( NWIPE_LOG_INFO, "Created %s", nwipe_customers_file );
+            kwipe_log( NWIPE_LOG_INFO, "Created %s", kwipe_customers_file );
 
             /* Now populate the csv header and first entry, Lines 1 and 2 */
-            if( fwrite( nwipe_customers_initial_content, sizeof( nwipe_customers_initial_content ), 1, fp_customers )
+            if( fwrite( kwipe_customers_initial_content, sizeof( kwipe_customers_initial_content ), 1, fp_customers )
                 == 1 )
             {
-                nwipe_log( NWIPE_LOG_INFO, "Populated %s with basic config", nwipe_customers_file );
+                kwipe_log( NWIPE_LOG_INFO, "Populated %s with basic config", kwipe_customers_file );
             }
             else
             {
-                nwipe_log( NWIPE_LOG_ERROR, "Failed to write basic config to %s", nwipe_customers_file );
+                kwipe_log( NWIPE_LOG_ERROR, "Failed to write basic config to %s", kwipe_customers_file );
             }
             fclose( fp_customers );
         }
@@ -195,7 +195,7 @@ int nwipe_conf_init()
 void save_selected_customer( char** customer )
 {
     /* This function saves the user selected customer
-     * to nwipe's config file /etc/nwipe/nwipe.conf
+     * to kwipe's config file /etc/kwipe/kwipe.conf
      * for later use by the PDF creation functions.
      */
 
@@ -289,7 +289,7 @@ void save_selected_customer( char** customer )
     /* All 4 fields present? */
     if( field_count != NUMBER_OF_FIELDS + 1 )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Insuffient fields in customer entry, expected %i, actual(field_count) %i, idx=%i",
                    NUMBER_OF_FIELDS,
                    field_count,
@@ -298,106 +298,106 @@ void save_selected_customer( char** customer )
     }
 
     /* -------------------------------------------------------------
-     * Write the fields to nwipe's config file /etc/nwipe/nwipe.conf
+     * Write the fields to kwipe's config file /etc/kwipe/kwipe.conf
      */
-    if( ( setting = config_lookup( &nwipe_cfg, "Selected_Customer.Customer_Name" ) ) )
+    if( ( setting = config_lookup( &kwipe_cfg, "Selected_Customer.Customer_Name" ) ) )
     {
         config_setting_set_string( setting, field_1 );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Customer_Name\" in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Customer_Name\" in %s", kwipe_config_file );
     }
 
-    if( ( setting = config_lookup( &nwipe_cfg, "Selected_Customer.Customer_Address" ) ) )
+    if( ( setting = config_lookup( &kwipe_cfg, "Selected_Customer.Customer_Address" ) ) )
     {
         config_setting_set_string( setting, field_2 );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Customer_Address\" in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Customer_Address\" in %s", kwipe_config_file );
     }
 
-    if( ( setting = config_lookup( &nwipe_cfg, "Selected_Customer.Contact_Name" ) ) )
+    if( ( setting = config_lookup( &kwipe_cfg, "Selected_Customer.Contact_Name" ) ) )
     {
         config_setting_set_string( setting, field_3 );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Contact_Name\" in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Contact_Name\" in %s", kwipe_config_file );
     }
 
-    if( ( setting = config_lookup( &nwipe_cfg, "Selected_Customer.Contact_Phone" ) ) )
+    if( ( setting = config_lookup( &kwipe_cfg, "Selected_Customer.Contact_Phone" ) ) )
     {
         config_setting_set_string( setting, field_4 );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Contact_Phone\" in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Can't find \"Selected Customers.Contact_Phone\" in %s", kwipe_config_file );
     }
 
     /* Write out the new configuration. */
-    if( !config_write_file( &nwipe_cfg, nwipe_config_file ) )
+    if( !config_write_file( &kwipe_cfg, kwipe_config_file ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write user selected customer to %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write user selected customer to %s", kwipe_config_file );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "Populated %s with user selected customer", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "Populated %s with user selected customer", kwipe_config_file );
     }
 }
 
-int nwipe_conf_update_setting( char* group_name_setting_name, char* setting_value )
+int kwipe_conf_update_setting( char* group_name_setting_name, char* setting_value )
 {
-    /* You would call this function of you wanted to update an existing setting in nwipe.conf, i.e
+    /* You would call this function of you wanted to update an existing setting in kwipe.conf, i.e
      *
-     * nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" )
+     * kwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" )
      *
      * It is NOT used for creating a new group or setting name.
      */
 
     /* -------------------------------------------------------------
-     * Write the field to nwipe's config file /etc/nwipe/nwipe.conf
+     * Write the field to kwipe's config file /etc/kwipe/kwipe.conf
      */
-    if( ( setting = config_lookup( &nwipe_cfg, group_name_setting_name ) ) )
+    if( ( setting = config_lookup( &kwipe_cfg, group_name_setting_name ) ) )
     {
         config_setting_set_string( setting, setting_value );
     }
     else
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "Can't find group.setting_name %s in %s", group_name_setting_name, nwipe_config_file );
+        kwipe_log(
+            NWIPE_LOG_ERROR, "Can't find group.setting_name %s in %s", group_name_setting_name, kwipe_config_file );
         return 1;
     }
 
-    /* Write the new configuration to nwipe.conf
+    /* Write the new configuration to kwipe.conf
      */
-    if( !config_write_file( &nwipe_cfg, nwipe_config_file ) )
+    if( !config_write_file( &kwipe_cfg, kwipe_config_file ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write %s to %s", group_name_setting_name, nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Failed to write %s to %s", group_name_setting_name, kwipe_config_file );
         return 2;
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO,
+        kwipe_log( NWIPE_LOG_INFO,
                    "Updated %s with value %s in %s",
                    group_name_setting_name,
                    setting_value,
-                   nwipe_config_file );
+                   kwipe_config_file );
     }
 
     return 0;
 
-}  // end nwipe_conf_update_setting()
+}  // end kwipe_conf_update_setting()
 
-int nwipe_conf_read_setting( char* group_name_setting_name, const char** setting_value )
+int kwipe_conf_read_setting( char* group_name_setting_name, const char** setting_value )
 {
-    /* This function returns a setting value from nwipe's configuration file nwipe.conf
+    /* This function returns a setting value from kwipe's configuration file kwipe.conf
      * when provided with a groupname.settingname string.
      *
      * Example:
      * const char ** pReturnString;
-     * nwipe_conf_read_setting( "PDF_Certificate", "PDF_Enable", pReturnString );
+     * kwipe_conf_read_setting( "PDF_Certificate", "PDF_Enable", pReturnString );
      */
 
     /* Separate group_name_setting_name i.e "PDF_Certificate.PDF_Enable" string
@@ -423,22 +423,22 @@ int nwipe_conf_read_setting( char* group_name_setting_name, const char** setting
     // Copy the setting name from the combined input string
     strcpy( setting_name, &group_name_setting_name[idx + 1] );
 
-    if( !( setting = config_lookup( &nwipe_cfg, group_name ) ) )
+    if( !( setting = config_lookup( &kwipe_cfg, group_name ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Can't find group name %s.%s in %s", group_name, setting_name, nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Can't find group name %s.%s in %s", group_name, setting_name, kwipe_config_file );
         return_status = -1;
     }
     else
     {
-        /* Retrieve data from nwipe.conf */
+        /* Retrieve data from kwipe.conf */
         if( CONFIG_TRUE == config_setting_lookup_string( setting, setting_name, setting_value ) )
         {
             return_status = 0; /* Success */
         }
         else
         {
-            nwipe_log(
-                NWIPE_LOG_ERROR, "Can't find setting_name %s.%s in %s", group_name, setting_name, nwipe_config_file );
+            kwipe_log(
+                NWIPE_LOG_ERROR, "Can't find setting_name %s.%s in %s", group_name, setting_name, kwipe_config_file );
             return_status = -2;
         }
     }
@@ -447,9 +447,9 @@ int nwipe_conf_read_setting( char* group_name_setting_name, const char** setting
     free( setting_name );
     return ( return_status );
 
-}  // end nwipe_conf_read_setting()
+}  // end kwipe_conf_read_setting()
 
-int nwipe_conf_populate( char* path, char* value )
+int kwipe_conf_populate( char* path, char* value )
 {
     /* This function will check that a path containing a group or multiple groups that lead to a setting all exist,
      * if they don't exist, the group/s, settings and associated value are created.
@@ -459,7 +459,7 @@ int nwipe_conf_populate( char* path, char* value )
      * PDF_Certificate.PDF_Enable. Where PDF_Certificate is the group name and PDF_Enable is the setting name.
      * If one or other don't exist then they will be created.
      *
-     * An arbitary depth of four groups are allowed for nwipe's configuration file, although we only currently, as of
+     * An arbitary depth of four groups are allowed for kwipe's configuration file, although we only currently, as of
      * October 2023 use a depth of one group. The number of groups can be increased in the future if required by
      * changing the definition MAX_GROUP_DEPTH in conf.h
      */
@@ -495,7 +495,7 @@ int nwipe_conf_populate( char* path, char* value )
     {
         if( group_count > MAX_GROUP_DEPTH )
         {
-            nwipe_log( NWIPE_LOG_ERROR,
+            kwipe_log( NWIPE_LOG_ERROR,
                        "Too many groups in path, specified = %i, allowed = %i ",
                        group_count,
                        MAX_GROUP_DEPTH );
@@ -519,7 +519,7 @@ int nwipe_conf_populate( char* path, char* value )
 
     if( group_count == 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "No groups specified in path, i.e. no period . separator found." );
+        kwipe_log( NWIPE_LOG_ERROR, "No groups specified in path, i.e. no period . separator found." );
         return 2;
     }
 
@@ -532,7 +532,7 @@ int nwipe_conf_populate( char* path, char* value )
     {
         strcat( path_build, group_start[idx] );
 
-        if( !( group = config_lookup( &nwipe_cfg, path_build ) ) )
+        if( !( group = config_lookup( &kwipe_cfg, path_build ) ) )
         {
             if( idx == 0 )
             {
@@ -546,11 +546,11 @@ int nwipe_conf_populate( char* path, char* value )
             }
             if( group )
             {
-                nwipe_log( NWIPE_LOG_INFO, "Created group [%s] in %s", path_build, nwipe_config_file );
+                kwipe_log( NWIPE_LOG_INFO, "Created group [%s] in %s", path_build, kwipe_config_file );
             }
             else
             {
-                nwipe_log( NWIPE_LOG_ERROR, "Failed to create group [%s] in %s", path_build, nwipe_config_file );
+                kwipe_log( NWIPE_LOG_ERROR, "Failed to create group [%s] in %s", path_build, kwipe_config_file );
             }
         }
         else
@@ -571,42 +571,42 @@ int nwipe_conf_populate( char* path, char* value )
      */
 
     /* Does the full path exist ? i.e AAA.BBB */
-    if( ( group = config_lookup( &nwipe_cfg, path_build ) ) )
+    if( ( group = config_lookup( &kwipe_cfg, path_build ) ) )
     {
         /* Does the path and setting exist? AAA.BBB.SETTING_NAME */
-        if( !( setting = config_lookup( &nwipe_cfg, path ) ) )
+        if( !( setting = config_lookup( &kwipe_cfg, path ) ) )
         {
             /* Add the new SETTING_NAME */
             if( ( setting = config_setting_add( group, setting_start, CONFIG_TYPE_STRING ) ) )
             {
-                nwipe_log( NWIPE_LOG_INFO, "Created setting name %s in %s", path, nwipe_config_file );
+                kwipe_log( NWIPE_LOG_INFO, "Created setting name %s in %s", path, kwipe_config_file );
             }
             else
             {
-                nwipe_log(
-                    NWIPE_LOG_ERROR, "Failed to create setting name %s in %s", setting_start, nwipe_config_file );
+                kwipe_log(
+                    NWIPE_LOG_ERROR, "Failed to create setting name %s in %s", setting_start, kwipe_config_file );
             }
 
             if( config_setting_set_string( setting, value ) == CONFIG_TRUE )
             {
-                nwipe_log( NWIPE_LOG_INFO, "Set value for %s in %s to %s", path, nwipe_config_file, value );
+                kwipe_log( NWIPE_LOG_INFO, "Set value for %s in %s to %s", path, kwipe_config_file, value );
             }
             else
             {
-                nwipe_log( NWIPE_LOG_ERROR, "Failed to set value for %s in %s to %s", path, nwipe_config_file, value );
+                kwipe_log( NWIPE_LOG_ERROR, "Failed to set value for %s in %s to %s", path, kwipe_config_file, value );
             }
         }
         else
         {
-            if( nwipe_options.verbose )
+            if( kwipe_options.verbose )
             {
-                nwipe_log( NWIPE_LOG_INFO, "Setting already exists [%s] in %s", path, nwipe_config_file );
+                kwipe_log( NWIPE_LOG_INFO, "Setting already exists [%s] in %s", path, kwipe_config_file );
             }
         }
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "Couldn't find constructed path [%s] in %s", path_build, nwipe_config_file );
+        kwipe_log( NWIPE_LOG_INFO, "Couldn't find constructed path [%s] in %s", path_build, kwipe_config_file );
     }
 
     free( path_copy );
@@ -615,7 +615,7 @@ int nwipe_conf_populate( char* path, char* value )
     return 0;
 }
 
-void nwipe_conf_close()
+void kwipe_conf_close()
 {
-    config_destroy( &nwipe_cfg );
+    config_destroy( &kwipe_cfg );
 }

@@ -1,5 +1,5 @@
 /*
- *  prng.c: Pseudo Random Number Generator abstractions for nwipe.
+ *  prng.c: Pseudo Random Number Generator abstractions for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -17,7 +17,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "prng.h"
 #include "context.h"
 #include "logging.h"
@@ -29,20 +29,20 @@
 #include "xor/xoroshiro256_prng.h"  //XORoshiro-256 prototype
 #include "aes/aes_ctr_prng.h"  // AES-NI prototype
 
-nwipe_prng_t nwipe_twister = { "Mersenne Twister (mt19937ar-cok)", nwipe_twister_init, nwipe_twister_read };
+kwipe_prng_t kwipe_twister = { "Mersenne Twister (mt19937ar-cok)", kwipe_twister_init, kwipe_twister_read };
 
-nwipe_prng_t nwipe_isaac = { "ISAAC (rand.c 20010626)", nwipe_isaac_init, nwipe_isaac_read };
-nwipe_prng_t nwipe_isaac64 = { "ISAAC-64 (isaac64.c)", nwipe_isaac64_init, nwipe_isaac64_read };
+kwipe_prng_t kwipe_isaac = { "ISAAC (rand.c 20010626)", kwipe_isaac_init, kwipe_isaac_read };
+kwipe_prng_t kwipe_isaac64 = { "ISAAC-64 (isaac64.c)", kwipe_isaac64_init, kwipe_isaac64_read };
 
 /* ALFG PRNG Structure */
-nwipe_prng_t nwipe_add_lagg_fibonacci_prng = { "Lagged Fibonacci generator",
-                                               nwipe_add_lagg_fibonacci_prng_init,
-                                               nwipe_add_lagg_fibonacci_prng_read };
+kwipe_prng_t kwipe_add_lagg_fibonacci_prng = { "Lagged Fibonacci generator",
+                                               kwipe_add_lagg_fibonacci_prng_init,
+                                               kwipe_add_lagg_fibonacci_prng_read };
 /* XOROSHIRO-256 PRNG Structure */
-nwipe_prng_t nwipe_xoroshiro256_prng = { "XORoshiro-256", nwipe_xoroshiro256_prng_init, nwipe_xoroshiro256_prng_read };
+kwipe_prng_t kwipe_xoroshiro256_prng = { "XORoshiro-256", kwipe_xoroshiro256_prng_init, kwipe_xoroshiro256_prng_read };
 
 /* AES-CTR-NI PRNG Structure */
-nwipe_prng_t nwipe_aes_ctr_prng = { "AES-256-CTR (OpenSSL)", nwipe_aes_ctr_prng_init, nwipe_aes_ctr_prng_read };
+kwipe_prng_t kwipe_aes_ctr_prng = { "AES-256-CTR (OpenSSL)", kwipe_aes_ctr_prng_init, kwipe_aes_ctr_prng_read };
 
 /* Print given number of bytes from unsigned integer number to a byte stream buffer starting with low-endian. */
 static inline void u32_to_buffer( u8* restrict buffer, u32 val, const int len )
@@ -82,9 +82,9 @@ static inline u64 isaac64_nextval( rand64ctx* restrict ctx )
     return ctx->randrsl[ctx->randcnt];
 }
 
-int nwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE )
+int kwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE )
 {
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising Mersenne Twister prng" );
+    kwipe_log( NWIPE_LOG_NOTICE, "Initialising Mersenne Twister prng" );
 
     if( *state == NULL )
     {
@@ -95,7 +95,7 @@ int nwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE )
+int kwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_TWISTER;  // the values of twister_genrand_int32 is strictly 4 bytes
@@ -118,12 +118,12 @@ int nwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
+int kwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
 {
     int count;
     randctx* isaac_state = *state;
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising Isaac prng" );
+    kwipe_log( NWIPE_LOG_NOTICE, "Initialising Isaac prng" );
 
     if( *state == NULL )
     {
@@ -134,8 +134,8 @@ int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
         /* Check the memory allocation. */
         if( isaac_state == 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "malloc" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
+            kwipe_perror( errno, __FUNCTION__, "malloc" );
+            kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
             return -1;
         }
     }
@@ -168,7 +168,7 @@ int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE )
+int kwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     randctx* isaac_state = *state;
     u8* restrict bufpos = buffer;
@@ -192,12 +192,12 @@ int nwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
+int kwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
 {
     int count;
     rand64ctx* isaac_state = *state;
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising ISAAC-64 prng" );
+    kwipe_log( NWIPE_LOG_NOTICE, "Initialising ISAAC-64 prng" );
 
     if( *state == NULL )
     {
@@ -208,8 +208,8 @@ int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
         /* Check the memory allocation. */
         if( isaac_state == 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "malloc" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
+            kwipe_perror( errno, __FUNCTION__, "malloc" );
+            kwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
             return -1;
         }
     }
@@ -242,7 +242,7 @@ int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE )
+int kwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     rand64ctx* isaac_state = *state;
     u8* restrict bufpos = buffer;
@@ -265,11 +265,11 @@ int nwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE )
 }
 
 /* EXPERIMENTAL implementation of Lagged Fibonacci generator a lot of random numbers */
-int nwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int kwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
 {
     if( *state == NULL )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "Initialising Lagged Fibonacci generator PRNG" );
+        kwipe_log( NWIPE_LOG_NOTICE, "Initialising Lagged Fibonacci generator PRNG" );
         *state = malloc( sizeof( add_lagg_fibonacci_state_t ) );
     }
     add_lagg_fibonacci_init(
@@ -278,7 +278,7 @@ int nwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int kwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_ADD_LAGG_FIBONACCI_PRNG;
@@ -305,9 +305,9 @@ int nwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 }
 
 /* EXPERIMENTAL implementation of XORoroshiro256 algorithm to provide high-quality, but a lot of random numbers */
-int nwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int kwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
 {
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising XORoroshiro-256 PRNG" );
+    kwipe_log( NWIPE_LOG_NOTICE, "Initialising XORoroshiro-256 PRNG" );
 
     if( *state == NULL )
     {
@@ -320,7 +320,7 @@ int nwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int kwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_XOROSHIRO256_PRNG;
@@ -355,10 +355,10 @@ int nwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE )
  * @return int Returns 0 on success, -1 on failure (e.g., memory allocation failure).
  */
 
-int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int kwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
 {
     // Log the start of the PRNG initialization process.
-    nwipe_log( NWIPE_LOG_DEBUG, "Initialising AES CTR PRNG" );
+    kwipe_log( NWIPE_LOG_DEBUG, "Initialising AES CTR PRNG" );
 
     // Check if the state pointer is NULL, indicating that it hasn't been allocated yet.
     if( *state == NULL )
@@ -370,7 +370,7 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
         if( *state == NULL )
         {
             // Log the memory allocation failure.
-            nwipe_log( NWIPE_LOG_FATAL, "Failed to allocate memory for AES CTR PRNG state." );
+            kwipe_log( NWIPE_LOG_FATAL, "Failed to allocate memory for AES CTR PRNG state." );
             return -1;  // Return an error code indicating failure.
         }
     }
@@ -379,7 +379,7 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     if( aes_ctr_prng_init( (aes_ctr_state_t*) *state, (uint64_t*) ( seed->s ), seed->length / sizeof( uint64_t ) )
         != 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "Fatal error occured during PRNG init in OpenSSL." );
+        kwipe_log( NWIPE_LOG_SANITY, "Fatal error occured during PRNG init in OpenSSL." );
         return -1;
     }
 
@@ -394,7 +394,7 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
  * @param count The number of bytes of random data to generate.
  * @return int Returns 0 on success.
  */
-int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int kwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 {
     // Pointer to track the current position in the output buffer.
     u8* restrict bufpos = buffer;
@@ -408,7 +408,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
         // Generate a 256-bit block and write it directly to the buffer.
         if( aes_ctr_prng_genrand_uint256_to_buf( (aes_ctr_state_t*) *state, bufpos ) != 0 )
         {
-            nwipe_log( NWIPE_LOG_SANITY, "Fatal error occured during RNG generation in OpenSSL." );
+            kwipe_log( NWIPE_LOG_SANITY, "Fatal error occured during RNG generation in OpenSSL." );
             return -1;
         }
 

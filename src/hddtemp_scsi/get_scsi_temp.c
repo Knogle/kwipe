@@ -31,7 +31,7 @@
 #include <dirent.h>
 #include <assert.h>
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "method.h"
 #include "device.h"
@@ -46,7 +46,7 @@
 
 int scsi_get_temperature( struct disk * );
 
-int nwipe_init_scsi_temperature( nwipe_context_t* c )
+int kwipe_init_scsi_temperature( kwipe_context_t* c )
 {
 
 /* dsk anlegen, malloc */
@@ -55,8 +55,8 @@ int nwipe_init_scsi_temperature( nwipe_context_t* c )
     /* Check the allocation. */
     if( !dsk )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to get memory for disk struct for %s",
+        kwipe_perror( errno, __FUNCTION__, "malloc" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to get memory for disk struct for %s",
                    c->device_name );
         exit( 1 ) ;
     }
@@ -92,7 +92,7 @@ int nwipe_init_scsi_temperature( nwipe_context_t* c )
     }
     else
     {
-	nwipe_log( NWIPE_LOG_ERROR, "Can not read SCSI temperature for %s, %s",
+	kwipe_log( NWIPE_LOG_ERROR, "Can not read SCSI temperature for %s, %s",
 	           dsk->drive, dsk->errormsg );
         close( dsk->fd );
 	free( dsk );
@@ -104,7 +104,7 @@ int nwipe_init_scsi_temperature( nwipe_context_t* c )
 }
 
 
-int nwipe_get_scsi_temperature( nwipe_context_t* c )
+int kwipe_get_scsi_temperature( kwipe_context_t* c )
 {
     struct disk *dsk;
 
@@ -131,20 +131,20 @@ int nwipe_get_scsi_temperature( nwipe_context_t* c )
 	}
 	else
 	{
-	     nwipe_log( NWIPE_LOG_ERROR, "Could not read SCSI temperature for %s, %s",
+	     kwipe_log( NWIPE_LOG_ERROR, "Could not read SCSI temperature for %s, %s",
                         dsk->drive, dsk->errormsg );
 	     return 2;
         }
     }
     else
     {
-	nwipe_log( NWIPE_LOG_INFO, "no SCSI temperature reading for %s", dsk->drive );
+	kwipe_log( NWIPE_LOG_INFO, "no SCSI temperature reading for %s", dsk->drive );
 	return 1;
     }
     return 0;
 }
 
-void nwipe_shut_scsi_temperature( nwipe_context_t* c )
+void kwipe_shut_scsi_temperature( kwipe_context_t* c )
 {
     if( c->templ_disk->fd != -1 )
     {

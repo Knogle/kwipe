@@ -28,7 +28,7 @@
 #include <dirent.h>
 #include <sys/time.h>
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "method.h"
 #include "device.h"
@@ -41,7 +41,7 @@
 
 extern int terminate_signal;
 
-int nwipe_init_temperature( nwipe_context_t* c )
+int kwipe_init_temperature( kwipe_context_t* c )
 {
     /* See header definition for description of function
      */
@@ -81,7 +81,7 @@ int nwipe_init_temperature( nwipe_context_t* c )
     /* Each hwmonX directory is processed in turn and once a hwmonX directory has been
      * found that is a block device and the block device name matches the drive
      * name in the current context then the path to ../hwmonX is constructed and written
-     * to the drive context structure '* c'. This path is used in the nwipe_update_temperature
+     * to the drive context structure '* c'. This path is used in the kwipe_update_temperature
      * function to retrieve temperature data and store it in the device context
      */
 
@@ -93,10 +93,10 @@ int nwipe_init_temperature( nwipe_context_t* c )
             /* Does the directory start with 'hwmon' */
             if( strstr( dp->d_name, "hwmon" ) != NULL )
             {
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
                     /* print a empty line to separate the different hwmon sensors */
-                    nwipe_log( NWIPE_LOG_DEBUG, "hwmon:" );
+                    kwipe_log( NWIPE_LOG_DEBUG, "hwmon:" );
                 }
                 strcpy( dirpath_tmp, dirpath );
                 strcat( dirpath_tmp, "/" );
@@ -114,9 +114,9 @@ int nwipe_init_temperature( nwipe_context_t* c )
 
                 if( ( dir2 = opendir( dirpath_tmp ) ) == NULL )
                 {
-                    if( nwipe_options.verbose )
+                    if( kwipe_options.verbose )
                     {
-                        nwipe_log( NWIPE_LOG_DEBUG, "hwmon: %s doesn't exist, trying next path", dirpath_tmp );
+                        kwipe_log( NWIPE_LOG_DEBUG, "hwmon: %s doesn't exist, trying next path", dirpath_tmp );
                     }
                     strcpy( dirpath_tmp2, dirpath_hwmonX );
                     strcat( dirpath_tmp2, "/device/nvme/nvme0" );
@@ -124,9 +124,9 @@ int nwipe_init_temperature( nwipe_context_t* c )
 
                     if( ( dir2 = opendir( dirpath_tmp ) ) == NULL )
                     {
-                        if( nwipe_options.verbose )
+                        if( kwipe_options.verbose )
                         {
-                            nwipe_log( NWIPE_LOG_DEBUG, "hwmon: %s doesn't exist, trying next path", dirpath_tmp );
+                            kwipe_log( NWIPE_LOG_DEBUG, "hwmon: %s doesn't exist, trying next path", dirpath_tmp );
                         }
 
                         strcpy( dirpath_tmp2, dirpath_hwmonX );
@@ -135,9 +135,9 @@ int nwipe_init_temperature( nwipe_context_t* c )
 
                         if( ( dir2 = opendir( dirpath_tmp ) ) == NULL )
                         {
-                            if( nwipe_options.verbose )
+                            if( kwipe_options.verbose )
                             {
-                                nwipe_log(
+                                kwipe_log(
                                     NWIPE_LOG_DEBUG, "hwmon: %s doesn't exist, no more paths to try", dirpath_tmp );
                             }
                             continue;
@@ -147,17 +147,17 @@ int nwipe_init_temperature( nwipe_context_t* c )
 
                 if( dir2 != NULL )
                 {
-                    if( nwipe_options.verbose )
+                    if( kwipe_options.verbose )
                     {
-                        nwipe_log( NWIPE_LOG_DEBUG, "hwmon: Found %s", dirpath_tmp );
+                        kwipe_log( NWIPE_LOG_DEBUG, "hwmon: Found %s", dirpath_tmp );
                     }
 
                     /* Read the device name */
                     while( ( dp2 = readdir( dir2 ) ) != NULL )
                     {
-                        if( nwipe_options.verbose )
+                        if( kwipe_options.verbose )
                         {
-                            nwipe_log( NWIPE_LOG_DEBUG, "hwmon: dirpath_tmp=%s/%s", dirpath_tmp, &dp2->d_name[0] );
+                            kwipe_log( NWIPE_LOG_DEBUG, "hwmon: dirpath_tmp=%s/%s", dirpath_tmp, &dp2->d_name[0] );
                         }
 
                         /* Skip the '.' and '..' directories */
@@ -169,7 +169,7 @@ int nwipe_init_temperature( nwipe_context_t* c )
 
                         /* Create a copy of the device name from the context but strip the path from it, right justify
                          * device name, prefix with spaces so length is 8. */
-                        nwipe_strip_path( device_context_name, c->device_name );
+                        kwipe_strip_path( device_context_name, c->device_name );
 
                         /* Remove leading/training whitespace from a string and left justify result */
                         trim( device_context_name );
@@ -184,10 +184,10 @@ int nwipe_init_temperature( nwipe_context_t* c )
                         {
                             /* Match ! This hwmon device matches this context, so write the hwmonX path to the context
                              */
-                            nwipe_log( NWIPE_LOG_NOTICE, "hwmon: %s has temperature monitoring", device, dirpath_tmp );
-                            if( nwipe_options.verbose )
+                            kwipe_log( NWIPE_LOG_NOTICE, "hwmon: %s has temperature monitoring", device, dirpath_tmp );
+                            if( kwipe_options.verbose )
                             {
-                                nwipe_log( NWIPE_LOG_DEBUG, "hwmon: %s found in %s", device, dirpath_tmp );
+                                kwipe_log( NWIPE_LOG_DEBUG, "hwmon: %s found in %s", device, dirpath_tmp );
                             }
                             /* Copy the hwmon path to the drive context structure */
                             strcpy( c->temp1_path, dirpath_hwmonX );
@@ -203,16 +203,16 @@ int nwipe_init_temperature( nwipe_context_t* c )
     /* if no hwmon data available try scsi access (SAS Disks are known to be not working in hwmon */
     if( c->templ_has_hwmon_data == 0 && ( c->device_type == NWIPE_DEVICE_SAS || c->device_type == NWIPE_DEVICE_SCSI ) )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "no hwmon data for %s, try to get SCSI data", c->device_name );
-        if( nwipe_init_scsi_temperature( c ) == 0 )
+        kwipe_log( NWIPE_LOG_NOTICE, "no hwmon data for %s, try to get SCSI data", c->device_name );
+        if( kwipe_init_scsi_temperature( c ) == 0 )
         {
             c->templ_has_scsitemp_data = 1;
-            nwipe_log( NWIPE_LOG_INFO, "got SCSI temperature data for %s", c->device_name );
+            kwipe_log( NWIPE_LOG_INFO, "got SCSI temperature data for %s", c->device_name );
         }
         else
         {
             c->templ_has_scsitemp_data = 0;
-            nwipe_log( NWIPE_LOG_INFO, "got no SCSI temperature data for %s", c->device_name );
+            kwipe_log( NWIPE_LOG_INFO, "got no SCSI temperature data for %s", c->device_name );
         }
     }
 
@@ -225,27 +225,27 @@ float timedifference_msec( struct timeval tv_start, struct timeval tv_end )
     return ( tv_end.tv_sec - tv_start.tv_sec ) * 1000.0f + ( tv_end.tv_usec - tv_start.tv_usec ) / 1000.0f;
 }
 
-void* nwipe_update_temperature_thread( void* ptr )
+void* kwipe_update_temperature_thread( void* ptr )
 {
     int i;
 
     /* Set up the structs we will use for the data required. */
-    nwipe_thread_data_ptr_t* nwipe_thread_data_ptr;
-    nwipe_context_t** c;
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;
+    kwipe_thread_data_ptr_t* kwipe_thread_data_ptr;
+    kwipe_context_t** c;
+    kwipe_misc_thread_data_t* kwipe_misc_thread_data;
 
     /* Retrieve from the pointer passed to the function. */
-    nwipe_thread_data_ptr = (nwipe_thread_data_ptr_t*) ptr;
-    c = nwipe_thread_data_ptr->c;
-    nwipe_misc_thread_data = nwipe_thread_data_ptr->nwipe_misc_thread_data;
+    kwipe_thread_data_ptr = (kwipe_thread_data_ptr_t*) ptr;
+    c = kwipe_thread_data_ptr->c;
+    kwipe_misc_thread_data = kwipe_thread_data_ptr->kwipe_misc_thread_data;
 
     /* mark start second of update */
-    time_t nwipe_timemark = time( NULL );
+    time_t kwipe_timemark = time( NULL );
 
     /* update immediately on entry to thread */
-    for( i = 0; i < nwipe_misc_thread_data->nwipe_enumerated; i++ )
+    for( i = 0; i < kwipe_misc_thread_data->kwipe_enumerated; i++ )
     {
-        nwipe_update_temperature( c[i] );
+        kwipe_update_temperature( c[i] );
         if( terminate_signal == 1 )
         {
             break;
@@ -256,13 +256,13 @@ void* nwipe_update_temperature_thread( void* ptr )
     {
         /* Update all drive/s but never repeat checking the
          * set of drive/s faster than once every 2 seconds */
-        if( time( NULL ) > ( nwipe_timemark + 1 ) )
+        if( time( NULL ) > ( kwipe_timemark + 1 ) )
         {
-            nwipe_timemark = time( NULL );
+            kwipe_timemark = time( NULL );
 
-            for( i = 0; i < nwipe_misc_thread_data->nwipe_enumerated; i++ )
+            for( i = 0; i < kwipe_misc_thread_data->kwipe_enumerated; i++ )
             {
-                nwipe_update_temperature( c[i] );
+                kwipe_update_temperature( c[i] );
             }
         }
         else
@@ -273,9 +273,9 @@ void* nwipe_update_temperature_thread( void* ptr )
     return NULL;
 }
 
-void nwipe_update_temperature( nwipe_context_t* c )
+void kwipe_update_temperature( kwipe_context_t* c )
 {
-    /* Warning !! This function should only be called by nwipe_update_temperature_thread()
+    /* Warning !! This function should only be called by kwipe_update_temperature_thread()
      * Due to delays of upto 2 seconds with some drives, especially SAS in obtaining
      * temperatures while wiping, the delays being worse the more drives you are wiping. Updating
      * temperatures are performed within it's own thread so it doesn't cause momentary freezes
@@ -308,8 +308,8 @@ void nwipe_update_temperature( nwipe_context_t* c )
     float delta_t;
 
     /* avoid being called more often than 1x per 60 seconds */
-    time_t nwipe_time_now = time( NULL );
-    if( nwipe_time_now - c->temp1_time < 60 )
+    time_t kwipe_time_now = time( NULL );
+    if( kwipe_time_now - c->temp1_time < 60 )
     {
         return;
     }
@@ -339,18 +339,18 @@ void nwipe_update_temperature( nwipe_context_t* c )
                 /* Divide by 1000 to get degrees celsius */
                 *( temperature_pcontext[idx] ) = *( temperature_pcontext[idx] ) / 1000;
 
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_NOTICE, "hwmon: %s %dC", path, *( temperature_pcontext[idx] ) );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hwmon: %s %dC", path, *( temperature_pcontext[idx] ) );
                 }
 
                 fclose( fptr );
             }
             else
             {
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_NOTICE, "hwmon: Unable to  open %s", path );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hwmon: Unable to  open %s", path );
                 }
             }
         }
@@ -362,19 +362,19 @@ void nwipe_update_temperature( nwipe_context_t* c )
         {
             if( c->templ_has_scsitemp_data == 1 )
             {
-                if( nwipe_options.verbose )
+                if( kwipe_options.verbose )
                 {
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_crit %dC", c->device_name, c->temp1_crit );
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_highest %dC", c->device_name, c->temp1_highest );
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_input %dC", c->device_name, c->temp1_input );
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_lcrit %dC", c->device_name, c->temp1_lcrit );
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_lowest %dC", c->device_name, c->temp1_lowest );
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_max %dC", c->device_name, c->temp1_max );
-                    nwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_min %dC", c->device_name, c->temp1_min );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_crit %dC", c->device_name, c->temp1_crit );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_highest %dC", c->device_name, c->temp1_highest );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_input %dC", c->device_name, c->temp1_input );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_lcrit %dC", c->device_name, c->temp1_lcrit );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_lowest %dC", c->device_name, c->temp1_lowest );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_max %dC", c->device_name, c->temp1_max );
+                    kwipe_log( NWIPE_LOG_NOTICE, "hddtemp: %s temp1_min %dC", c->device_name, c->temp1_min );
                 }
-                if( nwipe_get_scsi_temperature( c ) != 0 )
+                if( kwipe_get_scsi_temperature( c ) != 0 )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR, "get_scsi_temperature error" );
+                    kwipe_log( NWIPE_LOG_ERROR, "get_scsi_temperature error" );
                 }
             }
         }
@@ -387,15 +387,15 @@ void nwipe_update_temperature( nwipe_context_t* c )
 
     gettimeofday( &tv_end, 0 );
     delta_t = timedifference_msec( tv_start, tv_end );
-    if( nwipe_options.verbose )
+    if( kwipe_options.verbose )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "get temperature for %s took %f ms", c->device_name, delta_t );
+        kwipe_log( NWIPE_LOG_NOTICE, "get temperature for %s took %f ms", c->device_name, delta_t );
     }
 
     return;
 }
 
-void nwipe_log_drives_temperature_limits( nwipe_context_t* c )
+void kwipe_log_drives_temperature_limits( kwipe_context_t* c )
 {
     /* See header for description of function
      */
@@ -489,7 +489,7 @@ void nwipe_log_drives_temperature_limits( nwipe_context_t* c )
         snprintf( &temperature_limits_txt[idx], ( sizeof( temperature_limits_txt ) - idx ), "low critical=N/A. " );
     }
 
-    nwipe_log( NWIPE_LOG_INFO, "%s", temperature_limits_txt );
+    kwipe_log( NWIPE_LOG_INFO, "%s", temperature_limits_txt );
 
     return;
 }

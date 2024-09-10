@@ -1,14 +1,14 @@
-.TH NWIPE "8" "May 2024" "nwipe version 0.37" "User Commands"
+.TH NWIPE "8" "May 2024" "kwipe version 0.37" "User Commands"
 .SH NAME
-nwipe \- securely erase disks
+kwipe \- securely erase disks
 .SH SYNOPSIS
-.B nwipe
+.B kwipe
 [\fIoptions\fR] [\fIdevice1\fR] [\fIdevice2\fR] ...
 .SH DESCRIPTION
-nwipe is a command that will securely erase disks using a variety of
+kwipe is a command that will securely erase disks using a variety of
 recognised methods.  It is a fork of the dwipe command used by Darik's Boot
-and Nuke (dban).  nwipe is included with partedmagic if you want a quick and
-easy bootable CD version.  nwipe was created out of a need to run the DBAN
+and Nuke (dban).  kwipe is included with partedmagic if you want a quick and
+easy bootable CD version.  kwipe was created out of a need to run the DBAN
 dwipe command outside of DBAN, in order to allow its use with any host
 distribution, thus giving better hardware support.  It is essentially the
 same as dwipe, with a few changes:
@@ -43,7 +43,7 @@ Will perform a syn after NUM writes (default: 100000)
 .IP
 0    \- fdatasync after the disk is completely written
        fdatasync errors not detected until completion.
-       0 is not recommended as disk errors may cause nwipe
+       0 is not recommended as disk errors may cause kwipe
        to appear to hang
 .IP
 1    \- fdatasync after every write
@@ -112,7 +112,7 @@ is5enh                 \- HMG IS5 enhanced
 Filename to log to. Default is STDOUT
 .TP
 \fB\-P\fR, \fB\-\-PDFreportpath\fR=\fIDIR\fR
-Directory to write the PDF nwipe reports/certificates to.
+Directory to write the PDF kwipe reports/certificates to.
 Defaults to ".".
 If \fIDIR\fR is set to \fInoPDF\fR no report PDF files are written.
 .TP
@@ -134,7 +134,7 @@ Up to ten comma separated devices to be excluded, examples:
  --exclude=/dev/sdc,/dev/sdd,/dev/mapper/cryptswap1
 .SH BUGS
 Please see the GitHub site for the latest list
-(https://github.com/martijnvanbrummelen/nwipe/issues)
+(https://github.com/martijnvanbrummelen/kwipe/issues)
 .SH AUTHOR
 Nwipe is developed by Martijn van Brummelen <github@brumit.nl>
 .SH "SEE ALSO"

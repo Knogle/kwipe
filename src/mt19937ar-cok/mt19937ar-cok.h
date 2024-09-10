@@ -1,5 +1,5 @@
 /*
- * mt19937ar-cok.h: The Mersenne Twister PRNG implementation for nwipe.
+ * mt19937ar-cok.h: The Mersenne Twister PRNG implementation for kwipe.
  */
 
 #ifndef MT19937AR_H_

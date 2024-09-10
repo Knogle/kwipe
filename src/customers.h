@@ -31,8 +31,8 @@ void add_customer();
 void write_customer_csv_entry( char*, char*, char*, char* );
 void delete_customer_csv_entry( int* );
 
-typedef char* nwipe_customers_buffer_t;
-typedef char** nwipe_customers_pointers_t;
+typedef char* kwipe_customers_buffer_t;
+typedef char** kwipe_customers_pointers_t;
 
 #define SELECT_CUSTOMER 1
 #define DELETE_CUSTOMER 2

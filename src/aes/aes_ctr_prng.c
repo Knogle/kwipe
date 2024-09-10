@@ -41,9 +41,9 @@ typedef enum {
     NWIPE_LOG_FATAL,  // Fatal errors, require immediate termination of the program
     NWIPE_LOG_SANITY,  // Sanity checks, used primarily in debugging phases
     NWIPE_LOG_NOTIMESTAMP  // Log entries without timestamp information
-} nwipe_log_t;
+} kwipe_log_t;
 
-extern void nwipe_log( nwipe_log_t level, const char* format, ... );
+extern void kwipe_log( kwipe_log_t level, const char* format, ... );
 
 /* Initializes the AES CTR pseudorandom number generator state.
    This function sets up the cryptographic context necessary for generating
@@ -62,12 +62,12 @@ int aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigne
     state->num = 0;  // Reset the block counter
     memset( state->ecount, 0, AES_BLOCK_SIZE );  // Clear encryption count buffer
 
-    nwipe_log( NWIPE_LOG_DEBUG, "Initializing AES CTR PRNG with provided seed." );  // Log initialization
+    kwipe_log( NWIPE_LOG_DEBUG, "Initializing AES CTR PRNG with provided seed." );  // Log initialization
 
     EVP_MD_CTX* mdctx = EVP_MD_CTX_new();  // Create new SHA-256 context
     if( !mdctx )
     {
-        nwipe_log( NWIPE_LOG_FATAL,
+        kwipe_log( NWIPE_LOG_FATAL,
                    "Failed to allocate EVP_MD_CTX for SHA-256, return code: %d.",
                    ERR_get_error() );  // Log context allocation failure
         return -1;  // Handle error
@@ -75,7 +75,7 @@ int aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigne
 
     if( EVP_DigestInit_ex( mdctx, EVP_sha256(), NULL ) != 1 )
     {
-        nwipe_log( NWIPE_LOG_FATAL,
+        kwipe_log( NWIPE_LOG_FATAL,
                    "SHA-256 context initialization failed, return code: %d.",
                    ERR_get_error() );  // Log init failure
         return -1;  // Handle error
@@ -86,7 +86,7 @@ int aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigne
 
     if( EVP_DigestFinal_ex( mdctx, key, NULL ) != 1 )
     {
-        nwipe_log( NWIPE_LOG_FATAL,
+        kwipe_log( NWIPE_LOG_FATAL,
                    "SHA-256 hash finalization failed, return code: %d.",
                    ERR_get_error() );  // Log finalization failure
         return -1;  // Handle error
@@ -97,7 +97,7 @@ int aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigne
     state->ctx = EVP_CIPHER_CTX_new();  // Create new AES-256-CTR context
     if( !state->ctx )
     {
-        nwipe_log( NWIPE_LOG_FATAL,
+        kwipe_log( NWIPE_LOG_FATAL,
                    "Failed to allocate EVP_CIPHER_CTX, return code: %d.",
                    ERR_get_error() );  // Log cipher context failure
         return -1;  // Handle error
@@ -105,13 +105,13 @@ int aes_ctr_prng_init( aes_ctr_state_t* state, unsigned long init_key[], unsigne
 
     if( EVP_EncryptInit_ex( state->ctx, EVP_aes_256_ctr(), NULL, key, state->ivec ) != 1 )
     {
-        nwipe_log( NWIPE_LOG_FATAL,
+        kwipe_log( NWIPE_LOG_FATAL,
                    "AES-256-CTR encryption context initialization failed, return code: %d.",
                    ERR_get_error() );  // Log encryption init failure
         return -1;  // Handle error
     }
 
-    nwipe_log( NWIPE_LOG_DEBUG, "AES CTR PRNG successfully initialized." );  // Log successful initialization
+    kwipe_log( NWIPE_LOG_DEBUG, "AES CTR PRNG successfully initialized." );  // Log successful initialization
     return 0;  // Exit successfully
 }
 /* Generates pseudorandom numbers and writes them to a buffer.
@@ -130,7 +130,7 @@ int aes_ctr_prng_genrand_uint256_to_buf( aes_ctr_state_t* state, unsigned char* 
 
     if( EVP_EncryptUpdate( state->ctx, temp_buffer, &outlen, temp_buffer, sizeof( temp_buffer ) ) != 1 )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        kwipe_log( NWIPE_LOG_ERROR,
                    "Failed to generate pseudorandom numbers, return code: %d.",
                    ERR_get_error() );  // Log generation failure
         return -1;  // Handle error

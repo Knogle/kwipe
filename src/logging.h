@@ -1,5 +1,5 @@
 /*
- *  logging.c:  Logging facilities for nwipe.
+ *  logging.c:  Logging facilities for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -29,7 +29,7 @@
 #define OS_info_Line_offset 31 /* OS_info line offset in log */
 #define OS_info_Line_Length 48 /* OS_info line length */
 
-typedef enum nwipe_log_t_ {
+typedef enum kwipe_log_t_ {
     NWIPE_LOG_NONE = 0,
     NWIPE_LOG_DEBUG,  // Output only when --verbose option used on cmd line.
     NWIPE_LOG_INFO,  // General Info not specifically relevant to the wipe.
@@ -39,10 +39,10 @@ typedef enum nwipe_log_t_ {
     NWIPE_LOG_FATAL,  // Errors that cause the program to exit.
     NWIPE_LOG_SANITY,  // Programming errors.
     NWIPE_LOG_NOTIMESTAMP  // logs the message without the timestamp
-} nwipe_log_t;
+} kwipe_log_t;
 
 /**
- * Writes a string to the log. nwipe_log timestamps the string
+ * Writes a string to the log. kwipe_log timestamps the string
  * @param level the tag to display:
  * NWIPE_LOG_NONE Don't display a tag
  * NWIPE_LOG_DEBUG, Very verbose logging.
@@ -55,11 +55,11 @@ typedef enum nwipe_log_t_ {
  * NWIPE_LOG_NOTIMESTAMP logs the message without the timestamp
  * @param format the string to be logged
  */
-void nwipe_log( nwipe_log_t level, const char* format, ... );
+void kwipe_log( kwipe_log_t level, const char* format, ... );
 
-void nwipe_perror( int nwipe_errno, const char* f, const char* s );
-void nwipe_log_OSinfo();
-int nwipe_log_sysinfo();
-void nwipe_log_summary( nwipe_context_t**, int );  // This produces the wipe status table on exit
+void kwipe_perror( int kwipe_errno, const char* f, const char* s );
+void kwipe_log_OSinfo();
+int kwipe_log_sysinfo();
+void kwipe_log_summary( kwipe_context_t**, int );  // This produces the wipe status table on exit
 
 #endif /* LOGGING_H_ */

@@ -22,7 +22,7 @@
  */
 
 #include <stdio.h>
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "gui.h"
 #include "logging.h"
@@ -52,29 +52,29 @@ void customer_processes( int mode )
 
     size_t result_size;
 
-    extern char nwipe_customers_file[];
+    extern char kwipe_customers_file[];
 
     /* Determine size of customers.csv file */
-    stat( nwipe_customers_file, &st );
+    stat( kwipe_customers_file, &st );
     size = st.st_size;
     current_list_size = 0;
 
-    nwipe_customers_buffer_t raw_buffer = (nwipe_customers_buffer_t) calloc( 1, size + 1 );
+    kwipe_customers_buffer_t raw_buffer = (kwipe_customers_buffer_t) calloc( 1, size + 1 );
 
     /* Allocate storage for the contents of customers.csv */
-    nwipe_customers_buffer_t buffer = (nwipe_customers_buffer_t) calloc( 1, size + 1 );
+    kwipe_customers_buffer_t buffer = (kwipe_customers_buffer_t) calloc( 1, size + 1 );
 
     /* Allocate storage for the processed version of customers.csv,
      * i.e we convert the csv format to strings without the quotes
      * and semi colon delimiters
      */
-    nwipe_customers_pointers_t list = (nwipe_customers_pointers_t) calloc( 1, sizeof( char* ) );
+    kwipe_customers_pointers_t list = (kwipe_customers_pointers_t) calloc( 1, sizeof( char* ) );
     current_list_size += sizeof( char* );
 
     /* Open customers.csv */
-    if( ( fptr = fopen( nwipe_customers_file, "rb" ) ) == NULL )
+    if( ( fptr = fopen( kwipe_customers_file, "rb" ) ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Unable to open %s", nwipe_customers_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Unable to open %s", kwipe_customers_file );
         free( buffer );
         free( *list );
         return;
@@ -130,7 +130,7 @@ void customer_processes( int mode )
                 /* Expand allocated memory by the size of one pointer */
                 if( ( list = realloc( list, current_list_size ) ) == NULL )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR, "Unable to realloc customer list array, out of memory?" );
+                    kwipe_log( NWIPE_LOG_ERROR, "Unable to realloc customer list array, out of memory?" );
                     break;
                 }
                 current_list_size += sizeof( char* );
@@ -180,9 +180,9 @@ void select_customers( int count, char** customer_list_array )
     char window_title[] = " Select Customer For PDF Report ";
 
     /* Display the customer selection window */
-    nwipe_gui_list( count, window_title, customer_list_array, &selected_entry );
+    kwipe_gui_list( count, window_title, customer_list_array, &selected_entry );
 
-    /* Save the selected customer details to nwipe's config file /etc/nwipe/nwipe.conf
+    /* Save the selected customer details to kwipe's config file /etc/kwipe/kwipe.conf
      * If selected entry equals 0, then the customer did not select an entry so skip save.
      */
     if( selected_entry != 0 )
@@ -196,7 +196,7 @@ void delete_customer( int count, char** customer_list_array )
     char window_title[] = " Delete Customer ";
     int selected_entry = 0;
 
-    nwipe_gui_list( count, window_title, customer_list_array, &selected_entry );
+    kwipe_gui_list( count, window_title, customer_list_array, &selected_entry );
 
     if( selected_entry != 0 )
     {
@@ -230,9 +230,9 @@ void write_customer_csv_entry( char* customer_name,
 
     struct stat st;
 
-    extern char nwipe_customers_file[];
-    extern char nwipe_customers_file_backup[];
-    extern char nwipe_customers_file_backup_tmp[];
+    extern char kwipe_customers_file[];
+    extern char kwipe_customers_file_backup[];
+    extern char kwipe_customers_file_backup_tmp[];
 
     intmax_t existing_file_size = 0;
 
@@ -252,18 +252,18 @@ void write_customer_csv_entry( char* customer_name,
         + strlen( customer_contact_phone ) + 12;
     if( !( csv_buffer = calloc( 1, csv_line_length == 0 ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "func:nwipe_gui_add_customer:csv_buffer, calloc returned NULL " );
+        kwipe_log( NWIPE_LOG_ERROR, "func:kwipe_gui_add_customer:csv_buffer, calloc returned NULL " );
     }
     else
     {
         /* Determine current size of the csv file containing the customers */
-        stat( nwipe_customers_file, &st );
+        stat( kwipe_customers_file, &st );
         existing_file_size = st.st_size;
 
         /* calloc sufficient storage to hold the existing customers file */
         if( !( customers_buffer = calloc( 1, existing_file_size + 1 ) ) )
         {
-            nwipe_log( NWIPE_LOG_ERROR, "func:nwipe_gui_add_customer:customers_buffer, calloc returned NULL " );
+            kwipe_log( NWIPE_LOG_ERROR, "func:kwipe_gui_add_customer:customers_buffer, calloc returned NULL " );
         }
         else
         {
@@ -273,23 +273,23 @@ void write_customer_csv_entry( char* customer_name,
 
             if( !( new_customers_buffer = calloc( 1, new_customers_buffer_size ) ) )
             {
-                nwipe_log( NWIPE_LOG_ERROR, "func:nwipe_gui_add_customer:customers_buffer, calloc returned NULL " );
+                kwipe_log( NWIPE_LOG_ERROR, "func:kwipe_gui_add_customer:customers_buffer, calloc returned NULL " );
             }
             else
             {
                 /* Read the whole of customers.csv file into customers_buffer */
-                if( ( fptr = fopen( nwipe_customers_file, "rb" ) ) == NULL )
+                if( ( fptr = fopen( kwipe_customers_file, "rb" ) ) == NULL )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR, "Unable to open %s", nwipe_customers_file );
+                    kwipe_log( NWIPE_LOG_ERROR, "Unable to open %s", kwipe_customers_file );
                 }
                 else
                 {
                     /* Read the customers.csv file and populate the list array with the data */
                     if( ( result_size = fread( customers_buffer, existing_file_size, 1, fptr ) ) != 1 )
                     {
-                        nwipe_log(
+                        kwipe_log(
                             NWIPE_LOG_ERROR,
-                            "func:nwipe_gui_add_customer:Error reading customers file, # bytes read not as expected "
+                            "func:kwipe_gui_add_customer:Error reading customers file, # bytes read not as expected "
                             "%i bytes",
                             result_size );
                     }
@@ -425,19 +425,19 @@ void write_customer_csv_entry( char* customer_name,
                         }
 
                         /* Rename the customers.csv file to customers.csv.backup */
-                        if( rename( nwipe_customers_file, nwipe_customers_file_backup_tmp ) != 0 )
+                        if( rename( kwipe_customers_file, kwipe_customers_file_backup_tmp ) != 0 )
                         {
-                            nwipe_log( NWIPE_LOG_ERROR,
+                            kwipe_log( NWIPE_LOG_ERROR,
                                        "Unable to rename %s to %s",
-                                       nwipe_customers_file,
-                                       nwipe_customers_file_backup_tmp );
+                                       kwipe_customers_file,
+                                       kwipe_customers_file_backup_tmp );
                         }
                         else
                         {
                             /* Create/open the customers.csv file */
-                            if( ( fptr2 = fopen( nwipe_customers_file, "wb" ) ) == NULL )
+                            if( ( fptr2 = fopen( kwipe_customers_file, "wb" ) ) == NULL )
                             {
-                                nwipe_log( NWIPE_LOG_ERROR, "Unable to open %s", nwipe_customers_file );
+                                kwipe_log( NWIPE_LOG_ERROR, "Unable to open %s", kwipe_customers_file );
                             }
                             else
                             {
@@ -448,7 +448,7 @@ void write_customer_csv_entry( char* customer_name,
                                           new_customers_buffer, sizeof( char ), new_customers_buffer_length, fptr2 ) )
                                     != new_customers_buffer_length )
                                 {
-                                    nwipe_log(
+                                    kwipe_log(
                                         NWIPE_LOG_ERROR,
                                         "func:write_customer_csv_entry:fwrite: Error result_size = %i not as expected",
                                         result_size );
@@ -456,25 +456,25 @@ void write_customer_csv_entry( char* customer_name,
                                 else
                                 {
                                     /* Remove the customer.csv.backup file if it exists */
-                                    if( remove( nwipe_customers_file_backup ) != 0 )
+                                    if( remove( kwipe_customers_file_backup ) != 0 )
                                     {
-                                        nwipe_log(
-                                            NWIPE_LOG_ERROR, "Unable to remove %s", nwipe_customers_file_backup_tmp );
+                                        kwipe_log(
+                                            NWIPE_LOG_ERROR, "Unable to remove %s", kwipe_customers_file_backup_tmp );
                                     }
                                     else
                                     {
                                         /* Rename the customers.csv.backup.tmp file to customers.csv.backup */
-                                        if( rename( nwipe_customers_file_backup_tmp, nwipe_customers_file_backup )
+                                        if( rename( kwipe_customers_file_backup_tmp, kwipe_customers_file_backup )
                                             != 0 )
                                         {
-                                            nwipe_log( NWIPE_LOG_ERROR,
+                                            kwipe_log( NWIPE_LOG_ERROR,
                                                        "Unable to rename %s to %s",
-                                                       nwipe_customers_file,
-                                                       nwipe_customers_file_backup_tmp );
+                                                       kwipe_customers_file,
+                                                       kwipe_customers_file_backup_tmp );
                                         }
-                                        nwipe_log( NWIPE_LOG_INFO,
+                                        kwipe_log( NWIPE_LOG_INFO,
                                                    "Succesfully write new customer entry to %s",
-                                                   nwipe_customers_file );
+                                                   kwipe_customers_file );
                                     }
                                 }
                                 fclose( fptr2 );
@@ -504,9 +504,9 @@ void delete_customer_csv_entry( int* selected_entry )
 
     struct stat st;
 
-    extern char nwipe_customers_file[];
-    extern char nwipe_customers_file_backup[];
-    extern char nwipe_customers_file_backup_tmp[];
+    extern char kwipe_customers_file[];
+    extern char kwipe_customers_file_backup[];
+    extern char kwipe_customers_file_backup_tmp[];
 
     intmax_t existing_file_size = 0;
 
@@ -526,14 +526,14 @@ void delete_customer_csv_entry( int* selected_entry )
     size_t new_customers_buffer_length;
 
     /* Determine current size of the csv file containing the customers */
-    stat( nwipe_customers_file, &st );
+    stat( kwipe_customers_file, &st );
     existing_file_size = st.st_size;
 
     /* calloc sufficient storage to hold the existing customers file */
     if( !( customers_buffer = calloc( 1, existing_file_size + 1 ) ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
-                   "func:nwipe_gui_delete_customer_csv_entry:customers_buffer, calloc returned NULL " );
+        kwipe_log( NWIPE_LOG_ERROR,
+                   "func:kwipe_gui_delete_customer_csv_entry:customers_buffer, calloc returned NULL " );
     }
     else
     {
@@ -543,25 +543,25 @@ void delete_customer_csv_entry( int* selected_entry )
 
         if( !( new_customers_buffer = calloc( 1, existing_file_size + 1 ) ) )
         {
-            nwipe_log( NWIPE_LOG_ERROR,
-                       "func:nwipe_gui_delete_customer_csv_entry:customers_buffer, calloc returned NULL " );
+            kwipe_log( NWIPE_LOG_ERROR,
+                       "func:kwipe_gui_delete_customer_csv_entry:customers_buffer, calloc returned NULL " );
         }
         else
         {
             /* Read the whole of customers.csv file into customers_buffer */
-            if( ( fptr = fopen( nwipe_customers_file, "rb" ) ) == NULL )
+            if( ( fptr = fopen( kwipe_customers_file, "rb" ) ) == NULL )
             {
-                nwipe_log( NWIPE_LOG_ERROR,
-                           "func:nwipe_gui_delete_customer_csv_entry:Unable to open %s",
-                           nwipe_customers_file );
+                kwipe_log( NWIPE_LOG_ERROR,
+                           "func:kwipe_gui_delete_customer_csv_entry:Unable to open %s",
+                           kwipe_customers_file );
             }
             else
             {
                 /* Read the customers.csv file and populate the list array with the data */
                 if( ( result_size = fread( customers_buffer, existing_file_size, 1, fptr ) ) != 1 )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR,
-                               "func:nwipe_gui_delete_customer_csv_entry:Error reading customers file, # elements read "
+                    kwipe_log( NWIPE_LOG_ERROR,
+                               "func:kwipe_gui_delete_customer_csv_entry:Error reading customers file, # elements read "
                                "not as expected "
                                "%i elements",
                                result_size );
@@ -621,7 +621,7 @@ void delete_customer_csv_entry( int* selected_entry )
                                 idx1++;
                             }
                             linecount++;
-                            nwipe_log( NWIPE_LOG_INFO, "Deleted customer entry from cache" );
+                            kwipe_log( NWIPE_LOG_INFO, "Deleted customer entry from cache" );
                             status_flag = 1;
                         }
                         else
@@ -638,21 +638,21 @@ void delete_customer_csv_entry( int* selected_entry )
                     }
 
                     /* Rename the customers.csv file to customers.csv.backup */
-                    if( rename( nwipe_customers_file, nwipe_customers_file_backup_tmp ) != 0 )
+                    if( rename( kwipe_customers_file, kwipe_customers_file_backup_tmp ) != 0 )
                     {
-                        nwipe_log( NWIPE_LOG_ERROR,
+                        kwipe_log( NWIPE_LOG_ERROR,
                                    "func:delete_customer_csv_entry:Unable to rename %s to %s",
-                                   nwipe_customers_file,
-                                   nwipe_customers_file_backup_tmp );
+                                   kwipe_customers_file,
+                                   kwipe_customers_file_backup_tmp );
                     }
                     else
                     {
                         /* Create/open the customers.csv file */
-                        if( ( fptr2 = fopen( nwipe_customers_file, "wb" ) ) == NULL )
+                        if( ( fptr2 = fopen( kwipe_customers_file, "wb" ) ) == NULL )
                         {
-                            nwipe_log( NWIPE_LOG_ERROR,
+                            kwipe_log( NWIPE_LOG_ERROR,
                                        "func:delete_customer_csv_entry:Unable to open %s",
-                                       nwipe_customers_file );
+                                       kwipe_customers_file );
                         }
                         else
                         {
@@ -663,7 +663,7 @@ void delete_customer_csv_entry( int* selected_entry )
                                       new_customers_buffer, sizeof( char ), new_customers_buffer_length, fptr2 ) )
                                 != new_customers_buffer_length )
                             {
-                                nwipe_log(
+                                kwipe_log(
                                     NWIPE_LOG_ERROR,
                                     "func:delete_customer_csv_entry:fwrite: Error result_size = %i not as expected",
                                     result_size );
@@ -671,32 +671,32 @@ void delete_customer_csv_entry( int* selected_entry )
                             else
                             {
                                 /* Remove the customer.csv.backup file if it exists */
-                                if( remove( nwipe_customers_file_backup ) != 0 )
+                                if( remove( kwipe_customers_file_backup ) != 0 )
                                 {
-                                    nwipe_log( NWIPE_LOG_ERROR,
+                                    kwipe_log( NWIPE_LOG_ERROR,
                                                "func:delete_customer_csv_entry:Unable to remove %s",
-                                               nwipe_customers_file_backup_tmp );
+                                               kwipe_customers_file_backup_tmp );
                                 }
                                 else
                                 {
                                     /* Rename the customers.csv.backup.tmp file to customers.csv.backup */
-                                    if( rename( nwipe_customers_file_backup_tmp, nwipe_customers_file_backup ) != 0 )
+                                    if( rename( kwipe_customers_file_backup_tmp, kwipe_customers_file_backup ) != 0 )
                                     {
-                                        nwipe_log( NWIPE_LOG_ERROR,
+                                        kwipe_log( NWIPE_LOG_ERROR,
                                                    "func:delete_customer_csv_entry:Unable to rename %s to %s",
-                                                   nwipe_customers_file,
-                                                   nwipe_customers_file_backup_tmp );
+                                                   kwipe_customers_file,
+                                                   kwipe_customers_file_backup_tmp );
                                     }
                                     if( status_flag == 1 )
                                     {
-                                        nwipe_log(
-                                            NWIPE_LOG_INFO, "Deleted customer entry in %s", nwipe_customers_file );
+                                        kwipe_log(
+                                            NWIPE_LOG_INFO, "Deleted customer entry in %s", kwipe_customers_file );
                                     }
                                     else
                                     {
-                                        nwipe_log( NWIPE_LOG_INFO,
+                                        kwipe_log( NWIPE_LOG_INFO,
                                                    "Failed to delete customer entry in %s",
-                                                   nwipe_customers_file );
+                                                   kwipe_customers_file );
                                     }
                                 }
                             }

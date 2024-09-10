@@ -23,11 +23,11 @@
 #ifndef PASS_H_
 #define PASS_H_
 
-int nwipe_random_pass( nwipe_context_t* c );
-int nwipe_random_verify( nwipe_context_t* c );
-int nwipe_static_pass( nwipe_context_t* c, nwipe_pattern_t* pattern );
-int nwipe_static_verify( nwipe_context_t* c, nwipe_pattern_t* pattern );
+int kwipe_random_pass( kwipe_context_t* c );
+int kwipe_random_verify( kwipe_context_t* c );
+int kwipe_static_pass( kwipe_context_t* c, kwipe_pattern_t* pattern );
+int kwipe_static_verify( kwipe_context_t* c, kwipe_pattern_t* pattern );
 
-void test_functionn( int count, nwipe_context_t** c );
+void test_functionn( int count, kwipe_context_t** c );
 
 #endif /* PASS_H_ */

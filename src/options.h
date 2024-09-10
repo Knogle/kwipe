@@ -1,5 +1,5 @@
 /*
- *  options.h: Command line processing routines for nwipe.
+ *  options.h: Command line processing routines for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -41,8 +41,8 @@
 #define PATHNAME_MAX 2048
 
 /* Function prototypes for loading options from the environment and command line. */
-int nwipe_options_parse( int argc, char** argv );
-void nwipe_options_log( void );
+int kwipe_options_parse( int argc, char** argv );
+void kwipe_options_log( void );
 
 /* Function to display help text */
 void display_help();
@@ -61,17 +61,17 @@ typedef struct
     char logfile[FILENAME_MAX];  // The filename to log the output to.
     char PDFreportpath[PATHNAME_MAX];  // The path to write the PDF report to.
     char exclude[MAX_NUMBER_EXCLUDED_DRIVES][MAX_DRIVE_PATH_LENGTH];  // Drives excluded from the search.
-    nwipe_prng_t* prng;  // The pseudo random number generator implementation. pointer to the function.
+    kwipe_prng_t* prng;  // The pseudo random number generator implementation. pointer to the function.
     int quiet;  // Anonymize serial numbers
     int rounds;  // The number of times that the wipe method should be called.
     int sync;  // A flag to indicate whether and how often writes should be sync'd.
     int verbose;  // Make log more verbose
     int PDF_enable;  // 0=PDF creation disabled, 1=PDF creation enabled
     int PDF_preview_details;  // 0=Disable preview Org/Cust/date/time before drive selection, 1=Enable Preview
-    nwipe_verify_t verify;  // A flag to indicate whether writes should be verified.
-} nwipe_options_t;
+    kwipe_verify_t verify;  // A flag to indicate whether writes should be verified.
+} kwipe_options_t;
 
-extern nwipe_options_t nwipe_options;
+extern kwipe_options_t kwipe_options;
 
 /*
  * The cpuid function executes the CPUID instruction and returns the processor feature information.

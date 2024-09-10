@@ -27,7 +27,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "create_pdf.h"
 #include "PDFGen/pdfgen.h"
@@ -36,7 +36,7 @@
 #include "embedded_images/shred_db.jpg.h"
 #include "embedded_images/tick_erased.jpg.h"
 #include "embedded_images/redcross.h"
-#include "embedded_images/nwipe_exclamation.jpg.h"
+#include "embedded_images/kwipe_exclamation.jpg.h"
 #include "logging.h"
 #include "options.h"
 #include "prng.h"
@@ -58,20 +58,20 @@ float height;
 float page_width;
 int status_icon;
 
-int create_pdf( nwipe_context_t* ptr )
+int create_pdf( kwipe_context_t* ptr )
 {
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
+    extern kwipe_prng_t kwipe_twister;
+    extern kwipe_prng_t kwipe_isaac;
+    extern kwipe_prng_t kwipe_isaac64;
+    extern kwipe_prng_t kwipe_add_lagg_fibonacci_prng;
+    extern kwipe_prng_t kwipe_xoroshiro256_prng;
 
-    /* Used by libconfig functions to retrieve data from nwipe.conf defined in conf.c */
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    /* Used by libconfig functions to retrieve data from kwipe.conf defined in conf.c */
+    extern config_t kwipe_cfg;
+    extern char kwipe_config_file[];
 
     //    char pdf_footer[MAX_PDF_FOOTER_TEXT_LENGTH];
-    nwipe_context_t* c;
+    kwipe_context_t* c;
     c = ptr;
     //    char model_header[50] = ""; /* Model text in the header */
     //    char serial_header[30] = ""; /* Serial number text in the header */
@@ -96,7 +96,7 @@ int create_pdf( nwipe_context_t* ptr )
     //    float page_width;
 
     struct pdf_info info = { .creator = "https://github.com/PartialVolume/shredos.x86_64",
-                             .producer = "https://github.com/martijnvanbrummelen/nwipe",
+                             .producer = "https://github.com/martijnvanbrummelen/kwipe",
                              .title = "PDF Disk Erasure Certificate",
                              .author = "Nwipe",
                              .subject = "Disk Erase Certificate",
@@ -116,7 +116,7 @@ int create_pdf( nwipe_context_t* ptr )
     /* Used to display correct icon on page 2 */
     status_icon = 0;  // zero don't display icon, see header STATUS_ICON_..
 
-    // nwipe_log( NWIPE_LOG_NOTICE, "Create the PDF disk erasure certificate" );
+    // kwipe_log( NWIPE_LOG_NOTICE, "Create the PDF disk erasure certificate" );
     // struct pdf_doc* pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
     pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
 
@@ -160,8 +160,8 @@ int create_pdf( nwipe_context_t* ptr )
     pdf_add_text( pdf, NULL, "Contact Name:", 12, 60, 570, PDF_GRAY );
     pdf_add_text( pdf, NULL, "Contact Phone:", 12, 300, 570, PDF_GRAY );
 
-    /* Obtain organisational details from nwipe.conf - See conf.c */
-    setting = config_lookup( &nwipe_cfg, "Organisation_Details" );
+    /* Obtain organisational details from kwipe.conf - See conf.c */
+    setting = config_lookup( &kwipe_cfg, "Organisation_Details" );
     if( setting != NULL )
     {
         pdf_set_font( pdf, "Helvetica-Bold" );
@@ -185,7 +185,7 @@ int create_pdf( nwipe_context_t* ptr )
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Cannot locate group [Organisation_Details] in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Cannot locate group [Organisation_Details] in %s", kwipe_config_file );
     }
 
     /* -------------------- */
@@ -197,8 +197,8 @@ int create_pdf( nwipe_context_t* ptr )
     pdf_add_text( pdf, NULL, "Contact Name:", 12, 60, 470, PDF_GRAY );
     pdf_add_text( pdf, NULL, "Contact Phone:", 12, 300, 470, PDF_GRAY );
 
-    /* Obtain current customer details from nwipe.conf - See conf.c */
-    setting = config_lookup( &nwipe_cfg, "Selected_Customer" );
+    /* Obtain current customer details from kwipe.conf - See conf.c */
+    setting = config_lookup( &kwipe_cfg, "Selected_Customer" );
     if( setting != NULL )
     {
         pdf_set_font( pdf, "Helvetica-Bold" );
@@ -222,7 +222,7 @@ int create_pdf( nwipe_context_t* ptr )
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Cannot locate group [Selected_Customer] in %s", nwipe_config_file );
+        kwipe_log( NWIPE_LOG_ERROR, "Cannot locate group [Selected_Customer] in %s", kwipe_config_file );
     }
 
     /******************
@@ -404,7 +404,7 @@ int create_pdf( nwipe_context_t* ptr )
             pdf_add_text( pdf, NULL, "See Warning !", 12, 450, 290, PDF_RED );
 
             /* Display the yellow exclamation icon in the header */
-            pdf_add_image_data( pdf, NULL, 450, 665, 100, 100, bin2c_nwipe_exclamation_jpg, 65791 );
+            pdf_add_image_data( pdf, NULL, 450, 665, 100, 100, bin2c_kwipe_exclamation_jpg, 65791 );
             status_icon = STATUS_ICON_YELLOW_EXCLAMATION;  // used later on page 2
         }
         else
@@ -436,45 +436,45 @@ int create_pdf( nwipe_context_t* ptr )
      */
     pdf_add_text( pdf, NULL, "Method:", 12, 60, 270, PDF_GRAY );
     pdf_set_font( pdf, "Helvetica-Bold" );
-    pdf_add_text( pdf, NULL, nwipe_method_label( nwipe_options.method ), text_size_data, 110, 270, PDF_BLACK );
+    pdf_add_text( pdf, NULL, kwipe_method_label( kwipe_options.method ), text_size_data, 110, 270, PDF_BLACK );
     pdf_set_font( pdf, "Helvetica" );
 
     /***********
      * prng type
      */
     pdf_add_text( pdf, NULL, "PRNG algorithm:", 12, 300, 270, PDF_GRAY );
-    if( nwipe_options.method == &nwipe_verify_one || nwipe_options.method == &nwipe_verify_zero
-        || nwipe_options.method == &nwipe_zero || nwipe_options.method == &nwipe_one )
+    if( kwipe_options.method == &kwipe_verify_one || kwipe_options.method == &kwipe_verify_zero
+        || kwipe_options.method == &kwipe_zero || kwipe_options.method == &kwipe_one )
     {
         snprintf( prng_type, sizeof( prng_type ), "Not applicable to method" );
     }
     else
     {
-        if( nwipe_options.prng == &nwipe_twister )
+        if( kwipe_options.prng == &kwipe_twister )
         {
             snprintf( prng_type, sizeof( prng_type ), "Twister" );
         }
         else
         {
-            if( nwipe_options.prng == &nwipe_isaac )
+            if( kwipe_options.prng == &kwipe_isaac )
             {
                 snprintf( prng_type, sizeof( prng_type ), "Isaac" );
             }
             else
             {
-                if( nwipe_options.prng == &nwipe_isaac64 )
+                if( kwipe_options.prng == &kwipe_isaac64 )
                 {
                     snprintf( prng_type, sizeof( prng_type ), "Isaac64" );
                 }
                 else
                 {
-                    if( nwipe_options.prng == &nwipe_add_lagg_fibonacci_prng )
+                    if( kwipe_options.prng == &kwipe_add_lagg_fibonacci_prng )
                     {
                         snprintf( prng_type, sizeof( prng_type ), "Fibonacci" );
                     }
                     else
                     {
-                        if( nwipe_options.prng == &nwipe_xoroshiro256_prng )
+                        if( kwipe_options.prng == &kwipe_xoroshiro256_prng )
                         {
                             snprintf( prng_type, sizeof( prng_type ), "XORshiro256" );
                         }
@@ -494,7 +494,7 @@ int create_pdf( nwipe_context_t* ptr )
     /******************************************************
      * Final blanking pass if selected, none, zeros or ones
      */
-    if( nwipe_options.noblank )
+    if( kwipe_options.noblank )
     {
         strcpy( blank, "None" );
     }
@@ -510,7 +510,7 @@ int create_pdf( nwipe_context_t* ptr )
     /* ***********************************************************************
      * Create suitable text based on the numeric value of type of verification
      */
-    switch( nwipe_options.verify )
+    switch( kwipe_options.verify )
     {
         case NWIPE_VERIFY_NONE:
             strcpy( verify, "Verify None" );
@@ -536,7 +536,7 @@ int create_pdf( nwipe_context_t* ptr )
     pdf_set_font( pdf, "Helvetica-Bold" );
 
     /* Bytes erased is not applicable when user only requested a verify */
-    if( nwipe_options.method == &nwipe_verify_one || nwipe_options.method == &nwipe_verify_zero )
+    if( kwipe_options.method == &kwipe_verify_one || kwipe_options.method == &kwipe_verify_zero )
     {
         snprintf( bytes_erased, sizeof( bytes_erased ), "Not applicable to method" );
         pdf_add_text( pdf, NULL, bytes_erased, text_size_data, 145, 230, PDF_BLACK );
@@ -588,12 +588,12 @@ int create_pdf( nwipe_context_t* ptr )
     pdf_set_font( pdf, "Helvetica-Bold" );
     if( !strcmp( c->wipe_status_txt, "ERASED" ) )
     {
-        snprintf( rounds, sizeof( rounds ), "%i/%i", c->round_working, nwipe_options.rounds );
+        snprintf( rounds, sizeof( rounds ), "%i/%i", c->round_working, kwipe_options.rounds );
         pdf_add_text( pdf, NULL, rounds, text_size_data, 470, 230, PDF_DARK_GREEN );
     }
     else
     {
-        snprintf( rounds, sizeof( rounds ), "%i/%i", c->round_working - 1, nwipe_options.rounds );
+        snprintf( rounds, sizeof( rounds ), "%i/%i", c->round_working - 1, kwipe_options.rounds );
         pdf_add_text( pdf, NULL, rounds, text_size_data, 470, 230, PDF_RED );
     }
     pdf_set_font( pdf, "Helvetica" );
@@ -784,8 +784,8 @@ int create_pdf( nwipe_context_t* ptr )
     pdf_add_line( pdf, NULL, 360, 65, 550, 66, 1, PDF_GRAY );
 
     pdf_set_font( pdf, "Helvetica-Bold" );
-    /* Obtain organisational details from nwipe.conf - See conf.c */
-    setting = config_lookup( &nwipe_cfg, "Organisation_Details" );
+    /* Obtain organisational details from kwipe.conf - See conf.c */
+    setting = config_lookup( &kwipe_cfg, "Organisation_Details" );
     if( config_setting_lookup_string( setting, "Op_Tech_Name", &op_tech_name ) )
     {
         pdf_add_text( pdf, NULL, op_tech_name, text_size_data, 120, 80, PDF_BLACK );
@@ -795,7 +795,7 @@ int create_pdf( nwipe_context_t* ptr )
     /***************************************
      * Populate page 2 and 3 with smart data
      */
-    nwipe_get_smart_data( c );
+    kwipe_get_smart_data( c );
 
     /*****************************
      * Create the reports filename
@@ -808,8 +808,8 @@ int create_pdf( nwipe_context_t* ptr )
     replace_non_alphanumeric( c->device_serial_no, '_' );
     snprintf( c->PDF_filename,
               sizeof( c->PDF_filename ),
-              "%s/nwipe_report_%s_Model_%s_Serial_%s.pdf",
-              nwipe_options.PDFreportpath,
+              "%s/kwipe_report_%s_Model_%s_Serial_%s.pdf",
+              kwipe_options.PDFreportpath,
               end_time_text,
               c->device_model,
               c->device_serial_no );
@@ -819,7 +819,7 @@ int create_pdf( nwipe_context_t* ptr )
     return 0;
 }
 
-int nwipe_get_smart_data( nwipe_context_t* c )
+int kwipe_get_smart_data( kwipe_context_t* c )
 {
     FILE* fp;
 
@@ -850,7 +850,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
         {
             if( system( "which /usr/bin/smartctl > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install smartmontools !" );
+                kwipe_log( NWIPE_LOG_WARNING, "Command not found. Install smartmontools !" );
             }
             else
             {
@@ -873,7 +873,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
 
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_WARNING, "nwipe_get_smart_data(): Failed to create stream to %s", smartctl_command );
+            kwipe_log( NWIPE_LOG_WARNING, "kwipe_get_smart_data(): Failed to create stream to %s", smartctl_command );
 
             set_return_value = 3;
         }
@@ -911,7 +911,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
                     idx++;
                 }
 
-                if( nwipe_options.quiet == 1 )
+                if( kwipe_options.quiet == 1 )
                 {
                     for( idx2 = 0; idx2 < 3; idx2++ )
                     {
@@ -960,7 +960,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
     return set_return_value;
 }
 
-void create_header_and_footer( nwipe_context_t* c, char* page_title )
+void create_header_and_footer( kwipe_context_t* c, char* page_title )
 {
     /**************************************************************************
      * Create header and footer on most recently added page, with the exception
@@ -997,7 +997,7 @@ void create_header_and_footer( nwipe_context_t* c, char* page_title )
         case STATUS_ICON_YELLOW_EXCLAMATION:
 
             /* Display the yellow exclamation icon in the header */
-            pdf_add_image_data( pdf, NULL, 450, 665, 100, 100, bin2c_nwipe_exclamation_jpg, 65791 );
+            pdf_add_image_data( pdf, NULL, 450, 665, 100, 100, bin2c_kwipe_exclamation_jpg, 65791 );
             break;
 
         case STATUS_ICON_RED_CROSS:

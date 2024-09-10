@@ -1,5 +1,5 @@
 /*
- *  nwipe.c:  Darik's Wipe.
+ *  kwipe.c:  Darik's Wipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -37,7 +37,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -67,29 +67,29 @@ int global_wipe_status;
 /* helper function for sorting */
 int devnamecmp( const void* a, const void* b )
 {
-    // nwipe_log( NWIPE_LOG_DEBUG, "a: %s, b: %s", ( *( nwipe_context_t** ) a)->device_name, ( *( nwipe_context_t** )
+    // kwipe_log( NWIPE_LOG_DEBUG, "a: %s, b: %s", ( *( kwipe_context_t** ) a)->device_name, ( *( kwipe_context_t** )
     // b)->device_name );
 
-    int ldiff = strlen( ( *(nwipe_context_t**) a )->device_name ) - strlen( ( *(nwipe_context_t**) b )->device_name );
+    int ldiff = strlen( ( *(kwipe_context_t**) a )->device_name ) - strlen( ( *(kwipe_context_t**) b )->device_name );
     if( ldiff != 0 )
     {
         return ldiff;
     }
-    int ret = strcmp( ( *(nwipe_context_t**) a )->device_name, ( *(nwipe_context_t**) b )->device_name );
+    int ret = strcmp( ( *(kwipe_context_t**) a )->device_name, ( *(kwipe_context_t**) b )->device_name );
     return ( ret );
 }
 
 int main( int argc, char** argv )
 {
-    int nwipe_optind;  // The result of nwipe_options().
-    int nwipe_enumerated;  // The number of contexts that have been enumerated.
-    int nwipe_error = 0;  // An error counter.
-    int nwipe_selected = 0;  // The number of contexts that have been selected.
+    int kwipe_optind;  // The result of kwipe_options().
+    int kwipe_enumerated;  // The number of contexts that have been enumerated.
+    int kwipe_error = 0;  // An error counter.
+    int kwipe_selected = 0;  // The number of contexts that have been selected.
     int any_threads_still_running;  // used in wipe thread cancellation wait loop
     int thread_timeout_counter;  // timeout thread cancellation after THREAD_CANCELLATION_TIMEOUT seconds
-    pthread_t nwipe_gui_thread = 0;  // The thread ID of the GUI thread.
-    pthread_t nwipe_temperature_thread = 0;  // The thread ID of the temperature update thread
-    pthread_t nwipe_sigint_thread;  // The thread ID of the sigint handler.
+    pthread_t kwipe_gui_thread = 0;  // The thread ID of the GUI thread.
+    pthread_t kwipe_temperature_thread = 0;  // The thread ID of the temperature update thread
+    pthread_t kwipe_sigint_thread;  // The thread ID of the sigint handler.
 
     char modprobe_command[] = "modprobe %s";
     char modprobe_command2[] = "/sbin/modprobe %s";
@@ -98,7 +98,7 @@ int main( int argc, char** argv )
     char final_cmd_modprobe[sizeof( modprobe_command ) + sizeof( module_shortform )];
 
     /* The entropy source file handle. */
-    int nwipe_entropy;
+    int kwipe_entropy;
 
     /* The generic index variables. */
     int i;
@@ -107,13 +107,13 @@ int main( int argc, char** argv )
     /* The generic result buffer. */
     int r;
 
-    /* Initialise the termintaion signal, 1=terminate nwipe */
+    /* Initialise the termintaion signal, 1=terminate kwipe */
     terminate_signal = 0;
 
     /* Initialise the user abort signal, 1=User aborted with CNTRL-C,SIGTERM, SIGQUIT, SIGINT etc.. */
     user_abort = 0;
 
-    /* nwipes return status value, set prior to exit at the end of nwipe, as no other exit points allowed */
+    /* kwipes return status value, set prior to exit at the end of kwipe, as no other exit points allowed */
     int return_status = 0;
 
     /* Initialise, flag indicating whether a wipe has actually started or not 0=no, 1=yes */
@@ -129,40 +129,40 @@ int main( int argc, char** argv )
 
     /* The array of pointers to enumerated contexts. */
     /* Initialised and populated in device scan.     */
-    nwipe_context_t** c1 = 0;
+    kwipe_context_t** c1 = 0;
 
     if( geteuid() != 0 )
     {
-        printf( "nwipe must run with root permissions, which is not the case.\nAborting\n" );
+        printf( "kwipe must run with root permissions, which is not the case.\nAborting\n" );
         exit( 99 );
     }
 
     int wipe_threads_started = 0;
 
     /** NOTE ** NOTE ** NOTE ** NOTE ** NOTE ** NOTE ** NOTE ** NOTE ** NOTE **
-     * Important Note: if you want nwipe_log messages to go into the logfile
-     * any 'nwipe_log()' commands must appear after the options are parsed here,
+     * Important Note: if you want kwipe_log messages to go into the logfile
+     * any 'kwipe_log()' commands must appear after the options are parsed here,
      * else they will appear in the console but not in the logfile, that is,
-     * assuming you specified a log file on the command line as an nwipe option.
+     * assuming you specified a log file on the command line as an kwipe option.
      */
 
     /*****************************
      * Parse command line options.
      */
 
-    /* Initialise the libconfig code that handles nwipe.conf */
-    nwipe_conf_init();
+    /* Initialise the libconfig code that handles kwipe.conf */
+    kwipe_conf_init();
 
-    nwipe_optind = nwipe_options_parse( argc, argv );
+    kwipe_optind = kwipe_options_parse( argc, argv );
 
-    /* Log nwipes version */
-    nwipe_log( NWIPE_LOG_INFO, "%s", banner );
+    /* Log kwipes version */
+    kwipe_log( NWIPE_LOG_INFO, "%s", banner );
 
     /* Log OS info */
-    nwipe_log_OSinfo();
+    kwipe_log_OSinfo();
 
     /* Check that hdparm exists, we use hdparm for some HPA/DCO detection etc, if not
-     * exit nwipe. These checks are required if the PATH environment is not setup !
+     * exit kwipe. These checks are required if the PATH environment is not setup !
      * Example: Debian sid 'su' as opposed to 'su -'
      */
     if( system( "which hdparm > /dev/null 2>&1" ) )
@@ -171,10 +171,10 @@ int main( int argc, char** argv )
         {
             if( system( "which /usr/bin/hdparm > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "hdparm command not found." );
-                nwipe_log( NWIPE_LOG_WARNING,
-                           "Required by nwipe for HPA/DCO detection & correction and ATA secure erase." );
-                nwipe_log( NWIPE_LOG_WARNING, "** Please install hdparm **\n" );
+                kwipe_log( NWIPE_LOG_WARNING, "hdparm command not found." );
+                kwipe_log( NWIPE_LOG_WARNING,
+                           "Required by kwipe for HPA/DCO detection & correction and ATA secure erase." );
+                kwipe_log( NWIPE_LOG_WARNING, "** Please install hdparm **\n" );
                 cleanup();
                 exit( 1 );
             }
@@ -182,20 +182,20 @@ int main( int argc, char** argv )
     }
 
     /* Check if the given path for PDF reports is a writeable directory */
-    if( strcmp( nwipe_options.PDFreportpath, "noPDF" ) != 0 )
+    if( strcmp( kwipe_options.PDFreportpath, "noPDF" ) != 0 )
     {
-        if( access( nwipe_options.PDFreportpath, W_OK ) != 0 )
+        if( access( kwipe_options.PDFreportpath, W_OK ) != 0 )
         {
-            nwipe_log( NWIPE_LOG_ERROR, "PDFreportpath %s is not a writeable directory.", nwipe_options.PDFreportpath );
+            kwipe_log( NWIPE_LOG_ERROR, "PDFreportpath %s is not a writeable directory.", kwipe_options.PDFreportpath );
             cleanup();
             exit( 2 );
         }
     }
 
-    if( nwipe_optind == argc )
+    if( kwipe_optind == argc )
     {
         /* File names were not given by the user.  Scan for devices. */
-        nwipe_enumerated = nwipe_device_scan( &c1 );
+        kwipe_enumerated = kwipe_device_scan( &c1 );
 
         if( terminate_signal == 1 )
         {
@@ -203,29 +203,29 @@ int main( int argc, char** argv )
             exit( 1 );
         }
 
-        if( nwipe_enumerated == 0 )
+        if( kwipe_enumerated == 0 )
         {
-            nwipe_log( NWIPE_LOG_INFO,
-                       "Storage devices not found. Nwipe should be run as root or sudo/su, i.e sudo nwipe etc" );
+            kwipe_log( NWIPE_LOG_INFO,
+                       "Storage devices not found. Nwipe should be run as root or sudo/su, i.e sudo kwipe etc" );
             cleanup();
             return -1;
         }
         else
         {
-            nwipe_log( NWIPE_LOG_INFO, "Automatically enumerated %i devices.", nwipe_enumerated );
+            kwipe_log( NWIPE_LOG_INFO, "Automatically enumerated %i devices.", kwipe_enumerated );
         }
     }
     else
     {
-        argv += nwipe_optind;
-        argc -= nwipe_optind;
+        argv += kwipe_optind;
+        argc -= kwipe_optind;
 
-        nwipe_enumerated = nwipe_device_get( &c1, argv, argc );
-        if( nwipe_enumerated == 0 )
+        kwipe_enumerated = kwipe_device_get( &c1, argv, argc );
+        if( kwipe_enumerated == 0 )
         {
-            nwipe_log( NWIPE_LOG_ERROR, "Devices not found. Check you're not excluding drives unnecessarily," );
-            nwipe_log( NWIPE_LOG_ERROR, "and you are running nwipe as sudo or as root." );
-            printf( "Devices not found, check you're not excluding drives unnecessarily \n and you are running nwipe "
+            kwipe_log( NWIPE_LOG_ERROR, "Devices not found. Check you're not excluding drives unnecessarily," );
+            kwipe_log( NWIPE_LOG_ERROR, "and you are running kwipe as sudo or as root." );
+            printf( "Devices not found, check you're not excluding drives unnecessarily \n and you are running kwipe "
                     "as sudo or as root." );
             cleanup();
             exit( 1 );
@@ -233,7 +233,7 @@ int main( int argc, char** argv )
     }
 
     /* sort list of devices here */
-    qsort( (void*) c1, (size_t) nwipe_enumerated, sizeof( nwipe_context_t* ), devnamecmp );
+    qsort( (void*) c1, (size_t) kwipe_enumerated, sizeof( kwipe_context_t* ), devnamecmp );
 
     if( terminate_signal == 1 )
     {
@@ -242,31 +242,31 @@ int main( int argc, char** argv )
     }
 
     /* Log the System information */
-    nwipe_log_sysinfo();
+    kwipe_log_sysinfo();
 
     /* The array of pointers to contexts that will actually be wiped. */
-    nwipe_context_t** c2 = (nwipe_context_t**) malloc( nwipe_enumerated * sizeof( nwipe_context_t* ) );
+    kwipe_context_t** c2 = (kwipe_context_t**) malloc( kwipe_enumerated * sizeof( kwipe_context_t* ) );
     if( c2 == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "memory allocation for c2 failed" );
+        kwipe_log( NWIPE_LOG_ERROR, "memory allocation for c2 failed" );
         cleanup();
         exit( 1 );
     }
 
     /* Open the entropy source. */
-    nwipe_entropy = open( NWIPE_KNOB_ENTROPY, O_RDONLY );
+    kwipe_entropy = open( NWIPE_KNOB_ENTROPY, O_RDONLY );
 
     /* Check the result. */
-    if( nwipe_entropy < 0 )
+    if( kwipe_entropy < 0 )
     {
-        nwipe_perror( errno, __FUNCTION__, "open" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to open entropy source %s.", NWIPE_KNOB_ENTROPY );
+        kwipe_perror( errno, __FUNCTION__, "open" );
+        kwipe_log( NWIPE_LOG_FATAL, "Unable to open entropy source %s.", NWIPE_KNOB_ENTROPY );
         cleanup();
         free( c2 );
         return errno;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Opened entropy source '%s'.", NWIPE_KNOB_ENTROPY );
+    kwipe_log( NWIPE_LOG_NOTICE, "Opened entropy source '%s'.", NWIPE_KNOB_ENTROPY );
 
     /* Block relevant signals in main thread. Any other threads that are     */
     /*        created after this will also block those signals.              */
@@ -285,23 +285,23 @@ int main( int argc, char** argv )
     /*      then that thread will get that signal.                           */
 
     /* Pass a pointer to a struct containing all data to the signal handler. */
-    nwipe_misc_thread_data_t nwipe_misc_thread_data;
-    nwipe_thread_data_ptr_t nwipe_thread_data_ptr;
+    kwipe_misc_thread_data_t kwipe_misc_thread_data;
+    kwipe_thread_data_ptr_t kwipe_thread_data_ptr;
 
-    nwipe_thread_data_ptr.c = c2;
-    nwipe_misc_thread_data.nwipe_enumerated = nwipe_enumerated;
-    nwipe_misc_thread_data.nwipe_selected = 0;
-    if( !nwipe_options.nogui )
-        nwipe_misc_thread_data.gui_thread = &nwipe_gui_thread;
-    nwipe_thread_data_ptr.nwipe_misc_thread_data = &nwipe_misc_thread_data;
+    kwipe_thread_data_ptr.c = c2;
+    kwipe_misc_thread_data.kwipe_enumerated = kwipe_enumerated;
+    kwipe_misc_thread_data.kwipe_selected = 0;
+    if( !kwipe_options.nogui )
+        kwipe_misc_thread_data.gui_thread = &kwipe_gui_thread;
+    kwipe_thread_data_ptr.kwipe_misc_thread_data = &kwipe_misc_thread_data;
 
-    if( !nwipe_options.nosignals )
+    if( !kwipe_options.nosignals )
     {
         pthread_attr_t pthread_attr;
         pthread_attr_init( &pthread_attr );
         pthread_attr_setdetachstate( &pthread_attr, PTHREAD_CREATE_DETACHED );
 
-        pthread_create( &nwipe_sigint_thread, &pthread_attr, signal_hand, &nwipe_thread_data_ptr );
+        pthread_create( &kwipe_sigint_thread, &pthread_attr, signal_hand, &kwipe_thread_data_ptr );
     }
 
     /* Makesure the drivetemp module is loaded, else drives hwmon entries won't appear in /sys/class/hwmon */
@@ -319,9 +319,9 @@ int main( int argc, char** argv )
         {
             if( system( "which /usr/sbin/modprobe > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "modprobe command not found. Install kmod package (modprobe)) !" );
-                nwipe_log( NWIPE_LOG_WARNING, "Most temperature monitoring may be unavailable as module drivetemp" );
-                nwipe_log( NWIPE_LOG_WARNING, "could not be loaded. drivetemp is not available on kernels < v5.5" );
+                kwipe_log( NWIPE_LOG_WARNING, "modprobe command not found. Install kmod package (modprobe)) !" );
+                kwipe_log( NWIPE_LOG_WARNING, "Most temperature monitoring may be unavailable as module drivetemp" );
+                kwipe_log( NWIPE_LOG_WARNING, "could not be loaded. drivetemp is not available on kernels < v5.5" );
             }
             else
             {
@@ -341,25 +341,25 @@ int main( int argc, char** argv )
     /* load the drivetemp module */
     if( system( final_cmd_modprobe ) != 0 )
     {
-        nwipe_log( NWIPE_LOG_WARNING, "hwmon: Unable to load module drivetemp, temperatures may be unavailable." );
-        nwipe_log( NWIPE_LOG_WARNING, "hwmon: It's possible the drivetemp software isn't modular but built-in" );
-        nwipe_log( NWIPE_LOG_WARNING, "hwmon: to the kernel, as is the case with ShredOS.x86_64 in which case" );
-        nwipe_log( NWIPE_LOG_WARNING, "hwmon: the temperatures will actually be available despite this issue." );
+        kwipe_log( NWIPE_LOG_WARNING, "hwmon: Unable to load module drivetemp, temperatures may be unavailable." );
+        kwipe_log( NWIPE_LOG_WARNING, "hwmon: It's possible the drivetemp software isn't modular but built-in" );
+        kwipe_log( NWIPE_LOG_WARNING, "hwmon: to the kernel, as is the case with ShredOS.x86_64 in which case" );
+        kwipe_log( NWIPE_LOG_WARNING, "hwmon: the temperatures will actually be available despite this issue." );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "hwmon: Module drivetemp loaded, drive temperatures available" );
+        kwipe_log( NWIPE_LOG_NOTICE, "hwmon: Module drivetemp loaded, drive temperatures available" );
     }
 
     /* A context struct for each device has already been created. */
-    /* Now set specific nwipe options */
-    for( i = 0; i < nwipe_enumerated; i++ )
+    /* Now set specific kwipe options */
+    for( i = 0; i < kwipe_enumerated; i++ )
     {
 
         /* Set the entropy source. */
-        c1[i]->entropy_fd = nwipe_entropy;
+        c1[i]->entropy_fd = kwipe_entropy;
 
-        if( nwipe_options.autonuke )
+        if( kwipe_options.autonuke )
         {
             /* When the autonuke option is set, select all disks. */
             // TODO - partitions
@@ -374,52 +374,52 @@ int main( int argc, char** argv )
         }
 
         /* Initialise temperature variables for device */
-        nwipe_init_temperature( c1[i] );
-        if( nwipe_options.verbose )
+        kwipe_init_temperature( c1[i] );
+        if( kwipe_options.verbose )
         {
-            nwipe_log( NWIPE_LOG_NOTICE, "hwmon: Device %s hwmon path = %s", c1[i]->device_name, c1[i]->temp1_path );
+            kwipe_log( NWIPE_LOG_NOTICE, "hwmon: Device %s hwmon path = %s", c1[i]->device_name, c1[i]->temp1_path );
         }
 
-        // nwipe_update_temperature( c1[i] );
+        // kwipe_update_temperature( c1[i] );
 
         /* Log the temperature crtical, highest, lowest and lowest critical temperature
-         * limits to nwipes log file using the INFO catagory
+         * limits to kwipes log file using the INFO catagory
          */
 
-        nwipe_log_drives_temperature_limits( c1[i] );
+        kwipe_log_drives_temperature_limits( c1[i] );
     }
 
     /* Check for initialization errors. */
-    if( nwipe_error )
+    if( kwipe_error )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Initialization error %i\n", nwipe_error );
+        kwipe_log( NWIPE_LOG_ERROR, "Initialization error %i\n", kwipe_error );
         cleanup();
         return -1;
     }
 
     /* Set up the data structures to pass the temperature thread the data it needs */
-    nwipe_thread_data_ptr_t nwipe_temperature_thread_data;
-    nwipe_temperature_thread_data.c = c1;
-    nwipe_temperature_thread_data.nwipe_misc_thread_data = &nwipe_misc_thread_data;
+    kwipe_thread_data_ptr_t kwipe_temperature_thread_data;
+    kwipe_temperature_thread_data.c = c1;
+    kwipe_temperature_thread_data.kwipe_misc_thread_data = &kwipe_misc_thread_data;
 
     /* Fork the temperature thread */
     errno = pthread_create(
-        &nwipe_temperature_thread, NULL, nwipe_update_temperature_thread, &nwipe_temperature_thread_data );
+        &kwipe_temperature_thread, NULL, kwipe_update_temperature_thread, &kwipe_temperature_thread_data );
 
     /* Start the ncurses interface. */
-    if( !nwipe_options.nogui )
-        nwipe_gui_init();
+    if( !kwipe_options.nogui )
+        kwipe_gui_init();
 
-    if( nwipe_options.autonuke == 1 )
+    if( kwipe_options.autonuke == 1 )
     {
         /* Print the options window. */
-        if( !nwipe_options.nogui )
-            nwipe_gui_options();
+        if( !kwipe_options.nogui )
+            kwipe_gui_options();
     }
     else
     {
         /* Get device selections from the user. */
-        if( nwipe_options.nogui )
+        if( kwipe_options.nogui )
         {
             printf( "--nogui option must be used with autonuke option\n" );
             cleanup();
@@ -427,21 +427,21 @@ int main( int argc, char** argv )
         }
         else
         {
-            if( nwipe_options.PDF_preview_details == 1 )
+            if( kwipe_options.PDF_preview_details == 1 )
             {
-                nwipe_gui_preview_org_customer( SHOWING_PRIOR_TO_DRIVE_SELECTION );
+                kwipe_gui_preview_org_customer( SHOWING_PRIOR_TO_DRIVE_SELECTION );
             }
 
-            nwipe_gui_select( nwipe_enumerated, c1 );
+            kwipe_gui_select( kwipe_enumerated, c1 );
         }
     }
 
     /* Initialise some of the variables in the drive contexts
      */
-    for( i = 0; i < nwipe_enumerated; i++ )
+    for( i = 0; i < kwipe_enumerated; i++ )
     {
-        /* Set the PRNG implementation, which must always come after the function nwipe_gui_select ! */
-        c1[i]->prng = nwipe_options.prng;
+        /* Set the PRNG implementation, which must always come after the function kwipe_gui_select ! */
+        c1[i]->prng = kwipe_options.prng;
         c1[i]->prng_seed.length = 0;
         c1[i]->prng_seed.s = 0;
         c1[i]->prng_state = 0;
@@ -449,7 +449,7 @@ int main( int argc, char** argv )
         /* Count the number of selected contexts. */
         if( c1[i]->select == NWIPE_SELECT_TRUE )
         {
-            nwipe_selected += 1;
+            kwipe_selected += 1;
         }
 
         /* Initialise the wipe result value */
@@ -460,10 +460,10 @@ int main( int argc, char** argv )
     }
 
     /* Pass the number selected to the struct for other threads */
-    nwipe_misc_thread_data.nwipe_selected = nwipe_selected;
+    kwipe_misc_thread_data.kwipe_selected = kwipe_selected;
 
     /* Populate the array of selected contexts. */
-    for( i = 0, j = 0; i < nwipe_enumerated; i++ )
+    for( i = 0, j = 0; i < kwipe_enumerated; i++ )
     {
         if( c1[i]->select == NWIPE_SELECT_TRUE )
         {
@@ -476,12 +476,12 @@ int main( int argc, char** argv )
     if( user_abort == 0 )
     {
         /* Log the wipe options that have been selected immediately prior to the start of the wipe */
-        nwipe_options_log();
+        kwipe_options_log();
 
         /* The wipe has been initiated */
         global_wipe_status = 1;
 
-        for( i = 0; i < nwipe_selected; i++ )
+        for( i = 0; i < kwipe_selected; i++ )
         {
             /* A result buffer for the BLKGETSIZE64 ioctl. */
             u64 size64;
@@ -502,8 +502,8 @@ int main( int argc, char** argv )
             /* Check the open() result. */
             if( c2[i]->device_fd < 0 )
             {
-                nwipe_perror( errno, __FUNCTION__, "open" );
-                nwipe_log( NWIPE_LOG_WARNING, "Unable to open device '%s'.", c2[i]->device_name );
+                kwipe_perror( errno, __FUNCTION__, "open" );
+                kwipe_log( NWIPE_LOG_WARNING, "Unable to open device '%s'.", c2[i]->device_name );
                 c2[i]->select = NWIPE_SELECT_DISABLED;
                 continue;
             }
@@ -511,17 +511,17 @@ int main( int argc, char** argv )
             /* Stat the file. */
             if( fstat( c2[i]->device_fd, &c2[i]->device_stat ) != 0 )
             {
-                nwipe_perror( errno, __FUNCTION__, "fstat" );
-                nwipe_log( NWIPE_LOG_ERROR, "Unable to stat file '%s'.", c2[i]->device_name );
-                nwipe_error++;
+                kwipe_perror( errno, __FUNCTION__, "fstat" );
+                kwipe_log( NWIPE_LOG_ERROR, "Unable to stat file '%s'.", c2[i]->device_name );
+                kwipe_error++;
                 continue;
             }
 
             /* Check that the file is a block device. */
             if( !S_ISBLK( c2[i]->device_stat.st_mode ) )
             {
-                nwipe_log( NWIPE_LOG_ERROR, "'%s' is not a block device.", c2[i]->device_name );
-                nwipe_error++;
+                kwipe_log( NWIPE_LOG_ERROR, "'%s' is not a block device.", c2[i]->device_name );
+                kwipe_error++;
                 continue;
             }
 
@@ -529,9 +529,9 @@ int main( int argc, char** argv )
             /*
             if( flock( c2[i]->device_fd, LOCK_EX | LOCK_NB ) != 0 )
             {
-                    nwipe_perror( errno, __FUNCTION__, "flock" );
-                    nwipe_log( NWIPE_LOG_ERROR, "Unable to lock the '%s' file.", c2[i]->device_name );
-                    nwipe_error++;
+                    kwipe_perror( errno, __FUNCTION__, "flock" );
+                    kwipe_log( NWIPE_LOG_ERROR, "Unable to lock the '%s' file.", c2[i]->device_name );
+                    kwipe_error++;
                     continue;
             }
             */
@@ -539,7 +539,7 @@ int main( int argc, char** argv )
             /* Print serial number of device if it exists. */
             if( strlen( (const char*) c2[i]->device_serial_no ) )
             {
-                nwipe_log( NWIPE_LOG_NOTICE, "%s has serial number %s", c2[i]->device_name, c2[i]->device_serial_no );
+                kwipe_log( NWIPE_LOG_NOTICE, "%s has serial number %s", c2[i]->device_name, c2[i]->device_serial_no );
             }
 
             /* Do sector size and block size checking. I don't think this does anything useful as logical/Physical
@@ -549,13 +549,13 @@ int main( int argc, char** argv )
 
                 if( ioctl( c2[i]->device_fd, BLKBSZGET, &c2[i]->device_block_size ) != 0 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Device '%s' failed BLKBSZGET ioctl.", c2[i]->device_name );
+                    kwipe_log( NWIPE_LOG_WARNING, "Device '%s' failed BLKBSZGET ioctl.", c2[i]->device_name );
                     c2[i]->device_block_size = 0;
                 }
             }
             else
             {
-                nwipe_log( NWIPE_LOG_WARNING, "Device '%s' failed BLKSSZGET ioctl.", c2[i]->device_name );
+                kwipe_log( NWIPE_LOG_WARNING, "Device '%s' failed BLKSSZGET ioctl.", c2[i]->device_name );
                 c2[i]->device_sector_size = 0;
                 c2[i]->device_block_size = 0;
             }
@@ -572,8 +572,8 @@ int main( int argc, char** argv )
             {
                 /* The ioctl failed. */
                 fprintf( stderr, "Error: BLKGETSIZE64 failed  on '%s'.\n", c2[i]->device_name );
-                nwipe_log( NWIPE_LOG_ERROR, "BLKGETSIZE64 failed  on '%s'.\n", c2[i]->device_name );
-                nwipe_error++;
+                kwipe_log( NWIPE_LOG_ERROR, "BLKGETSIZE64 failed  on '%s'.\n", c2[i]->device_name );
+                kwipe_error++;
             }
             c2[i]->device_size = size64;
 
@@ -582,16 +582,16 @@ int main( int argc, char** argv )
             {
                 /* This could be caused by the linux last-odd-block problem. */
                 fprintf( stderr, "Error: Last-odd-block detected on '%s'.\n", c2[i]->device_name );
-                nwipe_log( NWIPE_LOG_ERROR, "Last-odd-block detected on '%s'.", c2[i]->device_name );
-                nwipe_error++;
+                kwipe_log( NWIPE_LOG_ERROR, "Last-odd-block detected on '%s'.", c2[i]->device_name );
+                kwipe_error++;
             }
 
             if( c2[i]->device_size == (long long) -1 )
             {
                 /* We cannot determine the size of this device. */
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log( NWIPE_LOG_ERROR, "Unable to determine the size of '%s'.", c2[i]->device_name );
-                nwipe_error++;
+                kwipe_perror( errno, __FUNCTION__, "lseek" );
+                kwipe_log( NWIPE_LOG_ERROR, "Unable to determine the size of '%s'.", c2[i]->device_name );
+                kwipe_error++;
             }
             else
             {
@@ -600,26 +600,26 @@ int main( int argc, char** argv )
 
                 if( r == (off64_t) -1 )
                 {
-                    nwipe_perror( errno, __FUNCTION__, "lseek" );
-                    nwipe_log( NWIPE_LOG_ERROR, "Unable to reset the '%s' file offset.", c2[i]->device_name );
-                    nwipe_error++;
+                    kwipe_perror( errno, __FUNCTION__, "lseek" );
+                    kwipe_log( NWIPE_LOG_ERROR, "Unable to reset the '%s' file offset.", c2[i]->device_name );
+                    kwipe_error++;
                 }
             }
 
             if( c2[i]->device_size == 0 )
             {
-                nwipe_log( NWIPE_LOG_ERROR,
+                kwipe_log( NWIPE_LOG_ERROR,
                            "%s, sect/blk/dev %i/%i/%llu",
                            c2[i]->device_name,
                            c2[i]->device_sector_size,
                            c2[i]->device_block_size,
                            c2[i]->device_size );
-                nwipe_error++;
+                kwipe_error++;
                 continue;
             }
             else
             {
-                nwipe_log( NWIPE_LOG_NOTICE,
+                kwipe_log( NWIPE_LOG_NOTICE,
                            "%s, sect/blk/dev %i/%i/%llu",
                            c2[i]->device_name,
                            c2[i]->device_sector_size,
@@ -628,12 +628,12 @@ int main( int argc, char** argv )
             }
 
             /* Fork a child process. */
-            errno = pthread_create( &c2[i]->thread, NULL, nwipe_options.method, (void*) c2[i] );
+            errno = pthread_create( &c2[i]->thread, NULL, kwipe_options.method, (void*) c2[i] );
             if( errno )
             {
-                nwipe_perror( errno, __FUNCTION__, "pthread_create" );
-                if( !nwipe_options.nogui )
-                    nwipe_gui_free();
+                kwipe_perror( errno, __FUNCTION__, "pthread_create" );
+                if( !kwipe_options.nogui )
+                    kwipe_gui_free();
                 return errno;
             }
             else
@@ -650,13 +650,13 @@ int main( int argc, char** argv )
     halfdelay( NWIPE_KNOB_SLEEP * 10 );
 
     /* Set up data structs to pass the GUI thread the data it needs. */
-    nwipe_thread_data_ptr_t nwipe_gui_data;
-    if( !nwipe_options.nogui )
+    kwipe_thread_data_ptr_t kwipe_gui_data;
+    if( !kwipe_options.nogui )
     {
-        nwipe_gui_data.c = c2;
-        nwipe_gui_data.nwipe_misc_thread_data = &nwipe_misc_thread_data;
+        kwipe_gui_data.c = c2;
+        kwipe_gui_data.kwipe_misc_thread_data = &kwipe_misc_thread_data;
         /* Fork the GUI thread. */
-        errno = pthread_create( &nwipe_gui_thread, NULL, nwipe_gui_status, &nwipe_gui_data );
+        errno = pthread_create( &kwipe_gui_thread, NULL, kwipe_gui_status, &kwipe_gui_data );
     }
 
     /* Wait for all the wiping threads to finish, but don't wait if we receive the terminate signal */
@@ -665,9 +665,9 @@ int main( int argc, char** argv )
     halfdelay( 10 );
 
     i = 0;
-    while( i < nwipe_selected && terminate_signal == 0 )
+    while( i < kwipe_selected && terminate_signal == 0 )
     {
-        if( i == nwipe_selected )
+        if( i == kwipe_selected )
         {
             break;
         }
@@ -686,7 +686,7 @@ int main( int argc, char** argv )
 
     if( terminate_signal != 1 )
     {
-        if( !nwipe_options.nowait && !nwipe_options.autopoweroff )
+        if( !kwipe_options.nowait && !kwipe_options.autopoweroff )
         {
             do
             {
@@ -695,53 +695,53 @@ int main( int argc, char** argv )
             } while( terminate_signal != 1 );
         }
     }
-    if( nwipe_options.verbose )
+    if( kwipe_options.verbose )
     {
-        nwipe_log( NWIPE_LOG_INFO, "Exit in progress" );
+        kwipe_log( NWIPE_LOG_INFO, "Exit in progress" );
     }
     /* Send a REQUEST for the wipe threads to be cancelled */
-    for( i = 0; i < nwipe_selected; i++ )
+    for( i = 0; i < kwipe_selected; i++ )
     {
 
         if( c2[i]->thread )
         {
-            if( nwipe_options.verbose )
+            if( kwipe_options.verbose )
             {
-                nwipe_log( NWIPE_LOG_INFO, "Requesting wipe thread cancellation for %s", c2[i]->device_name );
+                kwipe_log( NWIPE_LOG_INFO, "Requesting wipe thread cancellation for %s", c2[i]->device_name );
             }
             pthread_cancel( c2[i]->thread );
         }
     }
 
     /* Kill the GUI thread */
-    if( nwipe_gui_thread )
+    if( kwipe_gui_thread )
     {
-        if( nwipe_options.verbose )
+        if( kwipe_options.verbose )
         {
-            nwipe_log( NWIPE_LOG_INFO, "Cancelling the GUI thread." );
+            kwipe_log( NWIPE_LOG_INFO, "Cancelling the GUI thread." );
         }
 
         /* We don't want to use pthread_cancel as our GUI thread is aware of the control-c
          *  signal and will exit itself we just join the GUI thread and wait for confirmation
          */
-        r = pthread_join( nwipe_gui_thread, NULL );
+        r = pthread_join( kwipe_gui_thread, NULL );
         if( r != 0 )
         {
-            nwipe_log( NWIPE_LOG_WARNING, "main()>pthread_join():Error when waiting for GUI thread to cancel." );
+            kwipe_log( NWIPE_LOG_WARNING, "main()>pthread_join():Error when waiting for GUI thread to cancel." );
         }
         else
         {
-            if( nwipe_options.verbose )
+            if( kwipe_options.verbose )
             {
-                nwipe_log( NWIPE_LOG_INFO, "GUI compute_stats thread has been cancelled" );
+                kwipe_log( NWIPE_LOG_INFO, "GUI compute_stats thread has been cancelled" );
             }
         }
     }
 
     /* Release the gui. */
-    if( !nwipe_options.nogui )
+    if( !kwipe_options.nogui )
     {
-        nwipe_gui_free();
+        kwipe_gui_free();
     }
 
     /* Now join the wipe threads and wait until they have terminated */
@@ -756,7 +756,7 @@ int main( int argc, char** argv )
         }
 
         any_threads_still_running = 0;
-        for( i = 0; i < nwipe_selected; i++ )
+        for( i = 0; i < kwipe_selected; i++ )
         {
             if( c2[i]->thread )
             {
@@ -766,13 +766,13 @@ int main( int argc, char** argv )
                 r = pthread_join( c2[i]->thread, NULL );
                 if( r != 0 )
                 {
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    kwipe_log( NWIPE_LOG_ERROR,
                                "Error joining the wipe thread when waiting for thread to cancel.",
                                c2[i]->device_name );
 
                     if( r == EDEADLK )
                     {
-                        nwipe_log( NWIPE_LOG_ERROR,
+                        kwipe_log( NWIPE_LOG_ERROR,
                                    "Error joining the wipe thread: EDEADLK: Deadlock detected.",
                                    c2[i]->device_name );
                     }
@@ -780,7 +780,7 @@ int main( int argc, char** argv )
                     {
                         if( r == EINVAL )
                         {
-                            nwipe_log( NWIPE_LOG_ERROR,
+                            kwipe_log( NWIPE_LOG_ERROR,
                                        "Error joining the wipe thread: %s EINVAL: thread is not joinable.",
                                        c2[i]->device_name );
                         }
@@ -788,7 +788,7 @@ int main( int argc, char** argv )
                         {
                             if( r == ESRCH )
                             {
-                                nwipe_log( NWIPE_LOG_ERROR,
+                                kwipe_log( NWIPE_LOG_ERROR,
                                            "Error joining the wipe thread: %s ESRCH: no matching thread found",
                                            c2[i]->device_name );
                             }
@@ -801,9 +801,9 @@ int main( int argc, char** argv )
                 {
                     c2[i]->thread = 0; /* Zero the thread so we know it's been cancelled */
 
-                    if( nwipe_options.verbose )
+                    if( kwipe_options.verbose )
                     {
-                        nwipe_log( NWIPE_LOG_INFO, "Wipe thread for device %s has terminated", c2[i]->device_name );
+                        kwipe_log( NWIPE_LOG_INFO, "Wipe thread for device %s has terminated", c2[i]->device_name );
                     }
 
                     /* Close the device file descriptor. */
@@ -825,36 +825,36 @@ int main( int argc, char** argv )
     terminate_signal = 1;
 
     /* Kill the temperature update thread */
-    if( nwipe_temperature_thread )
+    if( kwipe_temperature_thread )
     {
-        if( nwipe_options.verbose )
+        if( kwipe_options.verbose )
         {
-            nwipe_log( NWIPE_LOG_INFO, "Cancelling the temperature thread." );
+            kwipe_log( NWIPE_LOG_INFO, "Cancelling the temperature thread." );
         }
 
         /* We don't want to use pthread_cancel as our temperature thread is aware of the control-c
          *  signal and will exit itself we just join the temperature thread and wait for confirmation
          */
-        r = pthread_join( nwipe_temperature_thread, NULL );
+        r = pthread_join( kwipe_temperature_thread, NULL );
         if( r != 0 )
         {
-            nwipe_log( NWIPE_LOG_WARNING,
+            kwipe_log( NWIPE_LOG_WARNING,
                        "main()>pthread_join():Error when waiting for temperature thread to cancel." );
         }
         else
         {
-            if( nwipe_options.verbose )
+            if( kwipe_options.verbose )
             {
-                nwipe_log( NWIPE_LOG_INFO, "temperature thread has been cancelled" );
+                kwipe_log( NWIPE_LOG_INFO, "temperature thread has been cancelled" );
             }
         }
     }
 
-    if( nwipe_options.verbose )
+    if( kwipe_options.verbose )
     {
-        for( i = 0; i < nwipe_selected; i++ )
+        for( i = 0; i < kwipe_selected; i++ )
         {
-            nwipe_log( NWIPE_LOG_DEBUG,
+            kwipe_log( NWIPE_LOG_DEBUG,
                        "Status: %s, result=%d, pass_errors=%llu, verify_errors=%llu, fsync_errors=%llu",
                        c2[i]->device_name,
                        c2[i]->result,
@@ -868,14 +868,14 @@ int main( int argc, char** argv )
      * as we don't need to report fatal/non fatal errors if no wipes were ever started ! */
     if( wipe_threads_started == 0 )
     {
-        for( i = 0; i < nwipe_selected; i++ )
+        for( i = 0; i < kwipe_selected; i++ )
         {
             c2[i]->result = 0;
         }
     }
     else
     {
-        for( i = 0; i < nwipe_selected; i++ )
+        for( i = 0; i < kwipe_selected; i++ )
         {
             /* Check for errors. */
             if( c2[i]->result != 0 || c2[i]->pass_errors != 0 || c2[i]->verify_errors != 0
@@ -892,10 +892,10 @@ int main( int argc, char** argv )
                     }
                 }
 
-                nwipe_log( NWIPE_LOG_FATAL,
+                kwipe_log( NWIPE_LOG_FATAL,
                            "Nwipe exited with errors on device = %s, see log for specific error\n",
                            c2[i]->device_name );
-                nwipe_log( NWIPE_LOG_DEBUG,
+                kwipe_log( NWIPE_LOG_DEBUG,
                            "Status: %s, result=%d, pass_errors=%llu, verify_errors=%llu, fsync_errors=%llu",
                            c2[i]->device_name,
                            c2[i]->result,
@@ -909,7 +909,7 @@ int main( int argc, char** argv )
     }
 
     /* Generate and send the drive status summary to the log */
-    nwipe_log_summary( c2, nwipe_selected );
+    kwipe_log_summary( c2, kwipe_selected );
 
     /* Print a one line status message for the user */
     if( return_status == 0 || return_status == 1 )
@@ -918,24 +918,24 @@ int main( int argc, char** argv )
         {
             if( global_wipe_status == 1 )
             {
-                nwipe_log( NWIPE_LOG_INFO,
+                kwipe_log( NWIPE_LOG_INFO,
                            "Nwipe was aborted by the user. Check the summary table for the drive status." );
             }
             else
             {
-                nwipe_log( NWIPE_LOG_INFO, "Nwipe was aborted by the user prior to the wipe starting." );
+                kwipe_log( NWIPE_LOG_INFO, "Nwipe was aborted by the user prior to the wipe starting." );
             }
         }
         else
         {
             if( fatal_errors_flag == 1 || non_fatal_errors_flag == 1 )
             {
-                nwipe_log( NWIPE_LOG_INFO,
+                kwipe_log( NWIPE_LOG_INFO,
                            "Nwipe exited with errors, check the log & summary table for individual drive status." );
             }
             else
             {
-                nwipe_log( NWIPE_LOG_INFO, "Nwipe successfully completed. See summary table for details." );
+                kwipe_log( NWIPE_LOG_INFO, "Nwipe successfully completed. See summary table for details." );
             }
         }
     }
@@ -972,14 +972,14 @@ void* signal_hand( void* ptr )
     char eta[9];
 
     /* Set up the structs we will use for the data required. */
-    nwipe_thread_data_ptr_t* nwipe_thread_data_ptr;
-    nwipe_context_t** c;
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;
+    kwipe_thread_data_ptr_t* kwipe_thread_data_ptr;
+    kwipe_context_t** c;
+    kwipe_misc_thread_data_t* kwipe_misc_thread_data;
 
     /* Retrieve from the pointer passed to the function. */
-    nwipe_thread_data_ptr = (nwipe_thread_data_ptr_t*) ptr;
-    c = nwipe_thread_data_ptr->c;
-    nwipe_misc_thread_data = nwipe_thread_data_ptr->nwipe_misc_thread_data;
+    kwipe_thread_data_ptr = (kwipe_thread_data_ptr_t*) ptr;
+    c = kwipe_thread_data_ptr->c;
+    kwipe_misc_thread_data = kwipe_thread_data_ptr->kwipe_misc_thread_data;
 
     while( 1 )
     {
@@ -993,7 +993,7 @@ void* signal_hand( void* ptr )
             case SIGUSR1:
                 compute_stats( ptr );
 
-                for( i = 0; i < nwipe_misc_thread_data->nwipe_selected; i++ )
+                for( i = 0; i < kwipe_misc_thread_data->kwipe_selected; i++ )
                 {
 
                     if( c[i]->thread )
@@ -1027,7 +1027,7 @@ void* signal_hand( void* ptr )
 
                         convert_seconds_to_hours_minutes_seconds( c[i]->eta, &hours, &minutes, &seconds );
 
-                        nwipe_log( NWIPE_LOG_INFO,
+                        kwipe_log( NWIPE_LOG_INFO,
                                    "%s: %05.2f%%, round %i of %i, pass %i of %i, eta %02i:%02i:%02i, %s",
                                    c[i]->device_name,
                                    c[i]->round_percent,
@@ -1044,16 +1044,16 @@ void* signal_hand( void* ptr )
                     {
                         if( c[i]->result == 0 )
                         {
-                            nwipe_log( NWIPE_LOG_INFO, "%s: Success", c[i]->device_name );
+                            kwipe_log( NWIPE_LOG_INFO, "%s: Success", c[i]->device_name );
                         }
                         else if( c[i]->signal )
                         {
-                            nwipe_log(
+                            kwipe_log(
                                 NWIPE_LOG_INFO, "%s: >>> FAILURE! <<<: signal %i", c[i]->device_name, c[i]->signal );
                         }
                         else
                         {
-                            nwipe_log(
+                            kwipe_log(
                                 NWIPE_LOG_INFO, "%s: >>> FAILURE! <<<: code %i", c[i]->device_name, c[i]->result );
                         }
                     }
@@ -1087,7 +1087,7 @@ int cleanup()
     extern int log_elements_displayed;  // initialised and found in logging.c
     extern int log_elements_allocated;  // initialised and found in logging.c
     extern char** log_lines;
-    extern config_t nwipe_cfg;
+    extern config_t kwipe_cfg;
 
     /* Print the logs held in memory to the console */
     for( i = log_elements_displayed; i < log_elements_allocated; i++ )
@@ -1108,7 +1108,7 @@ int cleanup()
     }
 
     /* Deallocate libconfig resources */
-    config_destroy( &nwipe_cfg );
+    config_destroy( &kwipe_cfg );
 
     /* TODO: Any other cleanup required ? */
 
@@ -1121,12 +1121,12 @@ void check_for_autopoweroff( void )
     int r;  // A result buffer.
 
     /* User request auto power down ? */
-    if( nwipe_options.autopoweroff == 1 )
+    if( kwipe_options.autopoweroff == 1 )
     {
         fp = popen( cmd, "r" );
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_INFO, "Failed to autopoweroff to %s", cmd );
+            kwipe_log( NWIPE_LOG_INFO, "Failed to autopoweroff to %s", cmd );
             return;
         }
         r = pclose( fp );

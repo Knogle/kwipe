@@ -1,5 +1,5 @@
 /*
- *  options.c:  Command line processing routines for nwipe.
+ *  options.c:  Command line processing routines for kwipe.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-#include "nwipe.h"
+#include "kwipe.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -30,7 +30,7 @@
 #include "conf.h"
 
 /* The global options struct. */
-nwipe_options_t nwipe_options;
+kwipe_options_t kwipe_options;
 
 /*
  * Executes the CPUID instruction and fills out the provided variables with the results.
@@ -66,22 +66,22 @@ int has_aes_ni( void )
     return ( ecx & ( 1 << 25 ) ) != 0;  // Check if bit 25 in ECX is set
 }
 
-int nwipe_options_parse( int argc, char** argv )
+int kwipe_options_parse( int argc, char** argv )
 {
     extern char* optarg;  // The working getopt option argument.
     extern int optind;  // The working getopt index into argv.
     extern int optopt;  // The last unhandled getopt option.
     extern int opterr;  // The last getopt error number.
 
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
+    extern kwipe_prng_t kwipe_twister;
+    extern kwipe_prng_t kwipe_isaac;
+    extern kwipe_prng_t kwipe_isaac64;
+    extern kwipe_prng_t kwipe_add_lagg_fibonacci_prng;
+    extern kwipe_prng_t kwipe_xoroshiro256_prng;
+    extern kwipe_prng_t kwipe_aes_ctr_prng;
 
     /* The getopt() result holder. */
-    int nwipe_opt;
+    int kwipe_opt;
 
     /* Excluded drive indexes */
     int idx_drive_chr;
@@ -92,15 +92,15 @@ int nwipe_options_parse( int argc, char** argv )
     int i;
 
     /* The list of acceptable short options. */
-    char nwipe_options_short[] = "Vvhl:P:m:p:qr:e:";
+    char kwipe_options_short[] = "Vvhl:P:m:p:qr:e:";
 
-    /* Used when reading value fron nwipe.conf */
+    /* Used when reading value fron kwipe.conf */
     const char* read_value = NULL;
 
     int ret;
 
     /* The list of acceptable long options. */
-    static struct option nwipe_options_long[] = {
+    static struct option kwipe_options_long[] = {
         /* Set when the user wants to wipe without a confirmation prompt. */
         { "autonuke", no_argument, 0, 0 },
 
@@ -162,9 +162,9 @@ int nwipe_options_parse( int argc, char** argv )
         { 0, 0, 0, 0 } };
 
     /* Set default options. */
-    nwipe_options.autonuke = 0;
-    nwipe_options.autopoweroff = 0;
-    nwipe_options.method = &nwipe_random;
+    kwipe_options.autonuke = 0;
+    kwipe_options.autopoweroff = 0;
+    kwipe_options.method = &kwipe_random;
     /*
      * Determines and sets the default PRNG based on AES-NI support and system architecture.
      * It selects AES-CTR PRNG if AES-NI is supported, xoroshiro256 for 64-bit systems without AES-NI,
@@ -173,96 +173,96 @@ int nwipe_options_parse( int argc, char** argv )
 
     if( has_aes_ni() )
     {
-        nwipe_options.prng = &nwipe_aes_ctr_prng;
+        kwipe_options.prng = &kwipe_aes_ctr_prng;
     }
     else if( sizeof( unsigned long int ) >= 8 )
     {
-        nwipe_options.prng = &nwipe_xoroshiro256_prng;
-        nwipe_log( NWIPE_LOG_WARNING, "CPU doesn't support AES New Instructions, opting for XORoshiro-256 instead." );
+        kwipe_options.prng = &kwipe_xoroshiro256_prng;
+        kwipe_log( NWIPE_LOG_WARNING, "CPU doesn't support AES New Instructions, opting for XORoshiro-256 instead." );
     }
     else
     {
-        nwipe_options.prng = &nwipe_add_lagg_fibonacci_prng;
+        kwipe_options.prng = &kwipe_add_lagg_fibonacci_prng;
     }
 
-    nwipe_options.rounds = 1;
-    nwipe_options.noblank = 0;
-    nwipe_options.nousb = 0;
-    nwipe_options.nowait = 0;
-    nwipe_options.nosignals = 0;
-    nwipe_options.nogui = 0;
-    nwipe_options.quiet = 0;
-    nwipe_options.sync = DEFAULT_SYNC_RATE;
-    nwipe_options.verbose = 0;
-    nwipe_options.verify = NWIPE_VERIFY_LAST;
-    memset( nwipe_options.logfile, '\0', sizeof( nwipe_options.logfile ) );
-    memset( nwipe_options.PDFreportpath, '\0', sizeof( nwipe_options.PDFreportpath ) );
-    strncpy( nwipe_options.PDFreportpath, ".", 2 );
+    kwipe_options.rounds = 1;
+    kwipe_options.noblank = 0;
+    kwipe_options.nousb = 0;
+    kwipe_options.nowait = 0;
+    kwipe_options.nosignals = 0;
+    kwipe_options.nogui = 0;
+    kwipe_options.quiet = 0;
+    kwipe_options.sync = DEFAULT_SYNC_RATE;
+    kwipe_options.verbose = 0;
+    kwipe_options.verify = NWIPE_VERIFY_LAST;
+    memset( kwipe_options.logfile, '\0', sizeof( kwipe_options.logfile ) );
+    memset( kwipe_options.PDFreportpath, '\0', sizeof( kwipe_options.PDFreportpath ) );
+    strncpy( kwipe_options.PDFreportpath, ".", 2 );
 
-    /* Read PDF settings from nwipe.conf if available  */
-    if( ( ret = nwipe_conf_read_setting( "PDF_Certificate.PDF_Enable", &read_value ) ) )
+    /* Read PDF settings from kwipe.conf if available  */
+    if( ( ret = kwipe_conf_read_setting( "PDF_Certificate.PDF_Enable", &read_value ) ) )
     {
         /* error occurred */
-        nwipe_log( NWIPE_LOG_ERROR,
-                   "nwipe_conf_read_setting():Error reading PDF_Certificate.PDF_Enable from nwipe.conf, ret code %i",
+        kwipe_log( NWIPE_LOG_ERROR,
+                   "kwipe_conf_read_setting():Error reading PDF_Certificate.PDF_Enable from kwipe.conf, ret code %i",
                    ret );
 
         /* Use default values */
-        nwipe_options.PDF_enable = 1;
+        kwipe_options.PDF_enable = 1;
     }
     else
     {
         if( !strcmp( read_value, "ENABLED" ) )
         {
-            nwipe_options.PDF_enable = 1;
+            kwipe_options.PDF_enable = 1;
         }
         else
         {
             if( !strcmp( read_value, "DISABLED" ) )
             {
-                nwipe_options.PDF_enable = 0;
+                kwipe_options.PDF_enable = 0;
             }
             else
             {
                 // error occurred
-                nwipe_log(
+                kwipe_log(
                     NWIPE_LOG_ERROR,
-                    "PDF_Certificate.PDF_Enable in nwipe.conf returned a value that was neither ENABLED or DISABLED" );
-                nwipe_options.PDF_enable = 1;  // Default to Enabled
+                    "PDF_Certificate.PDF_Enable in kwipe.conf returned a value that was neither ENABLED or DISABLED" );
+                kwipe_options.PDF_enable = 1;  // Default to Enabled
             }
         }
     }
 
     /* PDF Preview enable/disable */
-    if( ( ret = nwipe_conf_read_setting( "PDF_Certificate.PDF_Preview", &read_value ) ) )
+    if( ( ret = kwipe_conf_read_setting( "PDF_Certificate.PDF_Preview", &read_value ) ) )
     {
         /* error occurred */
-        nwipe_log( NWIPE_LOG_ERROR,
-                   "nwipe_conf_read_setting():Error reading PDF_Certificate.PDF_Preview from nwipe.conf, ret code %i",
+        kwipe_log( NWIPE_LOG_ERROR,
+                   "kwipe_conf_read_setting():Error reading PDF_Certificate.PDF_Preview from kwipe.conf, ret code %i",
                    ret );
 
         /* Use default values */
-        nwipe_options.PDF_enable = 1;
+        kwipe_options.PDF_enable = 1;
     }
     else
     {
         if( !strcmp( read_value, "ENABLED" ) )
         {
-            nwipe_options.PDF_preview_details = 1;
+            kwipe_options.PDF_preview_details = 1;
         }
         else
         {
             if( !strcmp( read_value, "DISABLED" ) )
             {
-                nwipe_options.PDF_preview_details = 0;
+                kwipe_options.PDF_preview_details = 0;
             }
             else
             {
                 /* error occurred */
-                nwipe_log(
+                kwipe_log(
                     NWIPE_LOG_ERROR,
-                    "PDF_Certificate.PDF_Preview in nwipe.conf returned a value that was neither ENABLED or DISABLED" );
-                nwipe_options.PDF_preview_details = 1; /* Default to Enabled */
+                    "PDF_Certificate.PDF_Preview in kwipe.conf returned a value that was neither ENABLED or DISABLED" );
+                kwipe_options.PDF_preview_details = 1; /* Default to Enabled */
             }
         }
     }
@@ -270,77 +270,77 @@ int nwipe_options_parse( int argc, char** argv )
     /* Initialise each of the strings in the excluded drives array */
     for( i = 0; i < MAX_NUMBER_EXCLUDED_DRIVES; i++ )
     {
-        nwipe_options.exclude[i][0] = 0;
+        kwipe_options.exclude[i][0] = 0;
     }
 
     /* Parse command line options. */
     while( 1 )
     {
         /* Get the next command line option with (3)getopt. */
-        nwipe_opt = getopt_long( argc, argv, nwipe_options_short, nwipe_options_long, &i );
+        kwipe_opt = getopt_long( argc, argv, kwipe_options_short, kwipe_options_long, &i );
 
         /* Break when we have processed all of the given options. */
-        if( nwipe_opt < 0 )
+        if( kwipe_opt < 0 )
         {
             break;
         }
 
-        switch( nwipe_opt )
+        switch( kwipe_opt )
         {
             case 0: /* Long options without short counterparts. */
 
-                if( strcmp( nwipe_options_long[i].name, "autonuke" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "autonuke" ) == 0 )
                 {
-                    nwipe_options.autonuke = 1;
+                    kwipe_options.autonuke = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "autopoweroff" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "autopoweroff" ) == 0 )
                 {
-                    nwipe_options.autopoweroff = 1;
+                    kwipe_options.autopoweroff = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "noblank" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "noblank" ) == 0 )
                 {
-                    nwipe_options.noblank = 1;
+                    kwipe_options.noblank = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nousb" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "nousb" ) == 0 )
                 {
-                    nwipe_options.nousb = 1;
+                    kwipe_options.nousb = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nowait" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "nowait" ) == 0 )
                 {
-                    nwipe_options.nowait = 1;
+                    kwipe_options.nowait = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nosignals" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "nosignals" ) == 0 )
                 {
-                    nwipe_options.nosignals = 1;
+                    kwipe_options.nosignals = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nogui" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "nogui" ) == 0 )
                 {
-                    nwipe_options.nogui = 1;
-                    nwipe_options.nowait = 1;
+                    kwipe_options.nogui = 1;
+                    kwipe_options.nowait = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "verbose" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "verbose" ) == 0 )
                 {
-                    nwipe_options.verbose = 1;
+                    kwipe_options.verbose = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "sync" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "sync" ) == 0 )
                 {
-                    if( sscanf( optarg, " %i", &nwipe_options.sync ) != 1 || nwipe_options.sync < 0 )
+                    if( sscanf( optarg, " %i", &kwipe_options.sync ) != 1 || kwipe_options.sync < 0 )
                     {
                         fprintf( stderr, "Error: The sync argument must be a positive integer or zero.\n" );
                         exit( EINVAL );
@@ -348,24 +348,24 @@ int nwipe_options_parse( int argc, char** argv )
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "verify" ) == 0 )
+                if( strcmp( kwipe_options_long[i].name, "verify" ) == 0 )
                 {
 
                     if( strcmp( optarg, "0" ) == 0 || strcmp( optarg, "off" ) == 0 )
                     {
-                        nwipe_options.verify = NWIPE_VERIFY_NONE;
+                        kwipe_options.verify = NWIPE_VERIFY_NONE;
                         break;
                     }
 
                     if( strcmp( optarg, "1" ) == 0 || strcmp( optarg, "last" ) == 0 )
                     {
-                        nwipe_options.verify = NWIPE_VERIFY_LAST;
+                        kwipe_options.verify = NWIPE_VERIFY_LAST;
                         break;
                     }
 
                     if( strcmp( optarg, "2" ) == 0 || strcmp( optarg, "all" ) == 0 )
                     {
-                        nwipe_options.verify = NWIPE_VERIFY_ALL;
+                        kwipe_options.verify = NWIPE_VERIFY_ALL;
                         break;
                     }
 
@@ -381,62 +381,62 @@ int nwipe_options_parse( int argc, char** argv )
 
                 if( strcmp( optarg, "dod522022m" ) == 0 || strcmp( optarg, "dod" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_dod522022m;
+                    kwipe_options.method = &kwipe_dod522022m;
                     break;
                 }
 
                 if( strcmp( optarg, "dodshort" ) == 0 || strcmp( optarg, "dod3pass" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_dodshort;
+                    kwipe_options.method = &kwipe_dodshort;
                     break;
                 }
 
                 if( strcmp( optarg, "gutmann" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_gutmann;
+                    kwipe_options.method = &kwipe_gutmann;
                     break;
                 }
 
                 if( strcmp( optarg, "ops2" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_ops2;
+                    kwipe_options.method = &kwipe_ops2;
                     break;
                 }
 
                 if( strcmp( optarg, "random" ) == 0 || strcmp( optarg, "prng" ) == 0
                     || strcmp( optarg, "stream" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_random;
+                    kwipe_options.method = &kwipe_random;
                     break;
                 }
 
                 if( strcmp( optarg, "zero" ) == 0 || strcmp( optarg, "quick" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_zero;
+                    kwipe_options.method = &kwipe_zero;
                     break;
                 }
 
                 if( strcmp( optarg, "one" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_one;
+                    kwipe_options.method = &kwipe_one;
                     break;
                 }
 
                 if( strcmp( optarg, "verify_zero" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_verify_zero;
+                    kwipe_options.method = &kwipe_verify_zero;
                     break;
                 }
 
                 if( strcmp( optarg, "verify_one" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_verify_one;
+                    kwipe_options.method = &kwipe_verify_one;
                     break;
                 }
 
                 if( strcmp( optarg, "is5enh" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_is5enh;
+                    kwipe_options.method = &kwipe_is5enh;
                     break;
                 }
 
@@ -446,28 +446,28 @@ int nwipe_options_parse( int argc, char** argv )
 
             case 'l': /* Log file option. */
 
-                nwipe_options.logfile[strlen( optarg )] = '\0';
-                strncpy( nwipe_options.logfile, optarg, sizeof( nwipe_options.logfile ) );
+                kwipe_options.logfile[strlen( optarg )] = '\0';
+                strncpy( kwipe_options.logfile, optarg, sizeof( kwipe_options.logfile ) );
                 break;
 
             case 'P': /* PDFreport path option. */
 
-                nwipe_options.PDFreportpath[strlen( optarg )] = '\0';
-                strncpy( nwipe_options.PDFreportpath, optarg, sizeof( nwipe_options.PDFreportpath ) );
+                kwipe_options.PDFreportpath[strlen( optarg )] = '\0';
+                strncpy( kwipe_options.PDFreportpath, optarg, sizeof( kwipe_options.PDFreportpath ) );
 
-                /* Command line options will override what's in nwipe.conf */
-                if( strcmp( nwipe_options.PDFreportpath, "noPDF" ) == 0 )
+                /* Command line options will override what's in kwipe.conf */
+                if( strcmp( kwipe_options.PDFreportpath, "noPDF" ) == 0 )
                 {
-                    nwipe_options.PDF_enable = 0;
-                    nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "DISABLED" );
+                    kwipe_options.PDF_enable = 0;
+                    kwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "DISABLED" );
                 }
                 else
                 {
-                    if( strcmp( nwipe_options.PDFreportpath, "." ) )
+                    if( strcmp( kwipe_options.PDFreportpath, "." ) )
                     {
                         /* and if the user has specified a PDF path then enable PDF */
-                        nwipe_options.PDF_enable = 1;
-                        nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" );
+                        kwipe_options.PDF_enable = 1;
+                        kwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" );
                     }
                 }
 
@@ -492,7 +492,7 @@ int nwipe_options_parse( int argc, char** argv )
                     if( optarg[idx_optarg] == ',' )
                     {
                         /* terminate string and move onto next drive */
-                        nwipe_options.exclude[idx_drive++][idx_drive_chr] = 0;
+                        kwipe_options.exclude[idx_drive++][idx_drive_chr] = 0;
                         idx_drive_chr = 0;
                         idx_optarg++;
                     }
@@ -500,12 +500,12 @@ int nwipe_options_parse( int argc, char** argv )
                     {
                         if( idx_drive_chr < MAX_DRIVE_PATH_LENGTH )
                         {
-                            nwipe_options.exclude[idx_drive][idx_drive_chr++] = optarg[idx_optarg++];
+                            kwipe_options.exclude[idx_drive][idx_drive_chr++] = optarg[idx_optarg++];
                         }
                         else
                         {
                             /* This section deals with file names that exceed MAX_DRIVE_PATH_LENGTH */
-                            nwipe_options.exclude[idx_drive][idx_drive_chr] = 0;
+                            kwipe_options.exclude[idx_drive][idx_drive_chr] = 0;
                             while( optarg[idx_optarg] != 0 && optarg[idx_optarg] != ',' )
                             {
                                 idx_optarg++;
@@ -531,34 +531,34 @@ int nwipe_options_parse( int argc, char** argv )
 
                 if( strcmp( optarg, "mersenne" ) == 0 || strcmp( optarg, "twister" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_twister;
+                    kwipe_options.prng = &kwipe_twister;
                     break;
                 }
 
                 if( strcmp( optarg, "isaac" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_isaac;
+                    kwipe_options.prng = &kwipe_isaac;
                     break;
                 }
 
                 if( strcmp( optarg, "isaac64" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_isaac64;
+                    kwipe_options.prng = &kwipe_isaac64;
                     break;
                 }
                 if( strcmp( optarg, "add_lagg_fibonacci_prng" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_add_lagg_fibonacci_prng;
+                    kwipe_options.prng = &kwipe_add_lagg_fibonacci_prng;
                     break;
                 }
                 if( strcmp( optarg, "xoroshiro256_prng" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_xoroshiro256_prng;
+                    kwipe_options.prng = &kwipe_xoroshiro256_prng;
                     break;
                 }
                 if( strcmp( optarg, "aes_ctr_prng" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_aes_ctr_prng;
+                    kwipe_options.prng = &kwipe_aes_ctr_prng;
                     break;
                 }
 
@@ -568,12 +568,12 @@ int nwipe_options_parse( int argc, char** argv )
 
             case 'q': /* Anonymize serial numbers */
 
-                nwipe_options.quiet = 1;
+                kwipe_options.quiet = 1;
                 break;
 
             case 'r': /* Rounds option. */
 
-                if( sscanf( optarg, " %i", &nwipe_options.rounds ) != 1 || nwipe_options.rounds < 1 )
+                if( sscanf( optarg, " %i", &kwipe_options.rounds ) != 1 || kwipe_options.rounds < 1 )
                 {
                     fprintf( stderr, "Error: The rounds argument must be a positive integer.\n" );
                     exit( EINVAL );
@@ -583,7 +583,7 @@ int nwipe_options_parse( int argc, char** argv )
 
             case 'v': /* verbose */
 
-                nwipe_options.verbose = 1;
+                kwipe_options.verbose = 1;
                 break;
 
             case 'V': /* Version option. */
@@ -605,111 +605,111 @@ int nwipe_options_parse( int argc, char** argv )
     return optind;
 }
 
-void nwipe_options_log( void )
+void kwipe_options_log( void )
 {
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
+    extern kwipe_prng_t kwipe_twister;
+    extern kwipe_prng_t kwipe_isaac;
+    extern kwipe_prng_t kwipe_isaac64;
+    extern kwipe_prng_t kwipe_add_lagg_fibonacci_prng;
+    extern kwipe_prng_t kwipe_xoroshiro256_prng;
+    extern kwipe_prng_t kwipe_aes_ctr_prng;
 
     /**
      *  Prints a manifest of options to the log.
      */
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Program options are set as follows..." );
+    kwipe_log( NWIPE_LOG_NOTICE, "Program options are set as follows..." );
 
-    if( nwipe_options.autonuke )
+    if( kwipe_options.autonuke )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  autonuke = %i (on)", nwipe_options.autonuke );
+        kwipe_log( NWIPE_LOG_NOTICE, "  autonuke = %i (on)", kwipe_options.autonuke );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  autonuke = %i (off)", nwipe_options.autonuke );
+        kwipe_log( NWIPE_LOG_NOTICE, "  autonuke = %i (off)", kwipe_options.autonuke );
     }
 
-    if( nwipe_options.autopoweroff )
+    if( kwipe_options.autopoweroff )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  autopoweroff = %i (on)", nwipe_options.autopoweroff );
+        kwipe_log( NWIPE_LOG_NOTICE, "  autopoweroff = %i (on)", kwipe_options.autopoweroff );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  autopoweroff = %i (off)", nwipe_options.autopoweroff );
+        kwipe_log( NWIPE_LOG_NOTICE, "  autopoweroff = %i (off)", kwipe_options.autopoweroff );
     }
 
-    if( nwipe_options.noblank )
+    if( kwipe_options.noblank )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not perform a final blank pass" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  do not perform a final blank pass" );
     }
 
-    if( nwipe_options.nowait )
+    if( kwipe_options.nowait )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not wait for a key before exiting" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  do not wait for a key before exiting" );
     }
 
-    if( nwipe_options.nosignals )
+    if( kwipe_options.nosignals )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not allow signals to interrupt a wipe" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  do not allow signals to interrupt a wipe" );
     }
 
-    if( nwipe_options.nogui )
+    if( kwipe_options.nogui )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not show GUI interface" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  do not show GUI interface" );
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "  banner   = %s", banner );
+    kwipe_log( NWIPE_LOG_NOTICE, "  banner   = %s", banner );
 
-    if( nwipe_options.prng == &nwipe_twister )
+    if( kwipe_options.prng == &kwipe_twister )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = Mersenne Twister" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = Mersenne Twister" );
     }
-    else if( nwipe_options.prng == &nwipe_add_lagg_fibonacci_prng )
+    else if( kwipe_options.prng == &kwipe_add_lagg_fibonacci_prng )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = Lagged Fibonacci generator (EXPERIMENTAL!)" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = Lagged Fibonacci generator (EXPERIMENTAL!)" );
     }
-    else if( nwipe_options.prng == &nwipe_xoroshiro256_prng )
+    else if( kwipe_options.prng == &kwipe_xoroshiro256_prng )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = XORoshiro-256 (EXPERIMENTAL!)" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = XORoshiro-256 (EXPERIMENTAL!)" );
     }
-    else if( nwipe_options.prng == &nwipe_aes_ctr_prng )
+    else if( kwipe_options.prng == &kwipe_aes_ctr_prng )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = AES-CTR New Instructions (EXPERIMENTAL!)" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = AES-CTR New Instructions (EXPERIMENTAL!)" );
     }
-    else if( nwipe_options.prng == &nwipe_isaac )
+    else if( kwipe_options.prng == &kwipe_isaac )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = Isaac" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = Isaac" );
     }
-    else if( nwipe_options.prng == &nwipe_isaac64 )
+    else if( kwipe_options.prng == &kwipe_isaac64 )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = Isaac64" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = Isaac64" );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng     = Undefined" );
+        kwipe_log( NWIPE_LOG_NOTICE, "  prng     = Undefined" );
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "  method   = %s", nwipe_method_label( nwipe_options.method ) );
-    nwipe_log( NWIPE_LOG_NOTICE, "  quiet    = %i", nwipe_options.quiet );
-    nwipe_log( NWIPE_LOG_NOTICE, "  rounds   = %i", nwipe_options.rounds );
-    nwipe_log( NWIPE_LOG_NOTICE, "  sync     = %i", nwipe_options.sync );
+    kwipe_log( NWIPE_LOG_NOTICE, "  method   = %s", kwipe_method_label( kwipe_options.method ) );
+    kwipe_log( NWIPE_LOG_NOTICE, "  quiet    = %i", kwipe_options.quiet );
+    kwipe_log( NWIPE_LOG_NOTICE, "  rounds   = %i", kwipe_options.rounds );
+    kwipe_log( NWIPE_LOG_NOTICE, "  sync     = %i", kwipe_options.sync );
 
-    switch( nwipe_options.verify )
+    switch( kwipe_options.verify )
     {
         case NWIPE_VERIFY_NONE:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i (off)", nwipe_options.verify );
+            kwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i (off)", kwipe_options.verify );
             break;
 
         case NWIPE_VERIFY_LAST:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i (last pass)", nwipe_options.verify );
+            kwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i (last pass)", kwipe_options.verify );
             break;
 
         case NWIPE_VERIFY_ALL:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i (all passes)", nwipe_options.verify );
+            kwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i (all passes)", kwipe_options.verify );
             break;
 
         default:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i", nwipe_options.verify );
+            kwipe_log( NWIPE_LOG_NOTICE, "  verify   = %i", kwipe_options.verify );
             break;
     }
 }
@@ -738,7 +738,7 @@ void display_help()
     puts( "                          0    - fdatasync after the disk is completely written" );
     puts( "                                 fdatasync errors not detected until completion." );
     puts( "                                 0 is not recommended as disk errors may cause" );
-    puts( "                                 nwipe to appear to hang" );
+    puts( "                                 kwipe to appear to hang" );
     puts( "                          1    - fdatasync after every write" );
     puts( "                                 Warning: Lower values will reduce wipe speeds." );
     puts( "                          1000 - fdatasync after 1000 writes etc.\n" );
