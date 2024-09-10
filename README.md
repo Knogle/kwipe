@@ -1,6 +1,5 @@
 # kwipe
-![GitHub CI badge](https://github.com/martijnvanbrummelen/kwipe/workflows/ci_ubuntu_latest/badge.svg)
-[![GitHub release](https://img.shields.io/github/release/martijnvanbrummelen/kwipe)](https://github.com/martijnvanbrummelen/kwipe/releases/)
+![GitHub CI badge](https://github.com/Knogle/nwipe/blob/kwipe/workflows/ci_ubuntu_latest/badge.svg)
 
 ## Reasons for forking nwipe
 
