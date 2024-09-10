@@ -2,6 +2,33 @@
 ![GitHub CI badge](https://github.com/martijnvanbrummelen/kwipe/workflows/ci_ubuntu_latest/badge.svg)
 [![GitHub release](https://img.shields.io/github/release/martijnvanbrummelen/kwipe)](https://github.com/martijnvanbrummelen/kwipe/releases/)
 
+As there are requirements in Germany for BSI TR-03109 compliant erasure, this is a fork from https://github.com/martijnvanbrummelen/nwipe called kwipe (**k**ryptowipe).
+
+
+## Reasons for forking nwipe
+
+As there are requirements in Germany for BSI TR-03109 compliant erasure, this is a fork from https://github.com/martijnvanbrummelen/nwipe called kwipe (**k**ryptowipe).
+
+BSI TR-02102, titled **"Cryptographic Mechanisms: Recommendations and Key Lengths"**, provides guidelines and recommendations for the use of cryptographic mechanisms in various security applications in Germany. It covers aspects such as algorithms, key lengths, and specific requirements for cryptographic primitives.
+
+### Key points related to **CSPRNG (Cryptographically Secure Pseudo-Random Number Generators)**:
+
+1. **Security Requirements**: The TR-02102 emphasizes that any PRNG used in cryptographic applications must be cryptographically secure (CSPRNG), meaning it should be unpredictable and resistant to attacks, even if parts of its internal state are known. This ensures that the output cannot be predicted by attackers.
+
+2. **Entropy**: A CSPRNG must have a strong source of entropy. The higher the entropy, the more difficult it is for an attacker to predict future outputs of the generator.
+
+3. **Algorithm Recommendations**: The BSI recommends specific algorithms that are considered cryptographically secure, such as:
+   - **AES-based DRBG** (Deterministic Random Bit Generator)
+   - **Hash-based DRBGs** like those defined by NIST (e.g., HMAC_DRBG)
+   - **Elliptic Curve-based DRBGs**
+
+4. **Compliance with Standards**: CSPRNGs must comply with international standards such as NIST SP 800-90A or other equivalent guidelines that ensure their robustness against known cryptographic attacks.
+
+In short, BSI TR-02102 mandates that CSPRNGs be highly unpredictable, have a strong source of entropy, and comply with well-established cryptographic standards to ensure secure generation of random numbers, crucial for secure data erasure, encryption, and other security-sensitive operations.
+BSI TR-02102 emphasizes that CSPRNGs must withstand rigorous audits and meet high security standards. Therefore, using well-established libraries like OpenSSL is preferable for ensuring compliance and reliability.
+
+## Description
+
 kwipe is a fork of the dwipe command originally used by Darik's Boot and Nuke (DBAN). kwipe was created out of a need to run the DBAN dwipe command outside of DBAN, in order to allow its use with any host distribution, thus giving better hardware support.
 
 kwipe is a program that will securely erase the entire contents of disks. It can wipe a single drive or multiple disks simultaneously. It can operate as both a command line tool without a GUI or with a ncurses GUI as shown in the example below:
@@ -33,15 +60,11 @@ The user can select from a variety of recognised secure erase methods which incl
 kwipe also includes the following pseudo random number generators (prng):
 * Mersenne Twister
 * ISAAC
-
-  In addition to the above, the following prngs will be available in v0.37  
 * XORoshiro-256
 * Lagged Fibonacci
 * AES-CTR (openssl)
 
 These can be used to overwrite a drive with a stream of randomly generated characters.
-
-kwipe can be found in many [Linux distro repositories](#which-linux-distro-uses-the-latest-kwipe).
 
 kwipe is also included in [ShredOS](https://github.com/Knogle/shredos.x86_64) which was developed in particular to showcase kwipe as a fast-to-boot standalone method similar to DBAN. ShredOS always contains the latest kwipe version.
 
@@ -67,6 +90,7 @@ For a development setup, see the [Hacking section](#hacking) below. For a bootab
 * pthreads
 * parted
 * libconfig
+* openssl
 
 `kwipe` also requires the following program to be installed, it will abort with a warning if not found:
 
@@ -95,7 +119,8 @@ sudo apt install \
   dmidecode \
   coreutils \
   smartmontools \
-  hdparm
+  hdparm \
+  libssl-dev
 ```
 
 ### Fedora prerequisites
@@ -113,6 +138,7 @@ yum install dmidecode
 yum install coreutils
 yum install smartmontools
 yum install hdparm
+yum install libssl-devel
 ```
 Note. The following programs are optionally installed although recommended. 1. dmidecode 2. readlink 3. smartmontools.
 
@@ -216,27 +242,7 @@ sudo ./kwipe
 ```
 
 ## Quick & Easy, USB bootable version of kwipe master for x86_64 systems.
-If you want to just try out a bootable version of kwipe you can download [ShredOS](https://github.com/PartialVolume/shredos.x86_64). The ShredOS image is around 60MB and can be written to an USB flash drive in seconds, allowing you to boot straight into the latest version of kwipe. ShredOS is available for x86_64 (64-bit) and i686 (32-bit) CPU architectures and will boot both legacy BIOS and UEFI devices. It comes as .IMG (bootable USB flash drive image) or .ISO (for CD-R/DVD-R). Instructions and download can be found [here](https://github.com/PartialVolume/shredos.x86_64#obtaining-and-writing-shredos-to-a-usb-flash-drive-the-easy-way-).
-
-## Which Linux distro uses the latest kwipe?
-See [Repology](https://repology.org/project/kwipe/versions)
-
-And in addition checkout the following distros that all include kwipe:
-
-- [ShredOS](https://github.com/PartialVolume/shredos.x86_64) Always has the latest kwipe release.
-- [netboot.xyz](https://github.com/netbootxyz/netboot.xyz) Can network-boot ShredOS.
-- [DiskDump](https://github.com/Awire9966/DiskDump) kwipe on Debian livecd, can wipe eMMC chips.
-- [partedmagic](https://partedmagic.com)
-- [SystemRescueCD](https://www.system-rescue.org)
-- [gparted live](https://sourceforge.net/projects/gparted/files/gparted-live-testing/1.2.0-2/)
-- [grml](https://grml.org/)
-
-Know of other distros that include kwipe? Then please let us know or issue a PR on this README.md. Thanks.
-
-## Bugs
-
-Bugs can be reported on GitHub:
-https://github.com/martijnvanbrummelen/kwipe
+If you want to just try out a bootable version of kwipe you can download [ShredOS](https://github.com/Knogle/shredos.x86_64). The ShredOS image is around 60MB and can be written to an USB flash drive in seconds, allowing you to boot straight into the latest version of kwipe. ShredOS is available for x86_64 (64-bit) and i686 (32-bit) CPU architectures and will boot both legacy BIOS and UEFI devices. It comes as .IMG (bootable USB flash drive image) or .ISO (for CD-R/DVD-R). Instructions and download can be found [here](https://github.com/Knogle/shredos.x86_64#obtaining-and-writing-shredos-to-a-usb-flash-drive-the-easy-way-).
 
 ## License
 
