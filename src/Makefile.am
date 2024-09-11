@@ -3,6 +3,10 @@
 AM_CFLAGS =
 AM_LDFLAGS =
 
+# Add the AES-NI flag to C++ compiler options
+AM_CXXFLAGS = -std=c++11 -maes -msse4
+
+
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
 bin_PROGRAMS = nwipe

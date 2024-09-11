@@ -2,8 +2,6 @@
 #define AES_CTR_PRNG_H
 
 #include <stdint.h>
-#include <openssl/aes.h>
-#include <openssl/evp.h>
 
 #ifdef __cplusplus
 extern "C" {
