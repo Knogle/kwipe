@@ -71,11 +71,12 @@ PKG_CHECK_MODULES(
         AC_CHECK_HEADERS(openssl/ssl.h,, [
             AC_CHECK_HEADERS(openssl/crypto.h, [
                 AC_DEFINE([OPENSSL_IN_SUBDIR], [openssl/], [Look for openssl headers in subdir])
-                ], [AC_MSG_ERROR([openssl headers not found])])
+                ], [AC_MSG_WARN([openssl/crypto.h header not found])])
         ])
-    ], [AC_MSG_ERROR([OpenSSL development library not found])]
+    ], [AC_MSG_WARN([OpenSSL development library not found])]
     )]
 )
+
 
 PKG_CHECK_MODULES(
     [LIBCONFIG],
