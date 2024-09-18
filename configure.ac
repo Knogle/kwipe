@@ -50,21 +50,25 @@ PKG_CHECK_MODULES(
 	)]
 )
 
+# Checks for libraries.
+
 PKG_CHECK_MODULES(
     [OPENSSL],
     [openssl],
     [
-            CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
-            LIBS="${LIBS} ${OPENSSL_LIBS}"
+        CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
+        # Statische Verlinkung für libssl und libcrypto
+        LIBS="${LIBS} -L/usr/lib/x86_64-linux-gnu -l:libssl.a -l:libcrypto.a"
     ],
     [AC_CHECK_LIB([ssl], [SSL_library_init], [
-            LIBS="-lssl -lcrypto $LIBS"
-            AC_CHECK_HEADERS(openssl/ssl.h,, [
-                AC_CHECK_HEADERS(openssl/crypto.h, [
-                    AC_DEFINE([OPENSSL_IN_SUBDIR], [openssl/], [Look for openssl headers in subdir])
-                    ], [AC_MSG_ERROR([openssl headers not found])])
-            ])
-        ], [AC_MSG_ERROR([OpenSSL development library not found])]
+        # Statische Verlinkung für libssl und libcrypto
+        LIBS="-L/usr/lib/x86_64-linux-gnu -l:libssl.a -l:libcrypto.a $LIBS"
+        AC_CHECK_HEADERS(openssl/ssl.h,, [
+            AC_CHECK_HEADERS(openssl/crypto.h, [
+                AC_DEFINE([OPENSSL_IN_SUBDIR], [openssl/], [Look for openssl headers in subdir])
+                ], [AC_MSG_ERROR([openssl headers not found])])
+        ])
+    ], [AC_MSG_ERROR([OpenSSL development library not found])]
     )]
 )
 
