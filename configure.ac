@@ -13,56 +13,61 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 PKG_PROG_PKG_CONFIG
 
-# Checks for libraries.
+# OpenSSL-Pfad für Header und Bibliotheken definieren
+OPENSSL_DIR="/workspace/aes/openssl-3.0.0/build"
 
-PKG_CHECK_MODULES(
-	[PANEL],
-	[panel],
-	[
-		CFLAGS="${CFLAGS} ${PANEL_CFLAGS}"
-		LIBS="${LIBS} ${PANEL_LIBS}"
-	],
-	[AC_CHECK_LIB([panel], [main], [
-		LIBS="-lpanel $LIBS"
-		AC_CHECK_HEADERS(panel.h,, [
-		    AC_CHECK_HEADERS(ncurses/panel.h, [
-			AC_DEFINE([PANEL_IN_SUBDIR], [ncurses/], [Look for ncurses headers in subdir])
-			], [AC_MSG_ERROR([ncurses panel headers not found])])
-		])
-	    ], [AC_MSG_ERROR([ncurses panel library not found])])]
-)
-
-PKG_CHECK_MODULES(
-	[NCURSES],
-	[ncurses],
-	[
-		CFLAGS="${CFLAGS} ${NCURSES_CFLAGS}"
-		LIBS="${LIBS} ${NCURSES_LIBS}"
-	],
-	[AC_CHECK_LIB([ncurses], [delscreen], [
-		LIBS="-lncurses $LIBS"
-		AC_CHECK_HEADERS(ncurses.h,, [
-		    AC_CHECK_HEADERS(ncurses/ncurses.h, [
-			AC_DEFINE([NCURSES_IN_SUBDIR], [ncurses/], [Look for ncurses headers in subdir])
-			], [AC_MSG_ERROR([ncurses headers not found])])
-		])
-	    ], [AC_MSG_ERROR([ncurses development library not found])]
-	)]
-)
+# Statische Verlinkung für OpenSSL-Bibliotheken und Nutzung der Header
+CFLAGS="$CFLAGS -I${OPENSSL_DIR}/include"
+LDFLAGS="$LDFLAGS -L${OPENSSL_DIR}/lib64 -l:libssl.a -l:libcrypto.a"
 
 # Checks for libraries.
 
+PKG_CHECK_MODULES(
+    [PANEL],
+    [panel],
+    [
+        CFLAGS="${CFLAGS} ${PANEL_CFLAGS}"
+        LIBS="${LIBS} ${PANEL_LIBS}"
+    ],
+    [AC_CHECK_LIB([panel], [main], [
+        LIBS="-lpanel $LIBS"
+        AC_CHECK_HEADERS(panel.h,, [
+            AC_CHECK_HEADERS(ncurses/panel.h, [
+            AC_DEFINE([PANEL_IN_SUBDIR], [ncurses/], [Look for ncurses headers in subdir])
+            ], [AC_MSG_ERROR([ncurses panel headers not found])])
+        ])
+        ], [AC_MSG_ERROR([ncurses panel library not found])])]
+)
+
+PKG_CHECK_MODULES(
+    [NCURSES],
+    [ncurses],
+    [
+        CFLAGS="${CFLAGS} ${NCURSES_CFLAGS}"
+        LIBS="${LIBS} ${NCURSES_LIBS}"
+    ],
+    [AC_CHECK_LIB([ncurses], [delscreen], [
+        LIBS="-lncurses $LIBS"
+        AC_CHECK_HEADERS(ncurses.h,, [
+            AC_CHECK_HEADERS(ncurses/ncurses.h, [
+            AC_DEFINE([NCURSES_IN_SUBDIR], [ncurses/], [Look for ncurses headers in subdir])
+            ], [AC_MSG_ERROR([ncurses headers not found])])
+        ])
+        ], [AC_MSG_ERROR([ncurses development library not found])]
+    )]
+)
+
+# Checks for OpenSSL, statische Verlinkung für libssl und libcrypto
 PKG_CHECK_MODULES(
     [OPENSSL],
     [openssl],
     [
         CFLAGS="${CFLAGS} ${OPENSSL_CFLAGS}"
-        # Statische Verlinkung für libssl und libcrypto
-        LIBS="${LIBS} -L/usr/lib/x86_64-linux-gnu -l:libssl.a -l:libcrypto.a"
+        LIBS="${LIBS} -L${OPENSSL_DIR}/lib64 -l:libssl.a -l:libcrypto.a"
     ],
     [AC_CHECK_LIB([ssl], [SSL_library_init], [
         # Statische Verlinkung für libssl und libcrypto
-        LIBS="-L/usr/lib/x86_64-linux-gnu -l:libssl.a -l:libcrypto.a $LIBS"
+        LIBS="-L${OPENSSL_DIR}/lib64 -l:libssl.a -l:libcrypto.a $LIBS"
         AC_CHECK_HEADERS(openssl/ssl.h,, [
             AC_CHECK_HEADERS(openssl/crypto.h, [
                 AC_DEFINE([OPENSSL_IN_SUBDIR], [openssl/], [Look for openssl headers in subdir])
@@ -73,20 +78,20 @@ PKG_CHECK_MODULES(
 )
 
 PKG_CHECK_MODULES(
-	[LIBCONFIG],
-	[libconfig],
-	[
-		CFLAGS="${CFLAGS} ${LIBCONFIG_CFLAGS}"
-		LIBS="${LIBS} ${LIBCONFIG_LIBS}"
-	],
-	[AC_CHECK_LIB([libconfig], [main], [
-		LIBS="-llibconfig $LIBS"
-		AC_CHECK_HEADERS(libconfig.h,, [
-		    AC_CHECK_HEADERS(libconfig.h, [
-			AC_DEFINE([LIBCONFIG_IN_SUBDIR], [libconfig/], [Look for libconfig headers in subdir])
-			], [AC_MSG_ERROR([libconfig headers not found])])
-		])
-	    ], [AC_MSG_ERROR([libconfig library not found])])]
+    [LIBCONFIG],
+    [libconfig],
+    [
+        CFLAGS="${CFLAGS} ${LIBCONFIG_CFLAGS}"
+        LIBS="${LIBS} ${LIBCONFIG_LIBS}"
+    ],
+    [AC_CHECK_LIB([libconfig], [main], [
+        LIBS="-llibconfig $LIBS"
+        AC_CHECK_HEADERS(libconfig.h,, [
+            AC_CHECK_HEADERS(libconfig.h, [
+            AC_DEFINE([LIBCONFIG_IN_SUBDIR], [libconfig/], [Look for libconfig headers in subdir])
+            ], [AC_MSG_ERROR([libconfig headers not found])])
+        ])
+        ], [AC_MSG_ERROR([libconfig library not found])])]
 )
 
 AC_CHECK_LIB([intl], [libintl_dgettext]) # needed to statically link libparted, but not given in its pkgconfig file
@@ -106,3 +111,4 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([fdatasync memset regcomp strdup strerror])
 
 AC_OUTPUT
+
