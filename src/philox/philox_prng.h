@@ -24,8 +24,9 @@ extern "C" {
 
 
 typedef struct philox_state_s {
-    __m256i counter;  // Verwende 256-Bit AVX2 Register für den Zähler
-    __m256i key;      // Verwende 256-Bit AVX2 Register für den Schlüssel
+    __m256i counter_lo;  // Untere 128 Bit des Zählers
+    __m256i counter_hi;  // Obere 128 Bit des Zählers
+    __m256i key;         // 256-Bit Schlüssel für den PRNG
 } philox_state_t;
 
 /* Initialisiert den Philox PRNG Zustand.

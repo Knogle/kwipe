@@ -1,59 +1,99 @@
-#include <immintrin.h>  // Für AVX2-Instruktionen
-#include <assert.h>
+#include <immintrin.h>  // Für AVX2-Instrinsics
+#include <stdint.h>
 #include <string.h>
+#include <assert.h>
 #include "philox_prng.h"
 
+#define NUM_ROUNDS 10  // Anzahl der Runden für Philox 4x32
 
+// Helper-Funktion zur Berechnung der oberen 32 Bits der 32-Bit-Multiplikation
+static inline __m256i mulhi_epu32(__m256i a, __m256i b)
+{
+    __m256i a_lo = _mm256_and_si256(a, _mm256_set1_epi64x(0xFFFFFFFF));
+    __m256i b_lo = _mm256_and_si256(b, _mm256_set1_epi64x(0xFFFFFFFF));
+    __m256i product_lo = _mm256_mul_epu32(a_lo, b_lo);  // Multipliziert die unteren 32-Bit-Werte
 
-// Funktion zur Initialisierung des PRNG-Zustands mit einem Schlüssel
-void philox_prng_init(philox_state_t* state, unsigned long init_key[], unsigned long key_length) {
-    assert(state != NULL && init_key != NULL);
+    __m256i a_hi = _mm256_srli_epi64(a, 32);
+    __m256i b_hi = _mm256_srli_epi64(b, 32);
+    __m256i product_hi = _mm256_mul_epu32(a_hi, b_hi);  // Multipliziert die oberen 32-Bit-Werte
 
-    // Initialisiere den Zähler mit Null
-    state->counter = _mm256_setzero_si256();
+    __m256i high_lo = _mm256_srli_epi64(product_lo, 32);
+    __m256i high_hi = _mm256_srli_epi64(product_hi, 32);
 
-    // Initialisiere den Schlüssel. Da wir AVX2 verwenden, passen maximal vier 64-Bit-Schlüssel in einen __m256i.
-    // Fülle den Schlüsselbereich auf, falls key_length < 4 ist.
-    if (key_length >= 4) {
-        state->key = _mm256_set_epi64x(init_key[3], init_key[2], init_key[1], init_key[0]);
-    } else {
-        unsigned long temp_key[4] = {0, 0, 0, 0};  // Fülle mit Nullen auf
-        for (unsigned long i = 0; i < key_length; ++i) {
-            temp_key[i] = init_key[i];
-        }
-        state->key = _mm256_set_epi64x(temp_key[3], temp_key[2], temp_key[1], temp_key[0]);
-    }
+    return _mm256_or_si256(high_lo, _mm256_slli_epi64(high_hi, 32));
 }
 
-// Funktion zur Erzeugung von 512 Bit Zufallszahlen und Kopieren in einen Puffer
-void philox_prng_genrand_uint512_to_buf(philox_state_t* state, unsigned char* bufpos) {
-    assert(state != NULL && bufpos != NULL);  // Validiere Eingaben
+// Initialisierung des PRNG-Zustands
+void philox_prng_init(philox_state_t* state, unsigned long init_key[], unsigned long key_length)
+{
+    assert(state != NULL && init_key != NULL && key_length >= 4);
 
-    // Temporärer Puffer für 512 Bit (64 Bytes)
-    unsigned char temp_buffer[64];
-    memset(temp_buffer, 0, sizeof(temp_buffer));  // Initialisiere temporären Puffer mit Nullen
-
-    // Philox-Kernberechnung:
-    __m256i multiplier = _mm256_set1_epi64x(0xD2B74407B1CE6E93);  // Philox-Konstante für Multiplikation
-    __m256i increment = _mm256_set1_epi64x(0x9E3779B97F4A7C15);   // Philox-Konstante für Inkrementierung
-
-    // Hauptschleife, die den Zähler und Schlüssel transformiert (Philox-Kern, z.B. 10 Runden)
-    for (int i = 0; i < 10; ++i) {
-        // Untere 32 Bit multiplizieren und obere 32 Bit für weitere Operationen nutzen
-        __m256i lo = _mm256_mul_epu32(state->counter, multiplier);  // Untere 32 Bit multiplizieren
-        __m256i hi = _mm256_srli_epi64(state->counter, 32);         // Höhere 32 Bit verschieben
-
-        // Schlüssel und Zähler modifizieren
-        state->counter = _mm256_add_epi64(state->counter, increment);
-        state->key = _mm256_xor_si256(state->key, hi);  // XOR mit den oberen Bits des Zählers
+    uint32_t key_data[8] = {0};  // Temporärer Puffer für den Schlüssel, keine Ausrichtung erforderlich
+    for (size_t i = 0; i < 8 && i < key_length; ++i) {
+        key_data[i] = (uint32_t)(init_key[i] & 0xFFFFFFFF);
     }
+    state->key = _mm256_loadu_si256((__m256i*)key_data);  // Verwende "u"-Variante für unaligned Load
 
-    // Die Ergebnisse in den temporären Puffer kopieren
-    _mm256_storeu_si256((__m256i*)temp_buffer, state->counter);      // Speichere die ersten 256 Bit
-    _mm256_storeu_si256((__m256i*)(temp_buffer + 32), state->key);   // Speichere die zweiten 256 Bit
-
-    // Kopiere die generierten Pseudozufallsdaten in den Zielpuffer
-    memcpy(bufpos, temp_buffer, sizeof(temp_buffer));
+    state->counter_lo = _mm256_setzero_si256();
+    state->counter_hi = _mm256_setzero_si256();
 }
 
+// Eine Runde des Philox 4x32 PRNG
+static inline void philox_round(__m256i* counter_lo, __m256i* counter_hi, __m256i* key)
+{
+    const __m256i M0 = _mm256_set1_epi32(0xD256D193);
+    const __m256i M1 = _mm256_set1_epi32(0x9E3779B9);
+
+    __m256i x0 = *counter_lo;
+    __m256i x1 = *counter_hi;
+
+    __m256i lo0 = _mm256_mullo_epi32(x0, M0);
+    __m256i hi0 = mulhi_epu32(x0, M0);
+
+    __m256i lo1 = _mm256_mullo_epi32(x1, M1);
+    __m256i hi1 = mulhi_epu32(x1, M1);
+
+    __m256i new_x0 = _mm256_xor_si256(hi1, _mm256_add_epi32(_mm256_shuffle_epi32(*counter_lo, _MM_SHUFFLE(0, 0, 3, 2)), *key));
+    __m256i new_x1 = lo1;
+    __m256i new_x2 = _mm256_xor_si256(hi0, _mm256_add_epi32(_mm256_shuffle_epi32(*counter_hi, _MM_SHUFFLE(0, 0, 1, 0)), *key));
+    __m256i new_x3 = lo0;
+
+    *counter_lo = _mm256_blend_epi32(new_x2, new_x3, 0xF0);
+    *counter_hi = _mm256_blend_epi32(new_x0, new_x1, 0x0F);
+
+    const __m256i KEY_INCREMENT = _mm256_set1_epi32(0x9E3779B9);
+    *key = _mm256_add_epi32(*key, KEY_INCREMENT);
+}
+
+// Generiert Pseudorandom-Zahlen und schreibt sie in einen Puffer
+void philox_prng_genrand_uint512_to_buf(philox_state_t* state, unsigned char* bufpos)
+{
+    assert(state != NULL && bufpos != NULL);
+
+    __m256i temp_buffer[2];
+    memset(temp_buffer, 0, sizeof(temp_buffer));  // Initialisierung des temporären Puffers
+
+    __m256i counter_lo = state->counter_lo;
+    __m256i counter_hi = state->counter_hi;
+    __m256i key = state->key;
+
+    // Philox-Runden ausführen
+    for (int i = 0; i < NUM_ROUNDS; ++i)
+    {
+        philox_round(&counter_lo, &counter_hi, &key);
+    }
+
+    // Temporären Puffer in den Ausgabepuffer schreiben, ohne dass eine Ausrichtung notwendig ist
+    _mm256_storeu_si256((__m256i*)bufpos, counter_lo);         // Unaligned Store
+    _mm256_storeu_si256((__m256i*)(bufpos + 32), counter_hi);  // Unaligned Store
+
+    // Zähler inkrementieren
+    __m256i one = _mm256_set1_epi64x(1);
+    state->counter_lo = _mm256_add_epi64(state->counter_lo, one);
+
+    // Überlaufbehandlung
+    __m256i zero = _mm256_setzero_si256();
+    __m256i mask = _mm256_cmpeq_epi64(state->counter_lo, zero);
+    state->counter_hi = _mm256_add_epi64(state->counter_hi, mask);
+}
 
