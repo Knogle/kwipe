@@ -1616,11 +1616,12 @@ void nwipe_gui_prng( void )
     extern nwipe_prng_t nwipe_aes_ctr_prng;
     extern nwipe_prng_t nwipe_xoroshiro256_prng;
     extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
+    extern nwipe_prng_t nwipe_philox_prng;
 
     extern int terminate_signal;
 
     /* The number of implemented PRNGs. */
-    const int count = 5;
+    const int count = 6;
 
     /* The first tabstop. */
     const int tab1 = 2;
@@ -1662,6 +1663,10 @@ void nwipe_gui_prng( void )
     {
         focus = 4;
     }
+    if( nwipe_options.prng == &nwipe_philox_prng )
+    {
+        focus = 5;
+    }
     do
     {
         /* Clear the main window. */
@@ -1678,6 +1683,7 @@ void nwipe_gui_prng( void )
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_isaac64.label );
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_add_lagg_fibonacci_prng.label );
         mvwprintw( main_window, yy++, tab1, "  %s", nwipe_xoroshiro256_prng.label );
+        mvwprintw( main_window, yy++, tab1, "  %s", nwipe_philox_prng.label );        
         yy++;
 
         /* Print the cursor. */
@@ -1852,6 +1858,54 @@ void nwipe_gui_prng( void )
                            tab1,
                            "especially for legacy systems, due to its efficiency and minimal demands.  " );
                 break;
+                case 5:
+
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "Philox, originally developed by John Salmon, Mark Moraes, Ron O. Dror, and    " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "David E. Shaw, is a counter-based PRNG designed for parallel pseudorandom     " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "number generation. This implementation has been adapted by Fabian Druschke    " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "to provide high-quality, fast pseudorandom numbers using AVX2 optimizations.  " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "It generates 512-bit blocks, ensuring high performance and long periods of    " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "2^256 or more, making it suitable for demanding applications.                 " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "                                                                              " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "Philox uses simple arithmetic operations (multiplication, addition, and XOR),  " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "making it both efficient and easy to parallelize. Fabian Druschke's adaptation " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "leverages modern hardware capabilities, providing excellent performance for   " );
+    mvwprintw( main_window,
+               yy++,
+               tab1,
+               "modern systems while maintaining reliability in various scenarios.             " );
+    break;
+
         }
 
         /* switch */
@@ -1921,6 +1975,10 @@ void nwipe_gui_prng( void )
                 if( focus == 4 )
                 {
                     nwipe_options.prng = &nwipe_xoroshiro256_prng;
+                }
+                if( focus == 5 )
+                {
+                    nwipe_options.prng = &nwipe_philox_prng;
                 }
                 return;
 

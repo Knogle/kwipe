@@ -27,6 +27,7 @@
 #include "isaac_rand/isaac64.h"
 #include "alfg/add_lagg_fibonacci_prng.h"  //Lagged Fibonacci generator prototype
 #include "xor/xoroshiro256_prng.h"  //XORoshiro-256 prototype
+#include "philox/philox_prng.h"  //Philox prototype
 
 nwipe_prng_t nwipe_twister = { "Mersenne Twister (mt19937ar-cok)", nwipe_twister_init, nwipe_twister_read };
 
@@ -39,6 +40,9 @@ nwipe_prng_t nwipe_add_lagg_fibonacci_prng = { "Lagged Fibonacci generator",
                                                nwipe_add_lagg_fibonacci_prng_read };
 /* XOROSHIRO-256 PRNG Structure */
 nwipe_prng_t nwipe_xoroshiro256_prng = { "XORoshiro-256", nwipe_xoroshiro256_prng_init, nwipe_xoroshiro256_prng_read };
+
+/* Philox PRNG Structure */
+nwipe_prng_t nwipe_philox_prng = { "Philox", nwipe_philox_prng_init, nwipe_philox_prng_read };
 
 /* Print given number of bytes from unsigned integer number to a byte stream buffer starting with low-endian. */
 static inline void u32_to_buffer( u8* restrict buffer, u32 val, const int len )
@@ -340,3 +344,46 @@ int nwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 
     return 0;  // Success
 }
+
+/* EXPERIMENTAL implementation of Philox algorithm to provide high-quality, but a lot of random numbers */
+int nwipe_philox_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+{
+    nwipe_log( NWIPE_LOG_NOTICE, "Initialising Philox PRNG" );
+
+    if( *state == NULL )
+    {
+        /* This is the first time that we have been called. */
+        *state = malloc( sizeof( philox_state_t ) );
+    }
+    philox_prng_init( (philox_state_t*) *state, (uint64_t*) ( seed->s ), seed->length / sizeof( uint64_t ) );
+
+    return 0;
+}
+
+
+int nwipe_philox_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+{
+    u8* restrict bufpos = buffer;
+    size_t words = count / SIZE_OF_PHILOX_PRNG;
+
+    /* Loop to fill the buffer with blocks directly from the XORoroshiro256 algorithm */
+    for( size_t ii = 0; ii < words; ++ii )
+    {
+        philox_prng_genrand_uint512_to_buf( (philox_state_t*) *state, bufpos );
+        bufpos += SIZE_OF_PHILOX_PRNG;  // Move to the next block
+    }
+
+    /* Handle remaining bytes if count is not a multiple of SIZE_OF_PHILOX_PRNG */
+    const size_t remain = count % SIZE_OF_PHILOX_PRNG;
+    if( remain > 0 )
+    {
+        unsigned char temp_output[SIZE_OF_PHILOX_PRNG];  // Temporary buffer for the last block
+        philox_prng_genrand_uint512_to_buf( (philox_state_t*) *state, temp_output );
+
+        // Copy the remaining bytes
+        memcpy( bufpos, temp_output, remain );
+    }
+
+    return 0;  // Success
+}
+
