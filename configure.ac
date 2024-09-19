@@ -13,6 +13,13 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_CC
 PKG_PROG_PKG_CONFIG
 
+
+# Checks for programs.
+AC_PROG_CC
+AM_PROG_AS   # Assembler-Programm hinzufügen
+PKG_PROG_PKG_CONFIG
+
+
 # Checks for libraries.
 
 PKG_CHECK_MODULES(
