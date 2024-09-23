@@ -1,0 +1,61 @@
+name: Package kwipe
+
+# Define when the workflow should run (on push to main branch and pull requests to main)
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # Job to build a .deb package for Debian/Ubuntu
+  build-deb:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3  # Checkout the code from the repository
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y dpkg-dev  # Install dpkg-dev to build .deb packages
+
+      - name: Build .deb package
+        run: |
+          mkdir -p kwipe-deb  # Create a directory for the package
+          cd kwipe-deb
+          # Copy project files to the package directory
+          cp -r ../* .
+          # Build the .deb package using dpkg-deb
+          echo "Building Debian package for kwipe..."
+          dpkg-deb --build . ../kwipe.deb
+      - name: Upload Debian Package
+        uses: actions/upload-artifact@v3  # Upload the generated .deb package as an artifact
+        with:
+          name: kwipe.deb
+          path: ./kwipe.deb
+
+  # Job to build a .rpm package for Fedora/RedHat
+  build-rpm:
+    runs-on: fedora-latest  # Use the latest Fedora runner
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3  # Checkout the code from the repository
+
+      - name: Install dependencies
+        run: sudo dnf install -y rpm-build rpmdevtools  # Install RPM build tools
+
+      - name: Build .rpm package
+        run: |
+          mkdir -p kwipe-rpm  # Create a directory for the RPM package
+          cd kwipe-rpm
+          # Copy project files to the package directory
+          cp -r ../* .
+          # Build the .rpm package using rpmbuild and the spec file
+          echo "Building RPM package for kwipe..."
+          rpmbuild -bb kwipe.spec
+      - name: Upload RPM Package
+        uses: actions/upload-artifact@v3  # Upload the generated .rpm package as an artifact
+        with:
+          name: kwipe.rpm
+          path: ~/rpmbuild/RPMS/x86_64/kwipe.rpm
