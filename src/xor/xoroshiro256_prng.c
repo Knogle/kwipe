@@ -1,74 +1,81 @@
 /*
  * XORoshiro-256 PRNG Implementation
- * Author: Fabian Druschke
- * Date: 2024-03-13
+ * Autor: Fabian Druschke
+ * Datum: 2024-03-13
  *
- * This is a XORoshiro-256 (XOR/rotate/shift/rotate) pseudorandom number generator
- * implementation, designed for fast and efficient generation of high-quality
- * pseudorandom numbers. XORoshiro-256 is part of the XORoshiro family of PRNGs known
- * for their simplicity and excellent statistical properties for a wide range of
- * applications, though they are not suitable for cryptographic purposes due to their
- * predictability.
+ * Dies ist eine Implementierung des XORoshiro-256 (XOR/rotate/shift/rotate) Pseudorandom Number Generators
+ * (PRNG), entwickelt für schnelle und effiziente Erzeugung von qualitativ hochwertigen Pseudorandom Numbers.
+ * XORoshiro-256 ist Teil der XORoshiro-Familie von PRNGs, bekannt für ihre Einfachheit und hervorragenden
+ * statistischen Eigenschaften für eine Vielzahl von Anwendungen, obwohl sie aufgrund ihrer Vorhersehbarkeit
+ * nicht für kryptographische Zwecke geeignet sind.
  *
- * As the author of this implementation, I, Fabian Druschke, hereby release this work into
- * the public domain. I dedicate any and all copyright interest in this work to the public
- * domain, making it free to use for anyone for any purpose without any conditions, unless
- * such conditions are required by law.
+ * Als Autor dieser Implementierung gebe ich, Fabian Druschke, dieses Werk hiermit in die Public Domain frei.
+ * Ich verzichte auf alle Urheberrechte an diesem Werk und stelle es der Öffentlichkeit frei zur Verfügung,
+ * ohne jegliche Bedingungen, sofern solche Bedingungen nicht gesetzlich erforderlich sind.
  *
- * This software is provided "as is", without warranty of any kind, express or implied,
- * including but not limited to the warranties of merchantability, fitness for a particular
- * purpose, and noninfringement. In no event shall the authors be liable for any claim,
- * damages, or other liability, whether in an action of contract, tort, or otherwise, arising
- * from, out of, or in connection with the software or the use or other dealings in the software.
+ * Diese Software wird "wie besehen" bereitgestellt, ohne jegliche ausdrückliche oder implizierte Garantie,
+ * einschließlich, aber nicht beschränkt auf die Garantien der Marktgängigkeit, der Eignung für einen
+ * bestimmten Zweck und der Nichtverletzung. In keinem Fall sind die Autoren haftbar für irgendwelche
+ * Ansprüche, Schäden oder andere Haftungen, ob aus Vertrag, unerlaubter Handlung oder anderweitig, die
+ * sich aus oder in Verbindung mit der Software oder der Nutzung oder anderen Geschäften mit der Software
+ * ergeben.
  *
- * Note: This implementation does not utilize OpenSSL or any cryptographic libraries, as
- * XORoshiro-256 is not intended for cryptographic applications. It is crucial for applications
- * requiring cryptographic security to use a cryptographically secure PRNG.
+ * Hinweis: Diese Implementierung nutzt keine kryptographischen Bibliotheken, da XORoshiro-256 nicht für
+ * kryptographische Anwendungen vorgesehen ist. Es ist wichtig, für Anwendungen, die kryptographische
+ * Sicherheit erfordern, einen kryptographisch sicheren PRNG zu verwenden.
  */
 
 #include "xoroshiro256_prng.h"
 #include <stdint.h>
 #include <string.h>
 
-void xoroshiro256_init( xoroshiro256_state_t* state, uint64_t init_key[], unsigned long key_length )
+// Rotationsfunktion
+static inline uint64_t rotl(const uint64_t x, int k)
 {
-    // Initialization logic; ensure 256 bits are properly seeded
-    for( int i = 0; i < 4; i++ )
+    return (x << k) | (x >> (64 - k));
+}
+
+// Initialisierungsfunktion
+void xoroshiro256_init(xoroshiro256_state_t* state, uint64_t init_key[], unsigned long key_length)
+{
+    // Initialisierungslogik; stellt sicher, dass 256 Bit korrekt gesetzt sind
+    for (int i = 0; i < 4; i++)
     {
-        if( i < key_length )
+        if (i < key_length)
         {
             state->s[i] = init_key[i];
         }
         else
         {
-            // Example fallback for insufficient seeds; consider better seeding strategies
-            state->s[i] = state->s[i - 1] * 6364136223846793005ULL + 1;
+            // Fallback für unzureichende Seeds; bessere Strategien können hier eingesetzt werden
+            state->s[i] = 0x9E3779B97F4A7C15ULL * (state->s[i - 1] ^ (state->s[i - 1] >> 27)) + i;
         }
     }
 }
 
-static inline uint64_t rotl( const uint64_t x, int k )
+// PRNG-Funktion zur Generierung eines 256-Bit-Zufallswerts
+void xoroshiro256_genrand_uint256_to_buf(xoroshiro256_state_t* state, unsigned char* bufpos)
 {
-    return ( x << k ) | ( x >> ( 64 - k ) );
+    uint64_t results[4];
+    for (int i = 0; i < 4; i++)
+    {
+        // Generieren der Zufallszahl gemäß xoroshiro256**
+        const uint64_t result_starstar = rotl(state->s[1] * 5, 7) * 9;
+        results[i] = result_starstar;
+
+        // Aktualisierung des Zustands
+        const uint64_t t = state->s[1] << 17;
+
+        state->s[2] ^= state->s[0];
+        state->s[3] ^= state->s[1];
+        state->s[1] ^= state->s[2];
+        state->s[0] ^= state->s[3];
+
+        state->s[2] ^= t;
+        state->s[3] = rotl(state->s[3], 45);
+    }
+
+    // Kopieren der generierten Zufallszahlen in den Puffer
+    memcpy(bufpos, results, 32);  // Kopiert die 256-Bit-Zufallszahlen in 'bufpos'
 }
 
-void xoroshiro256_genrand_uint256_to_buf( xoroshiro256_state_t* state, unsigned char* bufpos )
-{
-    // This part of the code updates the state using xoroshiro256**'s algorithm.
-    const uint64_t result_starstar = rotl( state->s[1] * 5, 7 ) * 9;
-    const uint64_t t = state->s[1] << 17;
-
-    state->s[2] ^= state->s[0];
-    state->s[3] ^= state->s[1];
-    state->s[1] ^= state->s[2];
-    state->s[0] ^= state->s[3];
-
-    state->s[2] ^= t;
-    state->s[3] = rotl( state->s[3], 45 );
-
-    // Note: 'result_starstar' was only used for demonstration purposes and is not part of the
-    // original Xoroshiro256** specification. Here, we write the complete state into the buffer.
-    // Ensure that 'bufpos' has enough storage space (256 bits / 32 bytes).
-
-    memcpy( bufpos, state->s, 32 );  // Copies the entire 256-bit (32 bytes) state into 'bufpos'
-}
